@@ -7,8 +7,7 @@
     "moduleResolution": "bundler",
     "composite": true,
     "emitDeclarationOnly": true,
-    "declarationDir": "./node_modules/.tmp/dts-out",
-    "isolatedDeclarations": true
+    "declarationDir": "./node_modules/.tmp/dts-out"
   },
   "include": ["src", "test"]
 }
