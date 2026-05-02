@@ -1,0 +1,14 @@
+{
+  "extends": ["@tsconfig/bases/strictest"],
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["ESNext"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./node_modules/.tmp/dts-out",
+    "isolatedDeclarations": true
+  },
+  "include": ["src", "test"]
+}
