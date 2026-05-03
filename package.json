@@ -61,6 +61,7 @@
   "dependencies": {
     "@babel/core": "^7.29.0",
     "globby": "^16.2.0",
+    "p-limit": "^7.3.0",
     "unplugin": "^3.0.0",
     "xxhash-wasm": "^1.1.0"
   },

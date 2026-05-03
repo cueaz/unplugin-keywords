@@ -1,0 +1,31 @@
+import { SHORT_HASH_LENGTH } from './constants';
+import { encodeIdentifier, toSafeVarName } from './encode';
+
+export const generateTypeDeclaration = (keywords: Set<string>): string => {
+  const sortedKeywords = Array.from(keywords).sort();
+  const content = [];
+  content.push('type Keyword<K, V> = V & { readonly __keyword__: K };');
+  content.push('');
+
+  for (const keyword of sortedKeywords) {
+    const encoded = encodeIdentifier(keyword);
+    const safeName = toSafeVarName(encoded);
+    const hash = '*'.repeat(SHORT_HASH_LENGTH);
+    const value = `${hash}_${encoded}`;
+    content.push(
+      `declare const ${safeName}: Keyword<${JSON.stringify(keyword)}, ${JSON.stringify(value)}>;`,
+    );
+  }
+  content.push('');
+
+  content.push('export {');
+  for (const keyword of sortedKeywords) {
+    const encoded = encodeIdentifier(keyword);
+    const safeName = toSafeVarName(encoded);
+    content.push(`  ${safeName} as ${JSON.stringify(keyword)},`);
+  }
+  content.push('};');
+  content.push('');
+
+  return content.join('\n');
+};

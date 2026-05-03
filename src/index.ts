@@ -76,7 +76,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({ isDev, seed }) => {
           const value = isDev ? `${hash}_${encoded}` : hash;
           resolvedMap.set(
             resolvedId,
-            `export default ${JSON.stringify(value)};`,
+            `export default ${JSON.stringify(value)};\n`,
           );
         }
         return { code: transformed, map };
