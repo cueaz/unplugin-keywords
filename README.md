@@ -1,6 +1,6 @@
 # unplugin-keywords
 
-A build-time static analysis tool for structural string literal minification.
+A build plugin for structural string literal minification and obfuscation.
 
 `unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, event names, or structural identifiers. By extracting these literals at the AST level and mapping them to deterministic, fixed-length hashes during the build process, it enables bundlers to aggressively inline and obfuscate application internals.
 
@@ -17,13 +17,13 @@ Developers reference strings via a virtual module. The strongly recommended patt
 import * as K from 'virtual:keywords';
 
 const action = {
-  [K.type]: K.SET_USER,
+  [K.type]: typeof K.SET_USER,
   [K.payload]: data,
 };
 ```
 
 **2. AST Transformation**
-During the build phase, the plugin traverses the AST, resolving bindings and **statically resolving** member expressions. It replaces valid identifier access with a generated AST node pointing to a deterministic base62 hash.
+During the build phase, the plugin traverses the AST, resolving bindings and statically resolving member expressions. It replaces valid identifier access with a generated AST node pointing to a deterministic base62 hash.
 
 **3. Minified Output (Production)**
 The bundler receives the transformed AST and processes the hashed literals. Depending on the frequency of usage, the minifier will either inline the strings directly or extract them into single-character variables to save bytes.
@@ -33,14 +33,6 @@ The bundler receives the transformed AST and processes the hashed literals. Depe
 const _="zXpL21k";const a={"a3fB9zX":_,"1kMw8pA":data};
 ```
 *The resulting bundle is stripped of semantic strings, mapping internal application logic to 7-character deterministic hashes.*
-
-## Technical Specifications
-
-- **Deterministic Hashing:** Utilizes `xxhash-wasm` to generate stable, 7-character base62 hashes (`[a-zA-Z0-9]{7}`). Hashes are invariant across builds unless the configured `seed` is modified.
-- **AST-Level Resolution:** Operates strictly on the Babel AST. It resolves named imports, namespace access (`K.value`, `K['kebab']`), JSX identifiers (`<K.Component />`), TypeScript type queries (`let a: K.Type`), and modular re-exports.
-- **Scope Integrity:** Implements robust scope tracking. If an imported virtual binding is shadowed by a local variable declaration, the transformation is aborted for that scope, guaranteeing zero runtime collisions.
-- **Isomorphic Type Generation:** Provides a CLI to statically analyze the project workspace and emit comprehensive TypeScript declaration files (`.keywords.d.ts`), ensuring complete type safety without runtime overhead.
-- **Bundler Agnosticism:** Built upon the `unplugin` framework, ensuring native interoperability with Vite, Rollup, Webpack, and esbuild.
 
 ## Integration
 
@@ -56,16 +48,16 @@ Configure your bundler. Example for Vite:
 import { defineConfig } from 'vite';
 import keywords from 'unplugin-keywords/vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     keywords({
       // Preserves keyword suffix in development for debugging (e.g., "hash_SET_USER")
-      isDev: process.env.NODE_ENV === 'development',
+      isDev: mode === 'development',
       // Initializes the hashing algorithm. Modify to rotate hashes globally.
       seed: 42,
     }),
   ],
-});
+}));
 ```
 
 To enable type checking and IDE auto-completion, execute the CLI and register the output in `tsconfig.json`:
@@ -94,7 +86,15 @@ The namespace import pattern shines in complex, class-based architectures where 
 
 ```ts
 import * as K from 'virtual:keywords';
-import { AsyncDirective, noChange, Part } from 'lit/async-directive.js';
+import {
+  AsyncDirective,
+  type DirectiveParameters,
+  directive,
+} from '../async-directive.js';
+import { type ChildPart, noChange } from '../lit-html.js';
+import { forAwaitOf, Pauser, PseudoWeakRef } from './private-async-helpers.js';
+
+type Mapper<T> = (v: T, index?: number) => unknown;
 
 export class AsyncReplaceDirective extends AsyncDirective {
   private [K.__value]?: AsyncIterable<unknown>;
@@ -105,24 +105,24 @@ export class AsyncReplaceDirective extends AsyncDirective {
     return noChange;
   }
 
-  override [K.update](_part: Part, [value, mapper]: DirectiveParameters<this>) {
+  override [K.update](_part: ChildPart, [value, mapper]: DirectiveParameters<this>) {
     if (!this[K.isConnected]) {
       this[K.disconnected]();
     }
-    
+
     if (value === this[K.__value]) {
       return noChange;
     }
-    
+
     this[K.__value] = value;
     let i = 0;
     const { [K.__weakThis]: weakThis, [K.__pauser]: pauser } = this;
-    
+
     forAwaitOf(value, async (v: unknown) => {
       while (pauser[K.get]()) {
         await pauser[K.get]();
       }
-      
+
       const _this = weakThis[K.deref]();
       if (_this !== undefined) {
         if (_this[K.__value] !== value) {
@@ -138,7 +138,7 @@ export class AsyncReplaceDirective extends AsyncDirective {
       }
       return true;
     });
-    
+
     return noChange;
   }
 

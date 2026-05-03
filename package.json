@@ -1,7 +1,7 @@
 {
   "name": "unplugin-keywords",
   "version": "2.0.0",
-  "description": "A Rollup/Vite plugin that provides minifiable keywords to use in place of string literals for aggressive minification/obfuscation.",
+  "description": "A build plugin for structural string literal minification and obfuscation.",
   "keywords": [
     "unplugin",
     "rollup",
