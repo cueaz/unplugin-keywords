@@ -39,6 +39,10 @@
       "types": "./dist/webpack.d.ts",
       "default": "./dist/webpack.js"
     },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    },
     "./package.json": "./package.json"
   },
   "bin": {

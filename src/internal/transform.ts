@@ -209,6 +209,9 @@ export const transformCode = (
   map: NonNullable<BabelFileResult['map']> | null;
   keywords: Set<string>;
 } | null => {
+  if (!code.includes(VIRTUAL_MODULE_ID)) {
+    return null;
+  }
   const result = transformSync(code, {
     babelrc: false,
     configFile: false,
