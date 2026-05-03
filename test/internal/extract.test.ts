@@ -71,5 +71,14 @@ describe('internal/extract', () => {
       const keywords = extractKeywords(code);
       expect(keywords).toEqual(new Set([]));
     });
+
+    it('handles hoisted imports (usage before declaration)', () => {
+      const code = `
+        console.log(A.abc);
+        import * as A from 'virtual:keywords';
+      `;
+      const keywords = extractKeywords(code);
+      expect(keywords).toEqual(new Set(['abc']));
+    });
   });
 });

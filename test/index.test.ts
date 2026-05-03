@@ -70,6 +70,7 @@ describe('integration: unplugin-keywords', () => {
 
     const code = `
       import { testDevKey } from 'virtual:keywords';
+      console.log(testDevKey);
     `;
 
     // @ts-expect-error test

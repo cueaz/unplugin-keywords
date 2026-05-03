@@ -9,12 +9,29 @@ import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants';
 import { encodeIdentifier, toSafeVarName } from './encode';
 
 interface TransformState extends PluginPass {
-  keywords: Set<string>;
+  keywordUids: Map<string, t.Identifier>;
+  allKeywords: Set<string>;
 }
 
 interface TransformMetadata {
   keywords?: string[];
 }
+
+const getUid = (
+  state: TransformState,
+  path: import('@babel/core').NodePath,
+  keyword: string,
+) => {
+  state.allKeywords.add(keyword);
+  let uid = state.keywordUids.get(keyword);
+  if (!uid) {
+    const safeName = toSafeVarName(encodeIdentifier(keyword));
+    const programScope = path.scope.getProgramParent();
+    uid = programScope.generateUidIdentifier(safeName);
+    state.keywordUids.set(keyword, uid);
+  }
+  return t.cloneNode(uid);
+};
 
 const transformPlugin = (): PluginObj<TransformState> => {
   return {
@@ -22,159 +39,48 @@ const transformPlugin = (): PluginObj<TransformState> => {
     visitor: {
       Program: {
         enter(_, state) {
-          state.keywords = new Set<string>();
+          state.keywordUids = new Map();
+          state.allKeywords = new Set();
         },
         exit(path, state) {
           const metadata = state.file.metadata as TransformMetadata;
-          metadata.keywords = Array.from(state.keywords);
+          metadata.keywords = Array.from(state.allKeywords);
 
-          const newImports = Array.from(state.keywords).map((keyword) => {
-            const encoded = encodeIdentifier(keyword);
-            const safeName = toSafeVarName(encoded);
-            return t.importDeclaration(
-              [t.importDefaultSpecifier(t.identifier(safeName))],
-              t.stringLiteral(`${VIRTUAL_MODULE_ID}/${encoded}`),
-            );
-          });
+          const newImports = Array.from(state.keywordUids.entries()).map(
+            ([keyword, safeId]) => {
+              const encoded = encodeIdentifier(keyword);
+              return t.importDeclaration(
+                [t.importDefaultSpecifier(safeId)],
+                t.stringLiteral(`${VIRTUAL_MODULE_ID}/${encoded}`),
+              );
+            },
+          );
           if (newImports.length > 0) {
             path.unshiftContainer('body', newImports);
           }
+
+          path.traverse({
+            ImportDeclaration(importPath) {
+              if (importPath.node.source.value === VIRTUAL_MODULE_ID) {
+                importPath.remove();
+              }
+            },
+          });
         },
       },
 
-      ImportDeclaration(path, state) {
-        if (path.node.source.value !== VIRTUAL_MODULE_ID) {
-          return;
-        }
-
-        for (const specifierPath of path.get('specifiers')) {
-          const localName = specifierPath.node.local.name;
-          const binding = path.scope.getBinding(localName);
-          if (!binding) {
-            continue;
-          }
-
-          // Case 1: import { a, 'a-a' as aa } from 'virtual:keywords';
-          if (specifierPath.isImportSpecifier()) {
-            const imported = specifierPath.node.imported;
-            const keyword = t.isIdentifier(imported)
-              ? imported.name
-              : imported.value;
-            state.keywords.add(keyword);
-            const safeName = toSafeVarName(encodeIdentifier(keyword));
-
-            for (const refPath of binding.referencePaths) {
-              // Handle <a />
-              if (refPath.isJSXIdentifier()) {
-                refPath.replaceWith(t.jsxIdentifier(safeName));
-              } else {
-                refPath.replaceWith(t.identifier(safeName));
-              }
-            }
-          }
-
-          // Case 2: import a from 'virtual:keywords';
-          else if (specifierPath.isImportDefaultSpecifier()) {
-            const keyword = 'default';
-            state.keywords.add(keyword);
-            const safeName = toSafeVarName(encodeIdentifier(keyword));
-
-            for (const refPath of binding.referencePaths) {
-              if (refPath.isJSXIdentifier()) {
-                refPath.replaceWith(t.jsxIdentifier(safeName));
-              } else {
-                refPath.replaceWith(t.identifier(safeName));
-              }
-            }
-          }
-
-          // Case 3: import * as A from 'virtual:keywords';
-          else if (specifierPath.isImportNamespaceSpecifier()) {
-            for (const refPath of binding.referencePaths) {
-              const parentPath = refPath.parentPath;
-              if (!parentPath) {
-                continue;
-              }
-
-              // Case 3-1: console.log(A.a, A['a-a']);
-              if (parentPath.isMemberExpression()) {
-                const propertyNode = parentPath.node.property;
-                let keyword: string;
-                if (!parentPath.node.computed && t.isIdentifier(propertyNode)) {
-                  keyword = propertyNode.name;
-                } else if (
-                  parentPath.node.computed &&
-                  t.isStringLiteral(propertyNode)
-                ) {
-                  keyword = propertyNode.value;
-                } else {
-                  continue;
-                }
-                state.keywords.add(keyword);
-                const safeName = toSafeVarName(encodeIdentifier(keyword));
-
-                parentPath.replaceWith(t.identifier(safeName));
-              }
-
-              // Case 3-2: <A.a /> (<A['a-a'] /> impossible)
-              else if (parentPath.isJSXMemberExpression()) {
-                const keyword = parentPath.node.property.name;
-                state.keywords.add(keyword);
-                const safeName = toSafeVarName(encodeIdentifier(keyword));
-
-                parentPath.replaceWith(t.jsxIdentifier(safeName));
-              }
-
-              // Case 3-3: let x: A.a;
-              else if (parentPath.isTSQualifiedName()) {
-                const keyword = parentPath.node.right.name;
-                state.keywords.add(keyword);
-                const safeName = toSafeVarName(encodeIdentifier(keyword));
-
-                parentPath.replaceWith(t.identifier(safeName));
-              }
-
-              // Case 3-4: type T = (typeof A)['a-a'];
-              else if (
-                parentPath.isTSTypeQuery() &&
-                parentPath.parentPath?.isTSIndexedAccessType()
-              ) {
-                const indexNode = parentPath.parentPath.node.indexType;
-                if (
-                  t.isTSLiteralType(indexNode) &&
-                  t.isStringLiteral(indexNode.literal)
-                ) {
-                  const keyword = indexNode.literal.value;
-                  state.keywords.add(keyword);
-                  const safeName = toSafeVarName(encodeIdentifier(keyword));
-
-                  parentPath.parentPath.replaceWith(
-                    t.tsTypeQuery(t.identifier(safeName)),
-                  );
-                }
-              }
-            }
-          }
-
-          path.remove();
-        }
-      },
-
       ExportNamedDeclaration(path, state) {
-        if (path.node.source?.value !== VIRTUAL_MODULE_ID) {
-          return;
-        }
+        if (path.node.source?.value !== VIRTUAL_MODULE_ID) return;
 
         const newExports = path
           .get('specifiers')
           .map((specifierPath) => {
-            // Case 4: export { a, 'a-a' as aa } from 'virtual:keywords';
             if (specifierPath.isExportSpecifier()) {
               const local = specifierPath.node.local as
                 | t.Identifier
-                | t.StringLiteral; // local can be StringLiteral
+                | t.StringLiteral;
               const keyword = t.isIdentifier(local) ? local.name : local.value;
-              state.keywords.add(keyword);
+              state.allKeywords.add(keyword);
               const encoded = encodeIdentifier(keyword);
               return t.exportNamedDeclaration(
                 null,
@@ -195,6 +101,150 @@ const transformPlugin = (): PluginObj<TransformState> => {
           path.replaceWithMultiple(newExports);
         } else {
           path.remove();
+        }
+      },
+
+      Identifier(path, state) {
+        if (
+          path.parentPath?.isImportSpecifier() ||
+          path.parentPath?.isImportDefaultSpecifier() ||
+          path.parentPath?.isImportNamespaceSpecifier() ||
+          path.parentPath?.isExportSpecifier()
+        ) {
+          return;
+        }
+
+        const binding = path.scope.getBinding(path.node.name);
+        if (!binding) return;
+        const bindingPath = binding.path;
+        if (
+          !bindingPath.parentPath?.isImportDeclaration() ||
+          bindingPath.parentPath.node.source.value !== VIRTUAL_MODULE_ID
+        ) {
+          return;
+        }
+
+        if (
+          bindingPath.isImportSpecifier() ||
+          bindingPath.isImportDefaultSpecifier()
+        ) {
+          let keyword: string;
+          if (bindingPath.isImportDefaultSpecifier()) {
+            keyword = 'default';
+          } else {
+            const imported = (bindingPath.node as t.ImportSpecifier).imported;
+            keyword = t.isIdentifier(imported) ? imported.name : imported.value;
+          }
+
+          path.replaceWith(getUid(state, path, keyword));
+        } else if (bindingPath.isImportNamespaceSpecifier()) {
+          const parentPath = path.parentPath;
+          if (!parentPath) return;
+
+          if (
+            parentPath.isMemberExpression() &&
+            parentPath.node.object === path.node
+          ) {
+            const propertyNode = parentPath.node.property;
+            if (!parentPath.node.computed && t.isIdentifier(propertyNode)) {
+              const keyword = propertyNode.name;
+              parentPath.replaceWith(getUid(state, path, keyword));
+            } else if (
+              parentPath.node.computed &&
+              t.isStringLiteral(propertyNode)
+            ) {
+              const keyword = propertyNode.value;
+              parentPath.replaceWith(getUid(state, path, keyword));
+            }
+          } else if (
+            parentPath.isTSQualifiedName() &&
+            parentPath.node.left === path.node
+          ) {
+            const keyword = parentPath.node.right.name;
+            parentPath.replaceWith(getUid(state, path, keyword));
+          } else if (
+            parentPath.isTSTypeQuery() &&
+            parentPath.node.exprName === path.node
+          ) {
+            let current: import('@babel/core').NodePath = parentPath;
+            while (current.parentPath?.isTSParenthesizedType()) {
+              current = current.parentPath;
+            }
+            const parentParent = current.parentPath;
+            if (
+              parentParent?.isTSIndexedAccessType() &&
+              parentParent.node.objectType === current.node
+            ) {
+              const indexNode = parentParent.node.indexType;
+              if (
+                t.isTSLiteralType(indexNode) &&
+                t.isStringLiteral(indexNode.literal)
+              ) {
+                const keyword = indexNode.literal.value;
+                parentParent.replaceWith(
+                  t.tsTypeQuery(getUid(state, path, keyword)),
+                );
+              }
+            }
+          }
+        }
+      },
+
+      JSXIdentifier(path, state) {
+        if (
+          path.parentPath?.isImportSpecifier() ||
+          path.parentPath?.isImportDefaultSpecifier() ||
+          path.parentPath?.isImportNamespaceSpecifier() ||
+          path.parentPath?.isExportSpecifier()
+        ) {
+          return;
+        }
+
+        const binding = path.scope.getBinding(path.node.name);
+        if (!binding) return;
+        const bindingPath = binding.path;
+        if (
+          !bindingPath.parentPath?.isImportDeclaration() ||
+          bindingPath.parentPath.node.source.value !== VIRTUAL_MODULE_ID
+        ) {
+          return;
+        }
+
+        if (
+          bindingPath.isImportSpecifier() ||
+          bindingPath.isImportDefaultSpecifier()
+        ) {
+          if (
+            path.parentPath?.isJSXOpeningElement() ||
+            path.parentPath?.isJSXClosingElement()
+          ) {
+            let keyword: string;
+            if (bindingPath.isImportDefaultSpecifier()) {
+              keyword = 'default';
+            } else {
+              const imported = (bindingPath.node as t.ImportSpecifier).imported;
+              keyword = t.isIdentifier(imported)
+                ? imported.name
+                : imported.value;
+            }
+
+            path.replaceWith(
+              t.jsxIdentifier(getUid(state, path, keyword).name),
+            );
+          }
+        } else if (bindingPath.isImportNamespaceSpecifier()) {
+          const parentPath = path.parentPath;
+          if (!parentPath) return;
+
+          if (
+            parentPath.isJSXMemberExpression() &&
+            parentPath.node.object === path.node
+          ) {
+            const keyword = parentPath.node.property.name;
+            parentPath.replaceWith(
+              t.jsxIdentifier(getUid(state, path, keyword).name),
+            );
+          }
         }
       },
     },

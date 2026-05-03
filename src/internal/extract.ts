@@ -28,99 +28,133 @@ export const extractKeywords = (code: string): Set<string> | null => {
 
   traverse(ast, {
     ImportDeclaration(path) {
-      if (path.node.source.value !== VIRTUAL_MODULE_ID) {
+      if (path.node.source.value !== VIRTUAL_MODULE_ID) return;
+
+      for (const specifierPath of path.get('specifiers')) {
+        if (specifierPath.isImportSpecifier()) {
+          const imported = specifierPath.node.imported;
+          keywords.add(
+            t.isIdentifier(imported) ? imported.name : imported.value,
+          );
+        } else if (specifierPath.isImportDefaultSpecifier()) {
+          keywords.add('default');
+        }
+        // We don't need to add anything for Namespace imports here,
+        // because their usages are caught by the Identifier visitor below.
+      }
+    },
+
+    ExportNamedDeclaration(path) {
+      if (path.node.source?.value !== VIRTUAL_MODULE_ID) return;
+
+      path.get('specifiers').forEach((specifierPath) => {
+        if (specifierPath.isExportSpecifier()) {
+          const local = specifierPath.node.local as
+            | t.Identifier
+            | t.StringLiteral;
+          keywords.add(t.isIdentifier(local) ? local.name : local.value);
+        }
+      });
+    },
+
+    Identifier(path) {
+      if (
+        path.parentPath?.isImportSpecifier() ||
+        path.parentPath?.isImportDefaultSpecifier() ||
+        path.parentPath?.isImportNamespaceSpecifier() ||
+        path.parentPath?.isExportSpecifier()
+      ) {
         return;
       }
 
-      for (const specifierPath of path.get('specifiers')) {
-        // Case 1: import { a, 'a-a' as aa } from 'virtual:keywords';
-        if (specifierPath.isImportSpecifier()) {
-          const imported = specifierPath.node.imported;
-          if (t.isIdentifier(imported)) {
-            keywords.add(imported.name);
-          } else {
-            keywords.add(imported.value);
+      const binding = path.scope.getBinding(path.node.name);
+      if (!binding) return;
+      const bindingPath = binding.path;
+      if (
+        !bindingPath.parentPath?.isImportDeclaration() ||
+        bindingPath.parentPath.node.source.value !== VIRTUAL_MODULE_ID
+      ) {
+        return;
+      }
+
+      if (bindingPath.isImportNamespaceSpecifier()) {
+        const parentPath = path.parentPath;
+        if (!parentPath) return;
+
+        if (
+          parentPath.isMemberExpression() &&
+          parentPath.node.object === path.node
+        ) {
+          const propertyNode = parentPath.node.property;
+          if (!parentPath.node.computed && t.isIdentifier(propertyNode)) {
+            keywords.add(propertyNode.name);
+          } else if (
+            parentPath.node.computed &&
+            t.isStringLiteral(propertyNode)
+          ) {
+            keywords.add(propertyNode.value);
           }
-        }
-
-        // Case 2: import a from 'virtual:keywords';
-        else if (specifierPath.isImportDefaultSpecifier()) {
-          keywords.add('default');
-        }
-
-        // Case 3: import * as A from 'virtual:keywords';
-        else if (specifierPath.isImportNamespaceSpecifier()) {
-          const localName = specifierPath.node.local.name;
-          const binding = path.scope.getBinding(localName);
-          if (!binding) {
-            continue;
+        } else if (
+          parentPath.isTSQualifiedName() &&
+          parentPath.node.left === path.node
+        ) {
+          keywords.add(parentPath.node.right.name);
+        } else if (
+          parentPath.isTSTypeQuery() &&
+          parentPath.node.exprName === path.node
+        ) {
+          let current: import('@babel/core').NodePath = parentPath;
+          while (current.parentPath?.isTSParenthesizedType()) {
+            current = current.parentPath;
           }
-
-          for (const refPath of binding.referencePaths) {
-            const parentPath = refPath.parentPath;
-            if (!parentPath) {
-              continue;
-            }
-
-            // Case 3-1: console.log(A.a, A['a-a']);
-            if (parentPath.isMemberExpression()) {
-              const propertyNode = parentPath.node.property;
-              if (!parentPath.node.computed && t.isIdentifier(propertyNode)) {
-                keywords.add(propertyNode.name);
-              } else if (
-                parentPath.node.computed &&
-                t.isStringLiteral(propertyNode)
-              ) {
-                keywords.add(propertyNode.value);
-              }
-            }
-
-            // Case 3-2: <A.a /> (<A['a-a'] /> impossible)
-            else if (parentPath.isJSXMemberExpression()) {
-              keywords.add(parentPath.node.property.name);
-            }
-
-            // Case 3-3: let x: A.a;
-            else if (parentPath.isTSQualifiedName()) {
-              keywords.add(parentPath.node.right.name);
-            }
-
-            // Case 3-4: type T = (typeof A)['a-a'];
-            else if (
-              parentPath.isTSTypeQuery() &&
-              parentPath.parentPath?.isTSIndexedAccessType()
+          const parentParent = current.parentPath;
+          if (
+            parentParent?.isTSIndexedAccessType() &&
+            parentParent.node.objectType === current.node
+          ) {
+            const indexNode = parentParent.node.indexType;
+            if (
+              t.isTSLiteralType(indexNode) &&
+              t.isStringLiteral(indexNode.literal)
             ) {
-              const indexNode = parentPath.parentPath.node.indexType;
-              if (
-                t.isTSLiteralType(indexNode) &&
-                t.isStringLiteral(indexNode.literal)
-              ) {
-                keywords.add(indexNode.literal.value);
-              }
+              keywords.add(indexNode.literal.value);
             }
           }
         }
       }
     },
 
-    ExportNamedDeclaration(path) {
-      if (path.node.source?.value !== VIRTUAL_MODULE_ID) {
+    JSXIdentifier(path) {
+      if (
+        path.parentPath?.isImportSpecifier() ||
+        path.parentPath?.isImportDefaultSpecifier() ||
+        path.parentPath?.isImportNamespaceSpecifier() ||
+        path.parentPath?.isExportSpecifier()
+      ) {
         return;
       }
 
-      path.get('specifiers').forEach((specifierPath) => {
-        // Case 4: export { a, 'a-a' as aa } from 'virtual:keywords';
-        if (specifierPath.isExportSpecifier()) {
-          const local = specifierPath.node.local as
-            | t.Identifier
-            | t.StringLiteral; // local can be StringLiteral
-          if (t.isIdentifier(local)) {
-            keywords.add(local.name);
-          } else {
-            keywords.add(local.value);
-          }
+      const binding = path.scope.getBinding(path.node.name);
+      if (!binding) return;
+      const bindingPath = binding.path;
+      if (
+        !bindingPath.parentPath?.isImportDeclaration() ||
+        bindingPath.parentPath.node.source.value !== VIRTUAL_MODULE_ID
+      ) {
+        return;
+      }
+
+      if (bindingPath.isImportNamespaceSpecifier()) {
+        const parentPath = path.parentPath;
+        if (!parentPath) return;
+
+        if (
+          parentPath.isJSXMemberExpression() &&
+          parentPath.node.object === path.node
+        ) {
+          keywords.add(parentPath.node.property.name);
         }
-      });
+      }
     },
   });
 

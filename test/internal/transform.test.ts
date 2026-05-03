@@ -120,5 +120,22 @@ describe('internal/transform', () => {
       expect(result?.code).not.toContain('import _$abc from');
       expect(result?.code).toContain("const _$abc = 'colliding var';");
     });
+
+    it('handles hoisted imports (usage before declaration)', () => {
+      const code = `
+        console.log(A.abc, kebab);
+        import * as A from 'virtual:keywords';
+        import { 'kebab-case' as kebab } from 'virtual:keywords';
+      `;
+      const result = transformCode(code, 'test.js');
+      expect(result?.keywords).toEqual(new Set(['abc', 'kebab-case']));
+      expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
+      expect(result?.code).toContain(
+        'import _$abc from "virtual:keywords/abc";',
+      );
+      expect(result?.code).toContain(
+        'import _$kebab$002dcase from "virtual:keywords/kebab$002dcase";',
+      );
+    });
   });
 });
