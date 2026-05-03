@@ -42,7 +42,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "unplugin-keywords": "dist/bin/cli.js"
+    "keywords": "dist/bin/cli.js"
   },
   "files": [
     "dist"
@@ -52,7 +52,7 @@
     "check": "tsc --build && biome check",
     "clean": "rimraf dist",
     "format": "biome check --write",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@babel/core": "^7.29.0",

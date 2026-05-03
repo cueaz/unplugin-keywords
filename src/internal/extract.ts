@@ -33,7 +33,7 @@ export const extractKeywords = (code: string): Set<string> => {
       }
 
       for (const specifierPath of path.get('specifiers')) {
-        // Case 1: import { a } from 'virtual:keywords';
+        // Case 1: import { a, 'a-a' as aa } from 'virtual:keywords';
         if (specifierPath.isImportSpecifier()) {
           const imported = specifierPath.node.imported;
           if (t.isIdentifier(imported)) {

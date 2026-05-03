@@ -1,7 +1,7 @@
 export const encodeIdentifier = (identifier: string): string => {
   let encoded = '';
   for (let i = 0; i < identifier.length; i++) {
-    const c = identifier[i];
+    const c = identifier[i] as string;
     if (/[a-zA-Z0-9_]/.test(c)) {
       encoded += c;
     } else if (c === '$') {
