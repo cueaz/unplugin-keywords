@@ -1,11 +1,11 @@
 import { type ParseResult, parseSync, types as t, traverse } from '@babel/core';
 import { VIRTUAL_MODULE_ID } from './constants';
 
-export const extractKeywords = (code: string): Set<string> => {
+export const extractKeywords = (code: string): Set<string> | null => {
   const keywords = new Set<string>();
 
   if (!code.includes(VIRTUAL_MODULE_ID)) {
-    return keywords;
+    return null;
   }
 
   let ast: ParseResult | null;
@@ -20,10 +20,10 @@ export const extractKeywords = (code: string): Set<string> => {
       },
     });
   } catch (_) {
-    return keywords;
+    return null;
   }
   if (!ast) {
-    return keywords;
+    return null;
   }
 
   traverse(ast, {

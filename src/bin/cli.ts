@@ -12,6 +12,7 @@ const collectKeywordsFromRoot = async (
 ): Promise<Set<string>> => {
   const collectedKeywords = new Set<string>();
 
+  const start = performance.now();
   console.error('Scanning project files for keywords...');
 
   const files = await globby('**/*.{js,ts,mjs,mts,jsx,tsx,mjsx,mtsx}', {
@@ -21,6 +22,7 @@ const collectKeywordsFromRoot = async (
     gitignore: true,
   });
 
+  let processed = 0;
   const limit = pLimit(concurrency);
   await Promise.all(
     files.map((file) =>
@@ -28,9 +30,13 @@ const collectKeywordsFromRoot = async (
         try {
           const code = await readFile(file, 'utf-8');
           const keywords = extractKeywords(code);
+          if (!keywords) {
+            return;
+          }
           for (const keyword of keywords) {
             collectedKeywords.add(keyword);
           }
+          processed++;
         } catch (error) {
           console.error(`Failed to process ${file}: ${error}`);
         }
@@ -38,8 +44,9 @@ const collectKeywordsFromRoot = async (
     ),
   );
 
+  const elapsed = performance.now() - start;
   console.error(
-    `Scan complete. Found ${collectedKeywords.size} unique keywords.`,
+    `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.size} unique keywords (${elapsed.toFixed(2)}ms).`,
   );
 
   return collectedKeywords;
