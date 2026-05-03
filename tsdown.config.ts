@@ -6,9 +6,7 @@ export default defineConfig([
       '*': 'src/*.ts',
     },
     clean: true,
-    dts: {
-      sourcemap: true,
-    },
+    dts: true,
     sourcemap: true,
     fixedExtension: false,
   },

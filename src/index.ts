@@ -13,3 +13,4 @@ export const unpluginFactory: UnpluginFactory<Options> = (options) => {
 };
 
 export default createUnplugin(unpluginFactory);
+export type { Options } from './types';
