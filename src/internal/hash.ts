@@ -22,5 +22,6 @@ export const toShortHash = (
   seed: number,
 ): string => {
   const hash = xxhash.h64(input, BigInt(seed));
-  return toBaseN(hash % ALPHABET_SIZE ** EXPONENT);
+  const baseN = toBaseN(hash % ALPHABET_SIZE ** EXPONENT);
+  return baseN.padStart(SHORT_HASH_LENGTH, ALPHABET[0]);
 };
