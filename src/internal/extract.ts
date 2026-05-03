@@ -32,7 +32,7 @@ export const extractKeywords = (code: string): Set<string> => {
         return;
       }
 
-      path.get('specifiers').forEach((specifierPath) => {
+      for (const specifierPath of path.get('specifiers')) {
         // Case 1: import { a } from 'virtual:keywords';
         if (specifierPath.isImportSpecifier()) {
           const imported = specifierPath.node.imported;
@@ -53,16 +53,16 @@ export const extractKeywords = (code: string): Set<string> => {
           const localName = specifierPath.node.local.name;
           const binding = path.scope.getBinding(localName);
           if (!binding) {
-            return;
+            continue;
           }
 
-          binding.referencePaths.forEach((ref) => {
-            const parentPath = ref.parentPath;
+          for (const refPath of binding.referencePaths) {
+            const parentPath = refPath.parentPath;
             if (!parentPath) {
-              return;
+              continue;
             }
 
-            // console.log(A.prop)
+            // Case 3-1: console.log(A.a, A['a-a']);
             if (parentPath.isMemberExpression()) {
               const propertyNode = parentPath.node.property;
               if (!parentPath.node.computed && t.isIdentifier(propertyNode)) {
@@ -75,12 +75,50 @@ export const extractKeywords = (code: string): Set<string> => {
               }
             }
 
-            // let x: A.prop
-            else if (parentPath.isTSQualifiedName()) {
-              const propertyNode = parentPath.node.right;
-              keywords.add(propertyNode.name);
+            // Case 3-2: <A.a /> (<A['a-a'] /> impossible)
+            else if (parentPath.isJSXMemberExpression()) {
+              keywords.add(parentPath.node.property.name);
             }
-          });
+
+            // Case 3-3: let x: A.a;
+            else if (parentPath.isTSQualifiedName()) {
+              keywords.add(parentPath.node.right.name);
+            }
+
+            // Case 3-4: type T = (typeof A)['a-a'];
+            else if (
+              parentPath.isTSTypeQuery() &&
+              parentPath.parentPath?.isTSIndexedAccessType()
+            ) {
+              const indexNode = parentPath.parentPath.node.indexType;
+              if (
+                t.isTSLiteralType(indexNode) &&
+                t.isStringLiteral(indexNode.literal)
+              ) {
+                keywords.add(indexNode.literal.value);
+              }
+            }
+          }
+        }
+      }
+    },
+
+    ExportNamedDeclaration(path) {
+      if (path.node.source?.value !== VIRTUAL_MODULE_ID) {
+        return;
+      }
+
+      path.get('specifiers').forEach((specifierPath) => {
+        // Case 4: export { a, 'a-a' as aa } from 'virtual:keywords';
+        if (specifierPath.isExportSpecifier()) {
+          const local = specifierPath.node.local as
+            | t.Identifier
+            | t.StringLiteral; // local can be StringLiteral
+          if (t.isIdentifier(local)) {
+            keywords.add(local.name);
+          } else {
+            keywords.add(local.value);
+          }
         }
       });
     },
