@@ -54,25 +54,50 @@ describe('internal/transform', () => {
     it('transforms JSX elements', () => {
       const code = `
         import * as A from 'virtual:keywords';
-        import { abc } from 'virtual:keywords';
-        const App = () => <A.Component><abc /></A.Component>;
+        import { Abc, div } from 'virtual:keywords';
+        const App = () => <A.Component><Abc /><div /></A.Component>;
       `;
       const result = transformCode(code, 'test.tsx');
-      expect(result?.keywords).toEqual(new Set(['Component', 'abc']));
-      expect(result?.code).toContain('<_$Component><_$abc /></_$Component>');
+      expect(result?.keywords).toEqual(new Set(['Component', 'Abc', 'div']));
+      expect(result?.code).toContain(
+        '<_$Component><_$Abc /><div /></_$Component>',
+      );
     });
 
-    it('transforms TypeScript types', () => {
+    it('transforms TypeScript types (value space only)', () => {
       const code = `
         import * as A from 'virtual:keywords';
-        let x: A.myType;
-        type T = (typeof A)['my-indexed-type'];
+        import { Abc } from 'virtual:keywords';
+        interface Abc {}
+        let x: typeof A.myType;
+        let y: A.myType;
+        type T0 = Abc;
+        type T1 = typeof Abc;
+        type T2 = (typeof A)['my-indexed-type'];
+        type T3 = A.myType;
+        interface I {
+          [Abc]: typeof Abc;
+          [A.myType]: A.myType;
+          [A['my-indexed-type']]: A['my-indexed-type'];
+        }
       `;
       const result = transformCode(code, 'test.ts');
-      expect(result?.keywords).toEqual(new Set(['myType', 'my-indexed-type']));
-      expect(result?.code).toContain('let x: _$myType;');
+      expect(result?.keywords).toEqual(
+        new Set(['myType', 'my-indexed-type', 'Abc']),
+      );
+      expect(result?.code).toContain('interface Abc {}');
+      expect(result?.code).toContain('let x: typeof _$myType;');
+      expect(result?.code).toContain('let y: A.myType;');
+      expect(result?.code).toContain('type T0 = Abc;');
+      expect(result?.code).toContain('type T1 = typeof _$Abc;');
       expect(result?.code).toContain(
-        'type T = typeof _$my$002dindexed$002dtype;',
+        'type T2 = typeof _$my$002dindexed$002dtype;',
+      );
+      expect(result?.code).toContain('type T3 = A.myType;');
+      expect(result?.code).toContain('[_$Abc]: typeof _$Abc;');
+      expect(result?.code).toContain('[_$myType]: A.myType;');
+      expect(result?.code).toContain(
+        "[_$my$002dindexed$002dtype]: A['my-indexed-type'];",
       );
     });
 
@@ -182,22 +207,28 @@ describe('internal/transform', () => {
       expect(keywords).toEqual(new Set(['Component']));
     });
 
-    it('extracts from TypeScript qualified names', () => {
+    it('extracts from TypeScript qualified names (value space only)', () => {
       const code = `
         import * as A from 'virtual:keywords';
         let x: A.myType;
+        let y: typeof A.myType2;
       `;
       const keywords = extractKeywords(code);
-      expect(keywords).toEqual(new Set(['myType']));
+      expect(keywords).toEqual(new Set(['myType2']));
     });
 
-    it('extracts from TypeScript indexed access types', () => {
+    it('extracts from TypeScript indexed access types (value space only)', () => {
       const code = `
         import * as A from 'virtual:keywords';
         type T = (typeof A)['my-indexed-type'];
+        type T1 = typeof A['my-indexed-type1'];
+        type T2 = A['my-indexed-type2'];
+        type T3 = (((typeof A)))['my-indexed-type3'];
       `;
       const keywords = extractKeywords(code);
-      expect(keywords).toEqual(new Set(['my-indexed-type']));
+      expect(keywords).toEqual(
+        new Set(['my-indexed-type', 'my-indexed-type1', 'my-indexed-type3']),
+      );
     });
 
     it('extracts from exported keywords', () => {

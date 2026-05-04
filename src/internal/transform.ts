@@ -10,8 +10,8 @@ import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants';
 import { encodeIdentifier, toSafeVarName } from './encode';
 
 interface TransformState extends PluginPass {
-  keywordUids: Map<string, t.Identifier>;
   allKeywords: Set<string>;
+  keywordUids: Map<string, t.Identifier>;
 }
 
 interface TransformMetadata {
@@ -21,31 +21,13 @@ interface TransformMetadata {
 const transformPlugin = (
   mode: 'extract' | 'transform',
 ): PluginObj<TransformState> => {
-  const handleKeyword = (
-    state: TransformState,
-    path: NodePath,
-    keyword: string,
-  ) => {
-    state.allKeywords.add(keyword);
-    if (mode === 'extract') return null;
-
-    let uid = state.keywordUids.get(keyword);
-    if (!uid) {
-      const safeName = toSafeVarName(encodeIdentifier(keyword));
-      const programScope = path.scope.getProgramParent();
-      uid = programScope.generateUidIdentifier(safeName);
-      state.keywordUids.set(keyword, uid);
-    }
-    return t.cloneNode(uid);
-  };
-
   return {
     name: `${PLUGIN_NAME}:${mode}`,
     visitor: {
       Program: {
         enter(_, state) {
-          state.keywordUids = new Map();
           state.allKeywords = new Set();
+          state.keywordUids = new Map();
         },
         exit(path, state) {
           const metadata = state.file.metadata as TransformMetadata;
@@ -61,51 +43,208 @@ const transformPlugin = (
                 );
               },
             );
+
             if (newImports.length > 0) {
               path.unshiftContainer('body', newImports);
             }
-
-            path.traverse({
-              ImportDeclaration(importPath) {
-                if (importPath.node.source.value === VIRTUAL_MODULE_ID) {
-                  importPath.remove();
-                }
-              },
-            });
           }
         },
       },
 
       ImportDeclaration(path, state) {
-        if (path.node.source.value !== VIRTUAL_MODULE_ID) return;
+        if (path.node.source.value !== VIRTUAL_MODULE_ID) {
+          return;
+        }
 
-        if (mode === 'extract') {
-          for (const specifierPath of path.get('specifiers')) {
-            if (specifierPath.isImportSpecifier()) {
-              const imported = specifierPath.node.imported;
-              state.allKeywords.add(
-                t.isIdentifier(imported) ? imported.name : imported.value,
-              );
-            } else if (specifierPath.isImportDefaultSpecifier()) {
-              state.allKeywords.add('default');
-            }
+        const programScope = path.scope.getProgramParent();
+        const processKeyword = (keyword: string): t.Identifier | null => {
+          state.allKeywords.add(keyword);
+          if (mode === 'extract') {
+            return null;
           }
+          if (state.keywordUids.has(keyword)) {
+            return state.keywordUids.get(keyword) as t.Identifier;
+          }
+          const encoded = encodeIdentifier(keyword);
+          const safeName = toSafeVarName(encoded);
+          const uid = programScope.generateUidIdentifier(safeName);
+          state.keywordUids.set(keyword, uid);
+          return uid;
+        };
+
+        for (const specifierPath of path.get('specifiers')) {
+          const localName = specifierPath.node.local.name;
+          const binding = path.scope.getBinding(localName);
+          if (!binding) {
+            continue;
+          }
+
+          // Case A: Default & Named Imports
+          if (
+            specifierPath.isImportDefaultSpecifier() ||
+            specifierPath.isImportSpecifier()
+          ) {
+            let keyword: string;
+            if (specifierPath.isImportDefaultSpecifier()) {
+              keyword = 'default';
+            } else {
+              const imported = specifierPath.node.imported;
+              keyword = t.isIdentifier(imported)
+                ? imported.name
+                : imported.value;
+            }
+            const uidNode = processKeyword(keyword);
+            if (!uidNode) {
+              continue;
+            }
+
+            // 1) Fast Path: Values & JSX
+            for (const refPath of binding.referencePaths) {
+              // Filter out type space usage
+              const parent = refPath.parentPath;
+              if (
+                parent?.isTSTypeReference() ||
+                parent?.isTSTypeAliasDeclaration() ||
+                parent?.isTSInterfaceDeclaration() ||
+                parent?.isTSModuleDeclaration() ||
+                parent?.isTSExpressionWithTypeArguments() ||
+                parent?.isTSQualifiedName()
+              ) {
+                continue;
+              }
+              if (refPath.isJSXIdentifier()) {
+                refPath.replaceWith(t.jsxIdentifier(uidNode.name));
+              } else {
+                refPath.replaceWith(t.cloneNode(uidNode));
+              }
+            }
+
+            // 2) Slow Path: TS Types
+            // NOTE: This can be skipped due to type erasure, but for consistency
+            path.parentPath.traverse({
+              // e.g., type T = typeof abc;
+              TSTypeQuery(tsPath) {
+                if (
+                  t.isIdentifier(tsPath.node.exprName) &&
+                  tsPath.node.exprName.name === localName &&
+                  tsPath.scope.getBinding(localName) === binding
+                ) {
+                  tsPath.get('exprName').replaceWith(t.cloneNode(uidNode));
+                }
+              },
+            });
+          }
+
+          // Case B: Namespace Imports
+          else if (specifierPath.isImportNamespaceSpecifier()) {
+            // 1) Fast Path: JS Values & JSX accesses
+            for (const refPath of binding.referencePaths) {
+              const parentPath = refPath.parentPath;
+              if (!parentPath) {
+                continue;
+              }
+
+              if (
+                parentPath.isMemberExpression() &&
+                parentPath.node.object === refPath.node
+              ) {
+                const propNode = parentPath.node.property;
+                let keyword: string | undefined;
+                if (!parentPath.node.computed && t.isIdentifier(propNode)) {
+                  keyword = propNode.name;
+                } else if (
+                  parentPath.node.computed &&
+                  t.isStringLiteral(propNode)
+                ) {
+                  keyword = propNode.value;
+                }
+                if (keyword) {
+                  const uidNode = processKeyword(keyword);
+                  if (uidNode) {
+                    parentPath.replaceWith(t.cloneNode(uidNode));
+                  }
+                }
+              } else if (
+                parentPath.isJSXMemberExpression() &&
+                parentPath.node.object === refPath.node
+              ) {
+                const keyword = parentPath.node.property.name;
+                const uidNode = processKeyword(keyword);
+                if (uidNode) {
+                  parentPath.replaceWith(t.jsxIdentifier(uidNode.name));
+                }
+              }
+            }
+
+            // 2) Slow Path: TS Namespace Types
+            path.parentPath.traverse({
+              // e.g., type T = typeof A.abc;
+              TSTypeQuery(tsPath) {
+                const expr = tsPath.node.exprName;
+                if (
+                  t.isTSQualifiedName(expr) &&
+                  t.isIdentifier(expr.left) &&
+                  expr.left.name === localName &&
+                  tsPath.scope.getBinding(localName) === binding
+                ) {
+                  const keyword = expr.right.name;
+                  const uidNode = processKeyword(keyword);
+                  if (uidNode) {
+                    tsPath.get('exprName').replaceWith(t.cloneNode(uidNode));
+                  }
+                }
+              },
+
+              // e.g., type T = ((typeof A))['prop'];
+              TSIndexedAccessType(tsPath) {
+                let objPath = tsPath.get('objectType') as NodePath;
+                // Unpack highly nested parentheses gracefully
+                while (objPath.isTSParenthesizedType()) {
+                  objPath = objPath.get('typeAnnotation') as NodePath;
+                }
+                if (
+                  objPath.isTSTypeQuery() &&
+                  t.isIdentifier(objPath.node.exprName) &&
+                  objPath.node.exprName.name === localName &&
+                  tsPath.scope.getBinding(localName) === binding
+                ) {
+                  const indexNode = tsPath.node.indexType;
+                  if (
+                    t.isTSLiteralType(indexNode) &&
+                    t.isStringLiteral(indexNode.literal)
+                  ) {
+                    const keyword = indexNode.literal.value;
+                    const uidNode = processKeyword(keyword);
+                    if (uidNode) {
+                      tsPath.replaceWith(t.tsTypeQuery(t.cloneNode(uidNode)));
+                    }
+                  }
+                }
+              },
+            });
+          }
+        }
+
+        if (mode === 'transform') {
+          path.remove();
         }
       },
 
       ExportNamedDeclaration(path, state) {
-        if (path.node.source?.value !== VIRTUAL_MODULE_ID) return;
+        if (path.node.source?.value !== VIRTUAL_MODULE_ID) {
+          return;
+        }
 
         if (mode === 'extract') {
-          path.get('specifiers').forEach((specifierPath) => {
+          for (const specifierPath of path.get('specifiers')) {
             if (specifierPath.isExportSpecifier()) {
               const local = specifierPath.node.local as
                 | t.Identifier
-                | t.StringLiteral;
+                | t.StringLiteral; // imported can be a StringLiteral in ES2022
               const keyword = t.isIdentifier(local) ? local.name : local.value;
               state.allKeywords.add(keyword);
             }
-          });
+          }
           return;
         }
 
@@ -115,7 +254,7 @@ const transformPlugin = (
             if (specifierPath.isExportSpecifier()) {
               const local = specifierPath.node.local as
                 | t.Identifier
-                | t.StringLiteral;
+                | t.StringLiteral; // imported can be a StringLiteral in ES2022
               const keyword = t.isIdentifier(local) ? local.name : local.value;
               state.allKeywords.add(keyword);
               const encoded = encodeIdentifier(keyword);
@@ -138,167 +277,6 @@ const transformPlugin = (
           path.replaceWithMultiple(newExports);
         } else {
           path.remove();
-        }
-      },
-
-      Identifier(path, state) {
-        if (
-          path.parentPath?.isImportSpecifier() ||
-          path.parentPath?.isImportDefaultSpecifier() ||
-          path.parentPath?.isImportNamespaceSpecifier() ||
-          path.parentPath?.isExportSpecifier()
-        ) {
-          return;
-        }
-
-        if (!path.isReferencedIdentifier()) return;
-
-        const binding = path.scope.getBinding(path.node.name);
-        if (!binding) return;
-        const bindingPath = binding.path;
-        if (
-          !bindingPath.parentPath?.isImportDeclaration() ||
-          bindingPath.parentPath.node.source.value !== VIRTUAL_MODULE_ID
-        ) {
-          return;
-        }
-
-        if (
-          bindingPath.isImportSpecifier() ||
-          bindingPath.isImportDefaultSpecifier()
-        ) {
-          let keyword: string;
-          if (bindingPath.isImportDefaultSpecifier()) {
-            keyword = 'default';
-          } else {
-            const imported = (bindingPath.node as t.ImportSpecifier).imported;
-            keyword = t.isIdentifier(imported) ? imported.name : imported.value;
-          }
-
-          const uidNode = handleKeyword(state, path, keyword);
-          if (mode === 'transform' && uidNode) {
-            path.replaceWith(uidNode);
-          }
-        } else if (bindingPath.isImportNamespaceSpecifier()) {
-          const parentPath = path.parentPath;
-          if (!parentPath) return;
-
-          if (
-            parentPath.isMemberExpression() &&
-            parentPath.node.object === path.node
-          ) {
-            const propertyNode = parentPath.node.property;
-            if (!parentPath.node.computed && t.isIdentifier(propertyNode)) {
-              const keyword = propertyNode.name;
-              const uidNode = handleKeyword(state, path, keyword);
-              if (mode === 'transform' && uidNode) {
-                parentPath.replaceWith(uidNode);
-              }
-            } else if (
-              parentPath.node.computed &&
-              t.isStringLiteral(propertyNode)
-            ) {
-              const keyword = propertyNode.value;
-              const uidNode = handleKeyword(state, path, keyword);
-              if (mode === 'transform' && uidNode) {
-                parentPath.replaceWith(uidNode);
-              }
-            }
-          } else if (
-            parentPath.isTSQualifiedName() &&
-            parentPath.node.left === path.node
-          ) {
-            const keyword = parentPath.node.right.name;
-            const uidNode = handleKeyword(state, path, keyword);
-            if (mode === 'transform' && uidNode) {
-              parentPath.replaceWith(uidNode);
-            }
-          } else if (
-            parentPath.isTSTypeQuery() &&
-            parentPath.node.exprName === path.node
-          ) {
-            let current: import('@babel/core').NodePath = parentPath;
-            while (current.parentPath?.isTSParenthesizedType()) {
-              current = current.parentPath;
-            }
-            const parentParent = current.parentPath;
-            if (
-              parentParent?.isTSIndexedAccessType() &&
-              parentParent.node.objectType === current.node
-            ) {
-              const indexNode = parentParent.node.indexType;
-              if (
-                t.isTSLiteralType(indexNode) &&
-                t.isStringLiteral(indexNode.literal)
-              ) {
-                const keyword = indexNode.literal.value;
-                const uidNode = handleKeyword(state, path, keyword);
-                if (mode === 'transform' && uidNode) {
-                  parentParent.replaceWith(t.tsTypeQuery(uidNode));
-                }
-              }
-            }
-          }
-        }
-      },
-
-      JSXIdentifier(path, state) {
-        if (
-          path.parentPath?.isImportSpecifier() ||
-          path.parentPath?.isImportDefaultSpecifier() ||
-          path.parentPath?.isImportNamespaceSpecifier() ||
-          path.parentPath?.isExportSpecifier()
-        ) {
-          return;
-        }
-
-        const binding = path.scope.getBinding(path.node.name);
-        if (!binding) return;
-        const bindingPath = binding.path;
-        if (
-          !bindingPath.parentPath?.isImportDeclaration() ||
-          bindingPath.parentPath.node.source.value !== VIRTUAL_MODULE_ID
-        ) {
-          return;
-        }
-
-        if (
-          bindingPath.isImportSpecifier() ||
-          bindingPath.isImportDefaultSpecifier()
-        ) {
-          if (
-            path.parentPath?.isJSXOpeningElement() ||
-            path.parentPath?.isJSXClosingElement()
-          ) {
-            let keyword: string;
-            if (bindingPath.isImportDefaultSpecifier()) {
-              keyword = 'default';
-            } else {
-              const imported = (bindingPath.node as t.ImportSpecifier).imported;
-              keyword = t.isIdentifier(imported)
-                ? imported.name
-                : imported.value;
-            }
-
-            const uidNode = handleKeyword(state, path, keyword);
-            if (mode === 'transform' && uidNode) {
-              path.replaceWith(t.jsxIdentifier(uidNode.name));
-            }
-          }
-        } else if (bindingPath.isImportNamespaceSpecifier()) {
-          const parentPath = path.parentPath;
-          if (!parentPath) return;
-
-          if (
-            parentPath.isJSXMemberExpression() &&
-            parentPath.node.object === path.node
-          ) {
-            const keyword = parentPath.node.property.name;
-            const uidNode = handleKeyword(state, path, keyword);
-            if (mode === 'transform' && uidNode) {
-              parentPath.replaceWith(t.jsxIdentifier(uidNode.name));
-            }
-          }
         }
       },
     },
