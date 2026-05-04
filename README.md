@@ -1,5 +1,16 @@
 # unplugin-keywords
 
+[![NPM][npm-badge]][npm-url]
+[![Github CI][ci-badge]][ci-url]
+[![MIT licensed][license-badge]][license-url]
+
+[npm-badge]: https://img.shields.io/npm/v/unplugin-keywords.svg
+[npm-url]: https://www.npmjs.com/package/unplugin-keywords
+[ci-badge]: https://github.com/cueaz/unplugin-keywords/actions/workflows/ci.yaml/badge.svg
+[ci-url]: https://github.com/cueaz/unplugin-keywords/actions/workflows/ci.yaml
+[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[license-url]: https://github.com/cueaz/unplugin-keywords/blob/main/LICENSE
+
 A build plugin for structural string literal minification and obfuscation.
 
 `unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, event names, or structural identifiers. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism empowers bundlers to aggressively inline and obfuscate application internals without breaking semantic contracts.
@@ -85,6 +96,7 @@ The namespace import pattern shines in complex, class-based architectures where 
 > **Note:** Overriding lifecycle methods (e.g., `[K.render]`) requires a modified base class—such as a custom build of Lit—compiled with `unplugin-keywords` to dispatch the hashed keys. Sharing this dictionary across the ecosystem enables total obfuscation.
 
 ```ts
+// Source: https://github.com/lit/lit/blob/main/packages/lit-html/src/directives/async-replace.ts
 import * as K from 'virtual:keywords';
 import {
   AsyncDirective,
@@ -113,7 +125,6 @@ export class AsyncReplaceDirective extends AsyncDirective {
     if (value === this[K.__value]) {
       return noChange;
     }
-
     this[K.__value] = value;
     let i = 0;
     const { [K.__weakThis]: weakThis, [K.__pauser]: pauser } = this;
@@ -128,11 +139,9 @@ export class AsyncReplaceDirective extends AsyncDirective {
         if (_this[K.__value] !== value) {
           return false;
         }
-
         if (mapper !== undefined) {
           v = mapper(v, i);
         }
-
         _this[K.commitValue](v, i);
         i++;
       }
