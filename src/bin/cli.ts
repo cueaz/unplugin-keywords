@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { globby } from 'globby';
 import pLimit from 'p-limit';
-import { extractKeywords } from '../internal/extract';
+import { extractKeywords } from '../internal/transform';
 import { generateTypeDeclaration } from '../internal/typegen';
 
 const collectKeywordsFromRoot = async (
