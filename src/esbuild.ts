@@ -1,5 +1,5 @@
 import { createEsbuildPlugin } from 'unplugin';
-import { unpluginFactory } from '.';
+import { type Options, unpluginFactory } from './internal/plugin';
 
 export default createEsbuildPlugin(unpluginFactory);
-export type { Options } from './types';
+export type { Options };

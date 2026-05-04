@@ -1,5 +1,5 @@
 import { createWebpackPlugin } from 'unplugin';
-import { unpluginFactory } from '.';
+import { type Options, unpluginFactory } from './internal/plugin';
 
 export default createWebpackPlugin(unpluginFactory);
-export type { Options } from './types';
+export type { Options };

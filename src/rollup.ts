@@ -1,5 +1,5 @@
 import { createRollupPlugin } from 'unplugin';
-import { unpluginFactory } from '.';
+import { type Options, unpluginFactory } from './internal/plugin';
 
 export default createRollupPlugin(unpluginFactory);
-export type { Options } from './types';
+export type { Options };

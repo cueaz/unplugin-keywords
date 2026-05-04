@@ -1,5 +1,5 @@
 import { createVitePlugin } from 'unplugin';
-import { unpluginFactory } from '.';
+import { type Options, unpluginFactory } from './internal/plugin';
 
 export default createVitePlugin(unpluginFactory);
-export type { Options } from './types';
+export type { Options };
