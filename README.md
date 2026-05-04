@@ -4,7 +4,7 @@ A build plugin for structural string literal minification and obfuscation.
 
 `unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, event names, or structural identifiers. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism empowers bundlers to aggressively inline and obfuscate application internals without breaking semantic contracts.
 
-## Mechanism of Action
+## How It Works
 
 Standard minifiers operate exclusively on variable bindings and function names, leaving structural strings intact. While this preserves the semantic contract, it inflates bundle size and exposes internal state architecture (e.g., Redux action types, state machine nodes).
 
@@ -66,8 +66,6 @@ To enable type checking and IDE auto-completion, execute the CLI and register th
 npx keywords
 ```
 
-> **Note:** The `npx keywords` command must be re-run whenever you introduce a new keyword into your codebase to update the `.keywords.d.ts` declaration file.
-
 ```jsonc
 {
   "compilerOptions": {
@@ -77,6 +75,8 @@ npx keywords
   }
 }
 ```
+
+> **Note:** For a seamless developer experience, the plugin automatically runs a background type generation process during the bundler's `buildStart` phase. Manual CLI execution is only necessary for pre-flight type checking (e.g., in CI) before the bundler runs.
 
 ## Real-World Usage: Architecture & Directives
 

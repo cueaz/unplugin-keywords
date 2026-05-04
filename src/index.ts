@@ -1,5 +1,6 @@
 import type { UnpluginFactory } from 'unplugin';
 import { createUnplugin } from 'unplugin';
+import { run } from './internal/cli';
 import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './internal/constants';
 import { encodeIdentifier } from './internal/encode';
 import { createHasher, type Hasher } from './internal/hash';
@@ -25,6 +26,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
     buildStart() {
       hasher = createHasher(secret);
       resolvedMap = new Map();
+      run();
     },
 
     resolveId: {
