@@ -1,4 +1,4 @@
-import { SHORT_HASH_LENGTH } from './constants';
+import { MAX_HASH_LENGTH } from './constants';
 import { encodeIdentifier, toSafeVarName } from './encode';
 
 export const generateTypeDeclaration = (keywords: Set<string>): string => {
@@ -10,7 +10,7 @@ export const generateTypeDeclaration = (keywords: Set<string>): string => {
   for (const keyword of sortedKeywords) {
     const encoded = encodeIdentifier(keyword);
     const safeName = toSafeVarName(encoded);
-    const hash = '*'.repeat(SHORT_HASH_LENGTH);
+    const hash = '*'.repeat(MAX_HASH_LENGTH);
     const value = `${hash}_${encoded}`;
     content.push(
       `declare const ${safeName}: Keyword<${JSON.stringify(keyword)}, ${JSON.stringify(value)}>;`,

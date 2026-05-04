@@ -2,7 +2,7 @@
 
 A build plugin for structural string literal minification and obfuscation.
 
-`unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, event names, or structural identifiers. By extracting these literals at the AST level and mapping them to deterministic, fixed-length hashes during the build process, it enables bundlers to aggressively inline and obfuscate application internals.
+`unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, event names, or structural identifiers. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism empowers bundlers to aggressively inline and obfuscate application internals without breaking semantic contracts.
 
 ## Mechanism of Action
 
@@ -17,7 +17,7 @@ Developers reference strings via a virtual module. The strongly recommended patt
 import * as K from 'virtual:keywords';
 
 const action = {
-  [K.type]: typeof K.SET_USER,
+  [K.type]: K.SET_USER,
   [K.payload]: data,
 };
 ```
@@ -26,13 +26,13 @@ const action = {
 During the build phase, the plugin traverses the AST, resolving bindings and statically resolving member expressions. It replaces valid identifier access with a generated AST node pointing to a deterministic base62 hash.
 
 **3. Minified Output (Production)**
-The bundler receives the transformed AST and processes the hashed literals. Depending on the frequency of usage, the minifier will either inline the strings directly or extract them into single-character variables to save bytes.
+The bundler receives the transformed code and processes the hashed literals. Depending on the frequency of usage, the minifier will either inline the strings directly or extract them into single-character variables to save bytes.
 
 ```ts
 // Example of minifier output: strings may be inlined or assigned to variables if used multiple times
 const _="zXpL21k";const a={"a3fB9zX":_,"1kMw8pA":data};
 ```
-*The resulting bundle is stripped of semantic strings, mapping internal application logic to 7-character deterministic hashes.*
+*The resulting bundle is stripped of semantic strings, mapping internal application logic to deterministic hashes up to 7 characters in length.*
 
 ## Integration
 
@@ -51,10 +51,10 @@ import keywords from 'unplugin-keywords/vite';
 export default defineConfig(({ mode }) => ({
   plugins: [
     keywords({
-      // Preserves keyword suffix in development for debugging (e.g., "hash_SET_USER")
+      // Preserves keyword suffix in development for debugging (e.g., "zXpL21k_SET_USER")
       isDev: mode === 'development',
       // Initializes the hashing algorithm. Modify to rotate hashes globally.
-      seed: 42,
+      secret: 'my-secret-key',
     }),
   ],
 }));
@@ -157,11 +157,9 @@ export class AsyncReplaceDirective extends AsyncDirective {
   }
 }
 ```
-*In production, all internal properties (e.g., `__value`, `commitValue`) will be completely minified to 7-character hashes, removing all trace of internal implementation details from the bundled Lit component.*
+*In production, all internal properties (e.g., `__value`, `commitValue`) will be completely minified to short hashes, removing all trace of internal implementation details from the bundled Lit component.*
 
 ## Other Supported Patterns
-
-The AST parser is engineered to resolve a wide array of ES and TypeScript syntax seamlessly:
 
 ```ts
 // Modular Imports

@@ -1,9 +1,8 @@
 import type { UnpluginFactory } from 'unplugin';
 import { createUnplugin } from 'unplugin';
-import loadXXHash, { type XXHashAPI } from 'xxhash-wasm';
 import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './internal/constants';
 import { encodeIdentifier } from './internal/encode';
-import { toShortHash } from './internal/hash';
+import { createHasher, type Hasher } from './internal/hash';
 import {
   COMMON_EXCLUDES,
   resolveId,
@@ -13,15 +12,18 @@ import {
 import { transformCode } from './internal/transform';
 import type { Options } from './types';
 
-export const unpluginFactory: UnpluginFactory<Options> = ({ isDev, seed }) => {
-  let xxhash: XXHashAPI;
+export const unpluginFactory: UnpluginFactory<Options> = ({
+  isDev,
+  secret,
+}) => {
+  let hasher: Hasher;
   let resolvedMap: Map<string, string>;
 
   return {
     name: PLUGIN_NAME,
 
-    async buildStart() {
-      xxhash = await loadXXHash();
+    buildStart() {
+      hasher = createHasher(secret);
       resolvedMap = new Map();
     },
 
@@ -72,7 +74,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({ isDev, seed }) => {
         for (const keyword of keywords) {
           const encoded = encodeIdentifier(keyword);
           const resolvedId = resolveId(`${VIRTUAL_MODULE_ID}/${encoded}`);
-          const hash = toShortHash(xxhash, keyword, seed);
+          const hash = hasher(keyword);
           const value = isDev ? `${hash}_${encoded}` : hash;
           resolvedMap.set(
             resolvedId,

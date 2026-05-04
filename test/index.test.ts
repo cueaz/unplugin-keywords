@@ -4,16 +4,16 @@ import { unpluginFactory } from '../src/index';
 
 const getPlugin = (
   isDev: boolean,
-  seed: number,
+  secret: string,
   framework: string,
 ): UnpluginOptions => {
-  const result = unpluginFactory({ isDev, seed }, { framework });
+  const result = unpluginFactory({ isDev, secret }, { framework });
   return (Array.isArray(result) ? result[0] : result) as UnpluginOptions;
 };
 
 describe('integration: unplugin-keywords', () => {
   it('initializes and registers hooks', () => {
-    const plugin = getPlugin(false, 123, 'vite');
+    const plugin = getPlugin(false, '123', 'vite');
     expect(plugin.name).toBe('unplugin-keywords');
     expect(typeof plugin.buildStart).toBe('function');
     expect(typeof plugin.resolveId).toBe('object');
@@ -22,7 +22,7 @@ describe('integration: unplugin-keywords', () => {
   });
 
   it('resolves and loads virtual module content with hashes', async () => {
-    const plugin = getPlugin(false, 123, 'rollup');
+    const plugin = getPlugin(false, '123', 'rollup');
 
     // @ts-expect-error test
     await plugin.buildStart.call({});
@@ -63,7 +63,7 @@ describe('integration: unplugin-keywords', () => {
   });
 
   it('includes debug keyword name in dev mode', async () => {
-    const plugin = getPlugin(true, 456, 'webpack');
+    const plugin = getPlugin(true, '456', 'webpack');
 
     // @ts-expect-error test
     await plugin.buildStart.call({});

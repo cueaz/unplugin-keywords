@@ -20,9 +20,6 @@ importers:
       unplugin:
         specifier: ^3.0.0
         version: 3.0.0
-      xxhash-wasm:
-        specifier: ^1.1.0
-        version: 1.1.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.4.14
@@ -974,9 +971,6 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  xxhash-wasm@1.1.0:
-    resolution: {integrity: sha512-147y/6YNh+tlp6nd/2pWq38i9h6mz/EuQ6njIrmW8D1BS5nCqs0P6DG+m6zTGnNz5I+uhZ0SHxBs9BsPrwcKDA==}
-
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
 
@@ -1769,8 +1763,6 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
-
-  xxhash-wasm@1.1.0: {}
 
   yallist@3.1.1: {}
 

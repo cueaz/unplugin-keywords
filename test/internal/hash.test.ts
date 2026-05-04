@@ -1,51 +1,53 @@
-import { beforeAll, describe, expect, it } from 'vitest';
-import loadXXHash from 'xxhash-wasm';
-import { toShortHash } from '../../src/internal/hash';
+import { describe, expect, it } from 'vitest';
+import { createHasher } from '../../src/internal/hash';
 
 describe('internal/hash', () => {
-  let xxhash: Awaited<ReturnType<typeof loadXXHash>>;
-
-  beforeAll(async () => {
-    xxhash = await loadXXHash();
-  });
-
-  describe('toShortHash', () => {
-    it('generates a stable deterministic hash for the same input and seed', () => {
-      const hash1 = toShortHash(xxhash, 'keyword1', 42);
-      const hash2 = toShortHash(xxhash, 'keyword1', 42);
+  describe('createHasher', () => {
+    it('generates a stable deterministic hash for the same input and key', () => {
+      const hasher1 = createHasher('my-secret-key');
+      const hasher2 = createHasher('my-secret-key');
+      const hash1 = hasher1('keyword1');
+      const hash2 = hasher2('keyword1');
       expect(hash1).toBe(hash2);
-      expect(hash1).toBeTruthy();
     });
 
     it('generates different hashes for different inputs', () => {
-      const hash1 = toShortHash(xxhash, 'keyword1', 42);
-      const hash2 = toShortHash(xxhash, 'keyword2', 42);
+      const hasher = createHasher('my-secret-key');
+      const hash1 = hasher('keyword1');
+      const hash2 = hasher('keyword2');
       expect(hash1).not.toBe(hash2);
     });
 
-    it('generates different hashes for the same input but different seeds', () => {
-      const hash1 = toShortHash(xxhash, 'keyword1', 42);
-      const hash2 = toShortHash(xxhash, 'keyword1', 43);
+    it('generates different hashes for the same input but different keys', () => {
+      const hasher1 = createHasher('my-secret-key-1');
+      const hasher2 = createHasher('my-secret-key-2');
+      const hash1 = hasher1('keyword1');
+      const hash2 = hasher2('keyword1');
       expect(hash1).not.toBe(hash2);
     });
 
     it('generates hashes composed only of base62 characters', () => {
-      const hash = toShortHash(xxhash, 'special@#$*-keyword', 12345);
+      const hasher = createHasher('my-secret-key');
+      const hash = hasher('special@#$*-keyword');
       expect(hash).toMatch(/^[a-zA-Z0-9]+$/);
     });
 
-    it('always generates a hash of exactly 7 characters (fuzz test)', () => {
-      // Fuzz test with 10,000 random inputs and seeds
-      for (let i = 0; i < 10000; i++) {
-        const randomInput = Math.random().toString(36).substring(2) + i;
-        const randomSeed = Math.floor(Math.random() * 1000000);
-        const hash = toShortHash(xxhash, randomInput, randomSeed);
-        expect(hash.length).toBe(7);
-      }
+    it('handles boundary value edge cases correctly', () => {
+      const hasher = createHasher('boundary-key');
 
-      // Edge cases: empty string and zero seed
-      expect(toShortHash(xxhash, '', 0).length).toBe(7);
-      expect(toShortHash(xxhash, 'a', 0).length).toBe(7);
+      // 1. Empty string input
+      const emptyHash = hasher('');
+      expect(emptyHash.length).toBeGreaterThan(0);
+      expect(emptyHash.length).toBeLessThanOrEqual(7);
+
+      // 2. Extremely long string input
+      const longInput = 'A'.repeat(10000);
+      const longHash = hasher(longInput);
+      expect(longHash.length).toBeGreaterThan(0);
+      expect(longHash.length).toBeLessThanOrEqual(7);
+
+      // 3. Force a hash collision check with different parameters
+      expect(emptyHash).not.toBe(longHash);
     });
   });
 });

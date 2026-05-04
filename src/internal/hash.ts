@@ -1,27 +1,34 @@
-import type { XXHashAPI } from 'xxhash-wasm';
-import { SHORT_HASH_LENGTH } from './constants';
+import { createHmac } from 'node:crypto';
+import { MAX_HASH_LENGTH } from './constants';
 
-const ALPHABET =
+const BASE62_CHARS =
   'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-const ALPHABET_SIZE = BigInt(ALPHABET.length);
-const EXPONENT = BigInt(SHORT_HASH_LENGTH);
+const BASE62_LENGTH = BASE62_CHARS.length;
+const SPACE_SIZE = BASE62_LENGTH ** MAX_HASH_LENGTH; // 62^7 << 2^52
 
-const toBaseN = (num: bigint): string => {
+const toBase62 = (num: number): string => {
   let n = num;
   let res = '';
-  while (n > 0n) {
-    res = ALPHABET[Number(n % ALPHABET_SIZE)] + res;
-    n = n / ALPHABET_SIZE;
+  while (n > 0) {
+    res = BASE62_CHARS[n % BASE62_LENGTH] + res;
+    n = Math.floor(n / BASE62_LENGTH);
   }
   return res;
 };
 
-export const toShortHash = (
-  xxhash: XXHashAPI,
-  input: string,
-  seed: number,
-): string => {
-  const hash = xxhash.h64(input, BigInt(seed));
-  const baseN = toBaseN(hash % ALPHABET_SIZE ** EXPONENT);
-  return baseN.padStart(SHORT_HASH_LENGTH, ALPHABET[0]);
+export type Hasher = (input: string) => string;
+
+export const createHasher = (secret: string): Hasher => {
+  const cache = new Map<string, string>();
+  return (input) => {
+    if (cache.has(input)) {
+      return cache.get(input) as string;
+    }
+    const hasher = createHmac('sha256', secret);
+    const buffer = hasher.update(input).digest();
+    const hash = buffer.readBigUInt64BE(0);
+    const value = toBase62(Number(hash % (BigInt(SPACE_SIZE) - 1n)) + 1);
+    cache.set(input, value);
+    return value;
+  };
 };
