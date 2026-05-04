@@ -9,6 +9,57 @@ import {
 import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants';
 import { encodeIdentifier, toSafeVarName } from './encode';
 
+const isPureTypeSpace = (path: NodePath): boolean => {
+  let current: NodePath | null = path;
+  while (current) {
+    const parent = current.parentPath;
+    if (!parent) {
+      break;
+    }
+    // 1. Value crossings via `typeof`
+    if (parent.isTSTypeQuery()) {
+      return false;
+    }
+    // 2. Computed keys (e.g., interface I { [Abc]: string })
+    if ('computed' in parent.node && parent.node.computed) {
+      if (current.key === 'key' || current.key === 'property') {
+        return false;
+      }
+    }
+    // 3-A. Definitive Type Contexts
+    if (
+      parent.isTSType() ||
+      parent.isTSTypeParameterDeclaration() ||
+      parent.isTSTypeParameterInstantiation() ||
+      parent.isTSExpressionWithTypeArguments()
+    ) {
+      return true;
+    }
+    // 3-B. Type Declaration Identifiers (e.g., interface Abc {}, type Abc = {})
+    if (
+      parent.isTSInterfaceDeclaration() ||
+      parent.isTSTypeAliasDeclaration() ||
+      parent.isTSEnumDeclaration() ||
+      parent.isTSModuleDeclaration()
+    ) {
+      if (current.key === 'id') {
+        return true;
+      }
+    }
+    // 4. Continue up structural TS nodes (A.B.C)
+    if (parent.isTSQualifiedName() || parent.isTSEntityName()) {
+      current = current.parentPath;
+      continue;
+    }
+    // 5. If we reach standard JS statements/expressions, it implies Value Space.
+    if (parent.isExpression() || parent.isStatement()) {
+      break;
+    }
+    current = current.parentPath;
+  }
+  return false;
+};
+
 interface TransformState extends PluginPass {
   allKeywords: Set<string>;
   keywordUids: Map<string, t.Identifier>;
@@ -100,16 +151,7 @@ const transformPlugin = (
 
             // 1) Fast Path: Values & JSX
             for (const refPath of binding.referencePaths) {
-              // Filter out type space usage
-              const parent = refPath.parentPath;
-              if (
-                parent?.isTSTypeReference() ||
-                parent?.isTSTypeAliasDeclaration() ||
-                parent?.isTSInterfaceDeclaration() ||
-                parent?.isTSModuleDeclaration() ||
-                parent?.isTSExpressionWithTypeArguments() ||
-                parent?.isTSQualifiedName()
-              ) {
+              if (isPureTypeSpace(refPath)) {
                 continue;
               }
               if (refPath.isJSXIdentifier()) {
@@ -139,11 +181,13 @@ const transformPlugin = (
           else if (specifierPath.isImportNamespaceSpecifier()) {
             // 1) Fast Path: JS Values & JSX accesses
             for (const refPath of binding.referencePaths) {
+              if (isPureTypeSpace(refPath)) {
+                continue;
+              }
               const parentPath = refPath.parentPath;
               if (!parentPath) {
                 continue;
               }
-
               if (
                 parentPath.isMemberExpression() &&
                 parentPath.node.object === refPath.node
@@ -240,7 +284,7 @@ const transformPlugin = (
             if (specifierPath.isExportSpecifier()) {
               const local = specifierPath.node.local as
                 | t.Identifier
-                | t.StringLiteral; // imported can be a StringLiteral in ES2022
+                | t.StringLiteral; // local can be a StringLiteral in ES2022
               const keyword = t.isIdentifier(local) ? local.name : local.value;
               state.allKeywords.add(keyword);
             }
@@ -254,7 +298,7 @@ const transformPlugin = (
             if (specifierPath.isExportSpecifier()) {
               const local = specifierPath.node.local as
                 | t.Identifier
-                | t.StringLiteral; // imported can be a StringLiteral in ES2022
+                | t.StringLiteral; // local can be a StringLiteral in ES2022
               const keyword = t.isIdentifier(local) ? local.name : local.value;
               state.allKeywords.add(keyword);
               const encoded = encodeIdentifier(keyword);
