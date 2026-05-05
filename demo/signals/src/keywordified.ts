@@ -2,6 +2,7 @@ import * as K from 'virtual:keywords';
 
 // An named symbol/brand for detecting Signal instances even when they weren't
 // created using the same signals library version.
+// biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
 const BRAND_SYMBOL = Symbol.for(K['preact-signals']);
 
 // Flags for Computed and Effect.
@@ -299,7 +300,7 @@ interface Signal<T = unknown> {
 
   [K.subscribe](fn: (value: T) => void): () => void;
 
-  [K.name]?: symbol | undefined;
+  [K.name]?: string | undefined;
 
   [K.peek](): T;
 
@@ -312,7 +313,7 @@ interface Signal<T = unknown> {
 export interface SignalOptions<T = unknown> {
   [K.watched]?: (this: Signal<T>) => void;
   [K.unwatched]?: (this: Signal<T>) => void;
-  [K.name]?: symbol | undefined;
+  [K.name]?: string | undefined;
 }
 
 export interface SignalConstructor {
@@ -851,7 +852,7 @@ interface Effect {
   [K._nextBatchedEffect]?: Effect | undefined;
   [K._flags]: number;
   [K._debugCallback]?: (() => void) | undefined;
-  [K.name]?: symbol | undefined;
+  [K.name]?: string | undefined;
 
   [K._callback](): void;
   [K._start](): () => void;
@@ -867,7 +868,7 @@ export interface EffectConstructor {
 }
 
 export interface EffectOptions {
-  [K.name]?: symbol | undefined;
+  [K.name]?: string | undefined;
 }
 
 let capturedEffects: Effect[] | undefined;

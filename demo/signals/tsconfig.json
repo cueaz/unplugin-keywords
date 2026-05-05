@@ -3,7 +3,7 @@
   "include": ["src", "test", "*.config.ts"],
   "compilerOptions": {
     "paths": {
-      "virtual:keywords": ["./node_modules/.keywords.d.ts"]
+      "virtual:keywords": ["./node_modules/.keywords"]
     }
   }
 }

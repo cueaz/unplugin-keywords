@@ -52,10 +52,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown",
+    "precheck": "pnpm --filter \"./demo/*\" typegen",
     "check": "tsc --build && biome check",
     "format": "biome check --write",
-    "test": "vitest run"
+    "build": "tsdown",
+    "build:demo": "pnpm --filter \"./demo/*\" build",
+    "test": "vitest run",
+    "test:demo": "pnpm --filter \"./demo/*\" test"
   },
   "dependencies": {
     "@babel/core": "catalog:",

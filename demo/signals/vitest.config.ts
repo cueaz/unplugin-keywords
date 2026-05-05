@@ -9,6 +9,7 @@ export default defineConfig({
         'import.meta.custom.DEV_MODE': JSON.stringify(isDev),
       },
       test: {
+        include: ['test/**/*.test.ts'],
         execArgv: ['--expose-gc'],
       },
     })),

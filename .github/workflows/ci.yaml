@@ -20,5 +20,8 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
       - run: pnpm run build
+      - run: pnpm install # Symlink bin for typegen
       - run: pnpm run check
       - run: pnpm run test
+      - run: pnpm run test:demo
+      - run: pnpm run build:demo

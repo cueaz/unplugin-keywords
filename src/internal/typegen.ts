@@ -4,17 +4,20 @@ import { encodeIdentifier, toSafeVarName } from './encode';
 export const generateTypeDeclaration = (keywords: Set<string>): string => {
   const sortedKeywords = Array.from(keywords).sort();
   const content = [];
-  content.push('type Keyword<K, V> = V & { readonly __keyword__: K };');
-  content.push('');
+  // content.push(
+  //   'type Keyword<K extends string, V extends string> = V & { readonly __keyword__: K };',
+  // );
+  // content.push('');
 
   for (const keyword of sortedKeywords) {
     const encoded = encodeIdentifier(keyword);
     const safeName = toSafeVarName(encoded);
     const hash = '*'.repeat(MAX_HASH_LENGTH);
-    const value = `${hash}_${encoded}`;
-    content.push(
-      `declare const ${safeName}: Keyword<${JSON.stringify(keyword)}, ${JSON.stringify(value)}>;`,
-    );
+    const value = `${hash}|${encoded}`;
+    // content.push(
+    //   `declare const ${safeName}: Keyword<${JSON.stringify(keyword)}, ${JSON.stringify(value)}>;`,
+    // );
+    content.push(`declare const ${safeName}: ${JSON.stringify(value)};`);
   }
   content.push('');
 

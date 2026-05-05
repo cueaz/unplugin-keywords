@@ -7,9 +7,9 @@ describe('internal/typegen', () => {
       const keywords = new Set<string>();
       const output = generateTypeDeclaration(keywords);
 
-      expect(output).toContain(
-        'type Keyword<K, V> = V & { readonly __keyword__: K };',
-      );
+      // expect(output).toContain(
+      //   'type Keyword<K, V> = V & { readonly __keyword__: K };',
+      // );
       expect(output).toContain('export {');
       expect(output).toContain('};');
     });
@@ -18,12 +18,8 @@ describe('internal/typegen', () => {
       const keywords = new Set(['abc', 'SET_USER']);
       const output = generateTypeDeclaration(keywords);
 
-      expect(output).toContain(
-        'declare const _$SET_USER: Keyword<"SET_USER", "*******_SET_USER">;',
-      );
-      expect(output).toContain(
-        'declare const _$abc: Keyword<"abc", "*******_abc">;',
-      );
+      expect(output).toContain('declare const _$SET_USER: "*******|SET_USER";');
+      expect(output).toContain('declare const _$abc: "*******|abc";');
       expect(output).toContain('_$SET_USER as "SET_USER",');
       expect(output).toContain('_$abc as "abc",');
     });
@@ -33,10 +29,10 @@ describe('internal/typegen', () => {
       const output = generateTypeDeclaration(keywords);
 
       expect(output).toContain(
-        'declare const _$kebab$002dcase: Keyword<"kebab-case", "*******_kebab$002dcase">;',
+        'declare const _$kebab$002dcase: "*******|kebab$002dcase";',
       );
       expect(output).toContain(
-        'declare const _$$0040special: Keyword<"@special", "*******_$0040special">;',
+        'declare const _$$0040special: "*******|$0040special";',
       );
       expect(output).toContain('_$kebab$002dcase as "kebab-case",');
       expect(output).toContain('_$$0040special as "@special",');

@@ -212,11 +212,13 @@ describe('signal', () => {
 
   it('signals should be identified with a symbol', () => {
     const a = signal(0);
+    // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
     expect(a[K.brand]).to.equal(Symbol.for(K['preact-signals']));
   });
 
   it('should be identified with a symbol', () => {
     const a = computed(() => {});
+    // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
     expect(a[K.brand]).to.equal(Symbol.for(K['preact-signals']));
   });
 });

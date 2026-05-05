@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsdown",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typegen": "keywords"
   },
   "devDependencies": {
     "tsdown": "catalog:",
