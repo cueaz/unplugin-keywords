@@ -74,12 +74,14 @@ const transformPlugin = (
 ): PluginObj<TransformState> => {
   return {
     name: `${PLUGIN_NAME}:${mode}`,
+
     visitor: {
       Program: {
         enter(_, state) {
           state.allKeywords = new Set();
           state.keywordUids = new Map();
         },
+
         exit(path, state) {
           const metadata = state.file.metadata as TransformMetadata;
           metadata.keywords = Array.from(state.allKeywords);
@@ -94,7 +96,6 @@ const transformPlugin = (
                 );
               },
             );
-
             if (newImports.length > 0) {
               path.unshiftContainer('body', newImports);
             }

@@ -41,7 +41,7 @@ The bundler receives the transformed code and processes the hashed literals. Dep
 
 ```ts
 // Example of minifier output: strings may be inlined or assigned to variables if used multiple times
-const _="zXpL21k";const a={"a3fB9zX":_,"1kMw8pA":data};
+const _="zXpL21k";const a={a3fB9zX:_,"1kMw8pA":data};
 ```
 *The resulting bundle is stripped of semantic strings, mapping internal application logic to deterministic hashes up to 7 characters in length.*
 

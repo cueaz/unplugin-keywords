@@ -56,14 +56,14 @@ const collectKeywordsFromRoot = async (
 };
 
 interface RunOptions {
+  root: string;
   silent: boolean;
   dirname: string;
   filename: string;
 }
 
 const runImpl = async (options: RunOptions): Promise<void> => {
-  const { silent, dirname, filename } = options;
-  const root = process.cwd();
+  const { root, silent, dirname, filename } = options;
   const keywords = await collectKeywordsFromRoot(root, silent);
   const content = generateTypeDeclaration(keywords);
   const outDir = path.join(root, dirname);
@@ -75,10 +75,11 @@ const runLimit = pLimit({ concurrency: 1 });
 
 export const run = async (options?: Partial<RunOptions>): Promise<void> => {
   const {
+    root = process.cwd(),
     silent = false,
     dirname = 'node_modules',
     filename = '.keywords.d.ts',
   } = options ?? {};
   runLimit.clearQueue();
-  await runLimit(() => runImpl({ silent, dirname, filename }));
+  await runLimit(() => runImpl({ root, silent, dirname, filename }));
 };
