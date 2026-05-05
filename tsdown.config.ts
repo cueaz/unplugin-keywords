@@ -2,20 +2,9 @@ import { defineConfig } from 'tsdown';
 
 export default defineConfig([
   {
-    entry: {
-      '*': 'src/*.ts',
-    },
+    entry: ['src/*.ts', '!src/*.d.ts'],
     clean: true,
     dts: true,
-    sourcemap: true,
-    fixedExtension: false,
-  },
-  {
-    entry: {
-      'bin/*': 'src/bin/*.ts',
-    },
-    clean: false, // Don't clean again if the first config already did
-    dts: false,
     sourcemap: true,
     fixedExtension: false,
   },

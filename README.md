@@ -6,8 +6,8 @@
 
 [npm-badge]: https://img.shields.io/npm/v/unplugin-keywords.svg
 [npm-url]: https://www.npmjs.com/package/unplugin-keywords
-[ci-badge]: https://github.com/cueaz/unplugin-keywords/actions/workflows/ci.yaml/badge.svg
-[ci-url]: https://github.com/cueaz/unplugin-keywords/actions/workflows/ci.yaml
+[ci-badge]: https://github.com/cueaz/unplugin-keywords/actions/workflows/check.yaml/badge.svg
+[ci-url]: https://github.com/cueaz/unplugin-keywords/actions/workflows/check.yaml
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://github.com/cueaz/unplugin-keywords/blob/main/LICENSE
 

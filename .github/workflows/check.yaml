@@ -1,4 +1,4 @@
-name: CI
+name: check
 
 on:
   push:
@@ -12,15 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
-        with:
-          version: 10
       - uses: actions/setup-node@v6
         with:
           node-version: 'lts/*'
           cache: 'pnpm'
-      - run: pnpm install
+      - run: pnpm ci
       - run: pnpm run build
-      - run: pnpm install # Symlink bin for typegen
       - run: pnpm run check
       - run: pnpm run test
       - run: pnpm run test:demo
