@@ -7,13 +7,16 @@ import { generateTypeDeclaration } from './typegen';
 
 const collectKeywordsFromRoot = async (
   root: string,
+  silent: boolean,
   ignoredDirs: string[] = [],
   concurrency: number = 100,
 ): Promise<Set<string>> => {
   const collectedKeywords = new Set<string>();
 
   const start = performance.now();
-  console.error('Scanning project files for keywords...');
+  if (!silent) {
+    console.error('Scanning project files for keywords...');
+  }
 
   const files = await globby('**/*.{js,ts,mjs,mts,jsx,tsx,mjsx,mtsx}', {
     cwd: root,
@@ -36,21 +39,32 @@ const collectKeywordsFromRoot = async (
       }
       processed++;
     } catch (error) {
-      console.error(`Failed to process ${file}: ${error}`);
+      if (!silent) {
+        console.error(`Failed to process ${file}: ${error}`);
+      }
     }
   });
 
   const elapsed = performance.now() - start;
-  console.error(
-    `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.size} unique keywords (${elapsed.toFixed(2)}ms).`,
-  );
+  if (!silent) {
+    console.error(
+      `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.size} unique keywords (${elapsed.toFixed(2)}ms).`,
+    );
+  }
 
   return collectedKeywords;
 };
 
-const runImpl = async (dirname: string, filename: string): Promise<void> => {
+interface RunOptions {
+  silent: boolean;
+  dirname: string;
+  filename: string;
+}
+
+const runImpl = async (options: RunOptions): Promise<void> => {
+  const { silent, dirname, filename } = options;
   const root = process.cwd();
-  const keywords = await collectKeywordsFromRoot(root);
+  const keywords = await collectKeywordsFromRoot(root, silent);
   const content = generateTypeDeclaration(keywords);
   const outDir = path.join(root, dirname);
   await mkdir(outDir, { recursive: true });
@@ -59,10 +73,12 @@ const runImpl = async (dirname: string, filename: string): Promise<void> => {
 
 const runLimit = pLimit({ concurrency: 1 });
 
-export const run = async (
-  dirname: string = 'node_modules',
-  filename: string = '.keywords.d.ts',
-): Promise<void> => {
+export const run = async (options?: Partial<RunOptions>): Promise<void> => {
+  const {
+    silent = false,
+    dirname = 'node_modules',
+    filename = '.keywords.d.ts',
+  } = options ?? {};
   runLimit.clearQueue();
-  await runLimit(() => runImpl(dirname, filename));
+  await runLimit(() => runImpl({ silent, dirname, filename }));
 };

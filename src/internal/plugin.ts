@@ -37,7 +37,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
     buildStart() {
       hasher = createHasher(secret);
       resolvedMap = new Map();
-      run();
+      run({ silent: true });
     },
 
     resolveId: {
