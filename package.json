@@ -1,6 +1,6 @@
 {
   "name": "unplugin-keywords",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "packageManager": "pnpm@11.0.5+sha512.94fa09e72016402aefce788e46994e18eb1922998b16b6fd5aa6bafd8ae4dea05d0852f60247fdb7d5ab8199a7b0beda830398f3f80cb9f822398522a1535481",
   "description": "A build plugin for structural string literal minification and obfuscation.",
   "keywords": [

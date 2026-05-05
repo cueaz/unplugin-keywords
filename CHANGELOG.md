@@ -1,0 +1,31 @@
+# Changelog
+
+## [2.1.0](https://github.com/cueaz/unplugin-keywords/compare/unplugin-keywords-v2.0.0...unplugin-keywords-v2.1.0) (2026-05-05)
+
+
+### Features
+
+* add base files ([562f5ba](https://github.com/cueaz/unplugin-keywords/commit/562f5ba376e3ded2aeef3b85a208743fcb9b8ffe))
+* base plugin structure ([2fa27e6](https://github.com/cueaz/unplugin-keywords/commit/2fa27e648a73b2dde13c73faaacee8f020a74655))
+* finish transform rework ([da7efef](https://github.com/cueaz/unplugin-keywords/commit/da7efef8845d78af7f85beb314a04f1ed4a7aec5))
+* generate types on bundler run ([748fee9](https://github.com/cueaz/unplugin-keywords/commit/748fee914ec85434fa393f33c82f4300969c83e9))
+* initial commit ([2b871e9](https://github.com/cueaz/unplugin-keywords/commit/2b871e906bdc7a66fdc77fa1142780a2a13d1aa6))
+* make demo work ([0f02345](https://github.com/cueaz/unplugin-keywords/commit/0f0234512b0ec4ac7b943e114e16928292296ffb))
+* make typegen silent inside plugin ([c501f54](https://github.com/cueaz/unplugin-keywords/commit/c501f54fda90150060732b61a127feb97fcd7b6a))
+* more cli diagnostics ([051f317](https://github.com/cueaz/unplugin-keywords/commit/051f3170eac68deb262ed15fbd2d29349bc897f3))
+* re-export options ([68eaed1](https://github.com/cueaz/unplugin-keywords/commit/68eaed1791ad91e0a852284f6d77c6d9fe0692aa))
+* transform fast path ([188463f](https://github.com/cueaz/unplugin-keywords/commit/188463fa6d11331ee56a3fc94f41736bd9f5255d))
+* unify extract/transform ([dcbb19e](https://github.com/cueaz/unplugin-keywords/commit/dcbb19eefc001565cde00ad671174d4de48220a0))
+* use node crypto for hashing ([6e54004](https://github.com/cueaz/unplugin-keywords/commit/6e5400485ca2b83f67528026272539a6a99b938d))
+* wip cli ([8e114e9](https://github.com/cueaz/unplugin-keywords/commit/8e114e9b12011512b90c831050b0f1c43f55be79))
+* wip demo ([00e8ab5](https://github.com/cueaz/unplugin-keywords/commit/00e8ab50e986c802675b2dd32da8072b4f833e35))
+* wip plugin ([294523c](https://github.com/cueaz/unplugin-keywords/commit/294523cde167109beb202a40e1da3c809fc64b16))
+* wip porting ([4ea9ea9](https://github.com/cueaz/unplugin-keywords/commit/4ea9ea921f8aa8c93bc7cd620b588e3539beebfe))
+* wip porting ([fea6484](https://github.com/cueaz/unplugin-keywords/commit/fea64842c31ce27e82dcf481f0f8d59d2b9b4237))
+* wip porting ([a6fbb9e](https://github.com/cueaz/unplugin-keywords/commit/a6fbb9e93ebfb651b41ddd8033f6c47c42a2f56f))
+* wip transform rework for exactness ([0500ef9](https://github.com/cueaz/unplugin-keywords/commit/0500ef968e017a283ec17215e499d5472a9fae5b))
+
+
+### Bug Fixes
+
+* temporary fix on extract/transform ([77b89ce](https://github.com/cueaz/unplugin-keywords/commit/77b89cec4ebebb445917258bb3173e9388bec2eb))
