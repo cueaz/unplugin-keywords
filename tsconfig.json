@@ -1,13 +1,5 @@
 {
-  "extends": ["@tsconfig/bases/strictest"],
-  "compilerOptions": {
-    "target": "esnext",
-    "lib": ["ESNext"],
-    "module": "preserve",
-    "moduleResolution": "bundler",
-    "composite": true,
-    "emitDeclarationOnly": true,
-    "declarationDir": "./node_modules/.tmp/dts-out"
-  },
-  "include": ["src", "test"]
+  "extends": ["./tsconfig.base.json"],
+  "include": ["src", "test", "*.config.ts"],
+  "references": [{ "path": "./demo/signals" }]
 }

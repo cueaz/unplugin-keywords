@@ -97,11 +97,15 @@ The namespace import pattern shines in complex, class-based architectures where 
 
 ```ts
 // Source: https://github.com/lit/lit/blob/main/packages/lit-html/src/directives/async-replace.ts
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 import * as K from 'virtual:keywords';
 import {
   AsyncDirective,
   type DirectiveParameters,
-  directive,
 } from '../async-directive.js';
 import { type ChildPart, noChange } from '../lit-html.js';
 import { forAwaitOf, Pauser, PseudoWeakRef } from './private-async-helpers.js';
