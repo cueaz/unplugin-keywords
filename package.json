@@ -51,9 +51,10 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "keywords": "bin/cli.js"
+    "keywords": "./bin/cli.js"
   },
   "files": [
+    "bin",
     "dist"
   ],
   "scripts": {
