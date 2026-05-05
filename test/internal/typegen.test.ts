@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateTypeDeclaration } from '../../src/internal/typegen';
+import { generateTypeDeclaration } from '../../src/internal/typegen.js';
 
 describe('internal/typegen', () => {
   describe('generateTypeDeclaration', () => {

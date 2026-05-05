@@ -1,9 +1,9 @@
 import type { UnpluginFactory } from 'unplugin';
-import { run } from './cli';
-import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants';
-import { encodeIdentifier } from './encode';
-import { createHasher, type Hasher } from './hash';
-import { transformCode } from './transform';
+import { run } from './cli.js';
+import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants.js';
+import { encodeIdentifier } from './encode.js';
+import { createHasher, type Hasher } from './hash.js';
+import { transformCode } from './transform.js';
 
 const resolveId = (id: string): string => `\0${id}`;
 

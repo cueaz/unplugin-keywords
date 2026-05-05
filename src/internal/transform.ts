@@ -6,8 +6,8 @@ import {
   types as t,
   transformSync,
 } from '@babel/core';
-import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants';
-import { encodeIdentifier, toSafeVarName } from './encode';
+import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants.js';
+import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 const isPureTypeSpace = (path: NodePath): boolean => {
   let current: NodePath | null = path;

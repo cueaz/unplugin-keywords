@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto';
-import { MAX_HASH_LENGTH } from './constants';
+import { MAX_HASH_LENGTH } from './constants.js';
 
 const BASE62_CHARS =
   'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

@@ -2,9 +2,8 @@
   "extends": ["@tsconfig/bases/strictest"],
   "compilerOptions": {
     "target": "esnext",
-    "lib": ["ESNext"],
-    "module": "preserve",
-    "moduleResolution": "bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "composite": true,
     "emitDeclarationOnly": true,
     "declarationDir": "./node_modules/.tmp/dts-out"

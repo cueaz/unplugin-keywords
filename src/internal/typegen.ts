@@ -1,5 +1,5 @@
-import { MAX_HASH_LENGTH } from './constants';
-import { encodeIdentifier, toSafeVarName } from './encode';
+import { MAX_HASH_LENGTH } from './constants.js';
+import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 export const generateTypeDeclaration = (keywords: Set<string>): string => {
   const sortedKeywords = Array.from(keywords).sort();

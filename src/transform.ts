@@ -1,1 +1,1 @@
-export { extractKeywords, transformCode } from './internal/transform';
+export { extractKeywords, transformCode } from './internal/transform.js';

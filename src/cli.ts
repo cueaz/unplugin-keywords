@@ -1,1 +1,1 @@
-export { run } from './internal/cli';
+export { run } from './internal/cli.js';

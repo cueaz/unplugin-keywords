@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { encodeIdentifier, toSafeVarName } from '../../src/internal/encode';
+import { encodeIdentifier, toSafeVarName } from '../../src/internal/encode.js';
 
 describe('internal/encode', () => {
   describe('encodeIdentifier', () => {

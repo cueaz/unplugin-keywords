@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { extractKeywords, transformCode } from '../../src/internal/transform';
+import {
+  extractKeywords,
+  transformCode,
+} from '../../src/internal/transform.js';
 
 describe('internal/transform', () => {
   describe('transformCode', () => {

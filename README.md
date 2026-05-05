@@ -81,7 +81,7 @@ npx keywords
 {
   "compilerOptions": {
     "paths": {
-      "virtual:keywords": ["./node_modules/.keywords"]
+      "virtual:keywords": ["./node_modules/.keywords.d.ts"]
     }
   }
 }

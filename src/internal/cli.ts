@@ -2,8 +2,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { globby } from 'globby';
 import pLimit from 'p-limit';
-import { extractKeywords } from './transform';
-import { generateTypeDeclaration } from './typegen';
+import { extractKeywords } from './transform.js';
+import { generateTypeDeclaration } from './typegen.js';
 
 const collectKeywordsFromRoot = async (
   root: string,
