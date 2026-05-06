@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/cueaz/unplugin-keywords/compare/v2.2.1...v2.3.0) (2026-05-06)
+
+
+### Features
+
+* use unencoded keyword in dev mode for better debuggability ([e0b0090](https://github.com/cueaz/unplugin-keywords/commit/e0b009048e2c2571fe0e972a1cdac8424ccb47ca))
+
 ## [2.2.1](https://github.com/cueaz/unplugin-keywords/compare/v2.2.0...v2.2.1) (2026-05-06)
 
 
