@@ -6,6 +6,8 @@ import { createHighlighter, type Highlighter, type ThemedToken } from 'shiki';
 import { defineConfig } from 'tsdown';
 import keywords from 'unplugin-keywords/rollup';
 
+const skipImage = !!(process.env as { NO_IMAGE?: string }).NO_IMAGE;
+
 type VNode = Parameters<typeof satori>[0];
 
 const tokensToVNode = (
@@ -30,7 +32,7 @@ const tokensToVNode = (
     }
     children.push({
       type: 'span',
-      props: { children: '\u00A0' },
+      props: { children: '\u21B5' },
     });
   }
   return {
@@ -124,7 +126,10 @@ export default defineConfig([
     checks: {
       pluginTimings: false,
     },
-    plugins: [keywords({ isDev: false, secret: '' }), image()],
+    plugins: [
+      keywords({ isDev: false, secret: '' }),
+      ...(skipImage ? [] : [image()]),
+    ],
     define: {
       'import.meta.custom.DEV_MODE': JSON.stringify(false),
     },

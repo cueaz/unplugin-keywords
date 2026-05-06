@@ -6,30 +6,41 @@ This directory contains a practical, real-world demonstration of `unplugin-keywo
 
 The goal of this demo is to visualize the tangible impact of AST-level structural string obfuscation on a complex codebase.
 
-- **`src/original.ts`**: The baseline implementation of signals.
-- **`src/keywordified.ts`**: The exact same logic, but with internal properties and lifecycle methods explicitly routed through the `virtual:keywords` namespace.
+- `src/original.ts`: The baseline implementation of signals.
+- `src/keywordified.ts`: The exact same logic, but with internal properties and lifecycle methods explicitly routed through the `virtual:keywords` namespace.
 
-By comparing the minified outputs in `dist_sample/`([`original.js`](./dist_sample/original.js), [`keywordified.js`](./dist_sample/keywordified.js)), you can observe how `unplugin-keywords` eradicates semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to deterministic short hashes and further compressing the final production bundle.
+By comparing the minified outputs in `dist_sample/` (see [`original.js`](./dist_sample/original.js) and [`keywordified.js`](./dist_sample/keywordified.js)), you can observe how `unplugin-keywords` eradicates semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to deterministic short hashes and further compressing the final production bundle.
 
 > **Note on Compression Entropy:** While the uncompressed bundle size strictly decreases, the gzipped size increases. In [V1](https://github.com/cueaz/vite-plugin-keywords), properties were mapped to `Symbol()`, which resulted in repetitive syntax that LZ77 compression algorithms could effortlessly dictionary-match. V2 replaces this with high-entropy base62 hashes (`"a3B"`, `"zXp"`). The introduction of this structural randomness inherently reduces gzip compression efficiency, despite the smaller raw file size.
 
 ## Verification
 
-You can empirically verify the exact byte sizes of the generated outputs using standard Unix utilities.
+The obfuscation process is validated across two constraints: Size Reduction and Behavioral Equivalence.
 
-**Uncompressed Size:**
+### 1. Bundle Size Output
+Compilation via `tsdown` confirms the uncompressed byte reduction and the expected gzip entropy shift.
+
 ```bash
-$ wc -c dist_sample/*.js
-    5847 dist_sample/keywordified.js
-    6634 dist_sample/original.js
+$ NO_IMAGE=1 pnpm build --no-color
+  ...
+  ℹ dist/original.js      6.79 kB │ gzip: 2.06 kB
+  ℹ dist/keywordified.js  5.99 kB │ gzip: 2.39 kB
+  ℹ 2 files, total: 12.78 kB
+  ✔ Build complete in 251ms
 ```
 
-**Gzipped Size:**
+### 2. Behavioral Equivalence
+To guarantee zero runtime regressions, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [DEV_MODE: on, off]`.
+
+The resulting 632 test executions empirically prove semantic equivalence.
+
 ```bash
-$ gzip -c dist_sample/original.js | wc -c
-    2041
-$ gzip -c dist_sample/keywordified.js | wc -c
-    2374
+$ pnpm test --no-color
+  ...
+  Test Files  4 passed (4)
+       Tests  632 passed (632)
+    Start at  18:35:06
+    Duration  854ms (transform 1.80s, setup 0ms, import 1.93s, tests 223ms, environment 1ms)
 ```
 
 ## License Notice

@@ -302,6 +302,10 @@ interface Signal<T = unknown> {
 
   brand: typeof BRAND_SYMBOL;
 
+  valueOf(): T;
+  toString(): string;
+  toJSON(): T;
+
   get value(): T;
   set value(value: T);
 }
@@ -399,6 +403,19 @@ Signal.prototype.subscribe = function (fn) {
 
 Signal.prototype.peek = function () {
   return untracked(() => this.value);
+};
+
+Signal.prototype.valueOf = function () {
+  return this.value;
+};
+
+Signal.prototype.toString = function () {
+  // biome-ignore lint/style/useTemplate: compatibility with original signals-core (+ '' uses valueOf, template literal uses toString)
+  return this.value + '';
+};
+
+Signal.prototype.toJSON = function () {
+  return this.value;
 };
 
 Object.defineProperty(Signal.prototype, 'value', {
@@ -743,6 +760,9 @@ interface ReadonlySignal<T = unknown> {
   peek(): T;
 
   subscribe(fn: (value: T) => void): () => void;
+  valueOf(): T;
+  toString(): string;
+  toJSON(): T;
   brand: typeof BRAND_SYMBOL;
 }
 

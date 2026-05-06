@@ -19,12 +19,12 @@ A build plugin for structural string literal minification and obfuscation.
 
 A side-by-side comparison of the minified production bundles:
 
-| [Unmodified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/original.ts) (Standard Minification) | [Keywordified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/keywordified.ts) (AST + Minification) |
+| [Unmodified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/original.ts) (Standard Minification) | [Keywordified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/keywordified.ts) (Literal Obfuscation) |
 |:---:|:---:|
 | <img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.js.png" width="400" alt="Original"> | <img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.js.png" width="400" alt="Keywordified"> |
-| 6.63 kB │ gzip: **2.03 kB** | **5.85 kB** │ gzip: 2.36 kB |
+| 6.79 kB │ gzip: **2.06 kB** | **5.99 kB** │ gzip: 2.39 kB |
 
-*While the uncompressed bundle is 11.8% smaller, the gzipped output is 16.3% larger because high-entropy base62 hashes reduce the repetitive structural redundancy that compression algorithms rely on.*
+*While the uncompressed bundle is 11.8% smaller, the gzipped output is 16.0% larger because high-entropy base62 hashes reduce the repetitive structural redundancy that compression algorithms rely on.*
 
 *For more information, see the [demo documentation](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/README.md).*
 

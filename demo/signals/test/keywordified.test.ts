@@ -36,6 +36,34 @@ describe('signal', () => {
     expect(signal(0)).to.be.instanceOf(Signal);
   });
 
+  it('should support .toString()', () => {
+    const s = signal(123);
+    expect(s.toString()).equal('123');
+  });
+
+  it('should support .toJSON()', () => {
+    const s = signal(123);
+    expect(s.toJSON()).equal(123);
+  });
+
+  it('should support JSON.Stringify()', () => {
+    const s = signal(123);
+    expect(JSON.stringify({ s })).equal(JSON.stringify({ s: 123 }));
+  });
+
+  it('should support .valueOf()', () => {
+    const s = signal(123);
+    expect(s).to.have.property('valueOf');
+    expect(s.valueOf).to.be.a('function');
+    expect(s.valueOf()).equal(123);
+    expect(+s).equal(123);
+
+    const a = signal(1);
+    const b = signal(2);
+    // @ts-expect-error-next-line
+    expect(a + b).to.equal(3);
+  });
+
   it('should notify other listeners of changes after one listener is disposed', () => {
     const s = signal(0);
     const spy1 = vi.fn(() => {
@@ -791,47 +819,6 @@ describe('effect()', () => {
     expect(spy).toHaveBeenCalledOnce();
   });
 
-  it('should not rerun an effect for a no-op batch assignment', () => {
-    const foo = signal(42);
-    const spy = vi.fn(() => {
-      foo[K.value];
-    });
-
-    effect(spy);
-    expect(spy).toHaveBeenCalledOnce();
-    spy.mockClear();
-
-    batch(() => {
-      foo[K.value] = 0;
-      foo[K.value] = 42;
-    });
-
-    expect(spy).not.toHaveBeenCalled();
-  });
-
-  it('should not rerun an effect for repeated no-op top-level batches', () => {
-    const foo = signal(42);
-    const spy = vi.fn(() => {
-      foo[K.value];
-    });
-
-    effect(spy);
-    expect(spy).toHaveBeenCalledOnce();
-    spy.mockClear();
-
-    batch(() => {
-      foo[K.value] = 0;
-      foo[K.value] = 42;
-    });
-    expect(spy).not.toHaveBeenCalled();
-
-    batch(() => {
-      foo[K.value] = -1;
-      foo[K.value] = 42;
-    });
-    expect(spy).not.toHaveBeenCalled();
-  });
-
   it('should allow disposing a running effect', () => {
     const a = signal(0);
     const spy = vi.fn();
@@ -878,6 +865,47 @@ describe('effect()', () => {
       a[K.value] = 2;
     });
 
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should not rerun an effect for a no-op batch assignment', () => {
+    const foo = signal(42);
+    const spy = vi.fn(() => {
+      foo[K.value];
+    });
+
+    effect(spy);
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockClear();
+
+    batch(() => {
+      foo[K.value] = 0;
+      foo[K.value] = 42;
+    });
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should not rerun an effect for repeated no-op top-level batches', () => {
+    const foo = signal(42);
+    const spy = vi.fn(() => {
+      foo[K.value];
+    });
+
+    effect(spy);
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockClear();
+
+    batch(() => {
+      foo[K.value] = 0;
+      foo[K.value] = 42;
+    });
+    expect(spy).not.toHaveBeenCalled();
+
+    batch(() => {
+      foo[K.value] = -1;
+      foo[K.value] = 42;
+    });
     expect(spy).not.toHaveBeenCalled();
   });
 

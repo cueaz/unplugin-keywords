@@ -306,6 +306,10 @@ interface Signal<T = unknown> {
 
   [K.brand]: typeof BRAND_SYMBOL;
 
+  valueOf(): T;
+  toString(): string;
+  toJSON(): T;
+
   get [K.value](): T;
   set [K.value](value: T);
 }
@@ -403,6 +407,19 @@ Signal.prototype[K.subscribe] = function (fn) {
 
 Signal.prototype[K.peek] = function () {
   return untracked(() => this[K.value]);
+};
+
+Signal.prototype.valueOf = function () {
+  return this[K.value];
+};
+
+Signal.prototype.toString = function () {
+  // biome-ignore lint/style/useTemplate: compatibility with original signals-core (+ '' uses valueOf, template literal uses toString)
+  return this[K.value] + '';
+};
+
+Signal.prototype.toJSON = function () {
+  return this[K.value];
 };
 
 Object.defineProperty(Signal.prototype, K.value, {
@@ -747,6 +764,9 @@ interface ReadonlySignal<T = unknown> {
   [K.peek](): T;
 
   [K.subscribe](fn: (value: T) => void): () => void;
+  valueOf(): T;
+  toString(): string;
+  toJSON(): T;
   [K.brand]: typeof BRAND_SYMBOL;
 }
 
