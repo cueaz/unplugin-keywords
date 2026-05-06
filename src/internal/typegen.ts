@@ -13,7 +13,7 @@ export const generateTypeDeclaration = (keywords: Set<string>): string => {
     const encoded = encodeIdentifier(keyword);
     const safeName = toSafeVarName(encoded);
     const hash = '*'.repeat(MAX_HASH_LENGTH);
-    const value = `${hash}|${encoded}`;
+    const value = `${hash}|${keyword}`;
     // content.push(
     //   `declare const ${safeName}: Keyword<${JSON.stringify(keyword)}, ${JSON.stringify(value)}>;`,
     // );

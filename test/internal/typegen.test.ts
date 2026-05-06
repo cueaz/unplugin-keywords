@@ -29,10 +29,10 @@ describe('internal/typegen', () => {
       const output = generateTypeDeclaration(keywords);
 
       expect(output).toContain(
-        'declare const _$kebab$002dcase: "*******|kebab$002dcase";',
+        'declare const _$kebab$002dcase: "*******|kebab-case";',
       );
       expect(output).toContain(
-        'declare const _$$0040special: "*******|$0040special";',
+        'declare const _$$0040special: "*******|@special";',
       );
       expect(output).toContain('_$kebab$002dcase as "kebab-case",');
       expect(output).toContain('_$$0040special as "@special",');

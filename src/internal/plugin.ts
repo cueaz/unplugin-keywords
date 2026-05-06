@@ -88,7 +88,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           const encoded = encodeIdentifier(keyword);
           const resolvedId = resolveId(`${VIRTUAL_MODULE_ID}/${encoded}`);
           const hash = hasher(keyword);
-          const value = isDev ? `${hash}|${encoded}` : hash;
+          const value = isDev ? `${hash}|${keyword}` : hash;
           resolvedMap.set(
             resolvedId,
             `export default ${JSON.stringify(value)};\n`,
