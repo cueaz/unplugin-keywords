@@ -90,7 +90,7 @@ function image() {
         const vnode = tokensToVNode(tokens, bg, fg);
         const svg = await satori(vnode, {
           width: 600,
-          height: 800,
+          height: 634,
           fonts: [
             {
               name: 'JetBrains Mono',

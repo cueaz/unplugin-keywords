@@ -15,6 +15,19 @@ A build plugin for structural string literal minification and obfuscation.
 
 `unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, event names, or structural identifiers. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism empowers bundlers to aggressively inline and obfuscate application internals without breaking semantic contracts.
 
+## Visual Demo: `@preact/signals-core`
+
+A side-by-side comparison of the minified production bundles:
+
+| [Unmodified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/original.ts) (Standard Minification) | [Keywordified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/keywordified.ts) (AST + Minification) |
+|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.js.png" width="400" alt="Original"> | <img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.js.png" width="400" alt="Keywordified"> |
+| 6.63 kB │ gzip: **2.03 kB** | **5.85 kB** │ gzip: 2.36 kB |
+
+*While the uncompressed bundle is 11.8% smaller, the gzipped output is 16.3% larger because high-entropy base62 hashes reduce the repetitive structural redundancy that compression algorithms rely on.*
+
+*For more information, see the [demo documentation](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/README.md).*
+
 ## How It Works
 
 Standard minifiers operate exclusively on variable bindings and function names, leaving structural strings intact. While this preserves the semantic contract, it inflates bundle size and exposes internal state architecture (e.g., Redux action types, state machine nodes).
@@ -41,7 +54,7 @@ The bundler receives the transformed code and processes the hashed literals. Dep
 
 ```ts
 // Example of minifier output: strings may be inlined or assigned to variables if used multiple times
-const _="zXpL21k";const a={a3fB9zX:_,"1kMw8pA":data};
+const _="zXpL21k";const a={"a3fB9zX":_,"1kMw8pA":data};
 ```
 *The resulting bundle is stripped of semantic strings, mapping internal application logic to deterministic hashes up to 7 characters in length.*
 
