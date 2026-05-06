@@ -433,11 +433,8 @@ Object.defineProperty(Signal.prototype, K.value, {
   set(this: Signal, value) {
     if (value !== this[K._value]) {
       if (batchIteration > 100) {
-        if (import.meta.custom.DEV_MODE) {
-          throw new Error('Cycle detected');
-        } else {
-          throw new Error();
-        }
+        // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+        throw new Error(K['Cycle detected']);
       }
 
       recordBatchSnapshot(this);
@@ -738,11 +735,8 @@ Computed.prototype[K._notify] = function () {
 Object.defineProperty(Computed.prototype, K.value, {
   get(this: Computed) {
     if (this[K._flags] & RUNNING) {
-      if (import.meta.custom.DEV_MODE) {
-        throw new Error('Cycle detected');
-      } else {
-        throw new Error();
-      }
+      // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+      throw new Error(K['Cycle detected']);
     }
     const node = addDependency(this);
     this[K._refresh]();
@@ -830,11 +824,8 @@ function disposeEffect(effect: Effect) {
 
 function endEffect(this: Effect, prevContext?: Computed | Effect) {
   if (evalContext !== this) {
-    if (import.meta.custom.DEV_MODE) {
-      throw new Error('Out-of-order effect');
-    } else {
-      throw new Error();
-    }
+    // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+    throw new Error(K['Out-of-order effect']);
   }
   cleanupSources(this);
   evalContext = prevContext;
@@ -923,11 +914,8 @@ Effect.prototype[K._callback] = function () {
 
 Effect.prototype[K._start] = function () {
   if (this[K._flags] & RUNNING) {
-    if (import.meta.custom.DEV_MODE) {
-      throw new Error('Cycle detected');
-    } else {
-      throw new Error();
-    }
+    // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+    throw new Error(K['Cycle detected']);
   }
   this[K._flags] |= RUNNING;
   this[K._flags] &= ~DISPOSED;

@@ -429,11 +429,7 @@ Object.defineProperty(Signal.prototype, 'value', {
   set(this: Signal, value) {
     if (value !== this._value) {
       if (batchIteration > 100) {
-        if (import.meta.custom.DEV_MODE) {
-          throw new Error('Cycle detected');
-        } else {
-          throw new Error();
-        }
+        throw new Error('Cycle detected');
       }
 
       recordBatchSnapshot(this);
@@ -734,11 +730,7 @@ Computed.prototype._notify = function () {
 Object.defineProperty(Computed.prototype, 'value', {
   get(this: Computed) {
     if (this._flags & RUNNING) {
-      if (import.meta.custom.DEV_MODE) {
-        throw new Error('Cycle detected');
-      } else {
-        throw new Error();
-      }
+      throw new Error('Cycle detected');
     }
     const node = addDependency(this);
     this._refresh();
@@ -826,11 +818,7 @@ function disposeEffect(effect: Effect) {
 
 function endEffect(this: Effect, prevContext?: Computed | Effect) {
   if (evalContext !== this) {
-    if (import.meta.custom.DEV_MODE) {
-      throw new Error('Out-of-order effect');
-    } else {
-      throw new Error();
-    }
+    throw new Error('Out-of-order effect');
   }
   cleanupSources(this);
   evalContext = prevContext;
@@ -919,11 +907,7 @@ Effect.prototype._callback = function () {
 
 Effect.prototype._start = function () {
   if (this._flags & RUNNING) {
-    if (import.meta.custom.DEV_MODE) {
-      throw new Error('Cycle detected');
-    } else {
-      throw new Error();
-    }
+    throw new Error('Cycle detected');
   }
   this._flags |= RUNNING;
   this._flags &= ~DISPOSED;

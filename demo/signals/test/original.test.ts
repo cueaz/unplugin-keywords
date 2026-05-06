@@ -772,7 +772,7 @@ describe('effect()', () => {
         a.value = NaN;
       });
 
-    expect(fn).to.throw(import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/);
+    expect(fn).to.throw(/Cycle detected/);
   });
 
   it('should throw on indirect cycles', () => {
@@ -794,7 +794,7 @@ describe('effect()', () => {
         c.value;
       });
 
-    expect(fn).to.throw(import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/);
+    expect(fn).to.throw(/Cycle detected/);
   });
 
   it('should allow disposing the effect multiple times', () => {
@@ -1007,9 +1007,7 @@ describe('effect()', () => {
       const done1 = e1._start();
       const done2 = e2._start();
       try {
-        expect(() => done1()).to.throw(
-          import.meta.custom.DEV_MODE ? /Out-of-order/ : /^$/,
-        );
+        expect(() => done1()).to.throw(/Out-of-order effect/);
       } finally {
         done2();
         done1();
@@ -1024,9 +1022,7 @@ describe('effect()', () => {
 
       const done = e._start();
       try {
-        expect(() => e._start()).to.throw(
-          import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-        );
+        expect(() => e._start()).to.throw(/Cycle detected/);
       } finally {
         done();
       }
@@ -1183,9 +1179,7 @@ describe('computed()', () => {
 
   it('should detect simple dependency cycles', () => {
     const a: ReadonlySignal = computed(() => a.value);
-    expect(() => a.value).to.throw(
-      import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-    );
+    expect(() => a.value).to.throw(/Cycle detected/);
   });
 
   it('should detect deep dependency cycles', () => {
@@ -1193,9 +1187,7 @@ describe('computed()', () => {
     const b: ReadonlySignal = computed(() => c.value);
     const c: ReadonlySignal = computed(() => d.value);
     const d: ReadonlySignal = computed(() => a.value);
-    expect(() => a.value).to.throw(
-      import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-    );
+    expect(() => a.value).to.throw(/Cycle detected/);
   });
 
   it('should not allow a computed signal to become a direct dependency of itself', () => {
@@ -1506,9 +1498,7 @@ describe('computed()', () => {
 
     it('should detect simple dependency cycles', () => {
       const a: ReadonlySignal = computed(() => a.peek());
-      expect(() => a.peek()).to.throw(
-        import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-      );
+      expect(() => a.peek()).to.throw(/Cycle detected/);
     });
 
     it('should detect deep dependency cycles', () => {
@@ -1516,9 +1506,7 @@ describe('computed()', () => {
       const b: ReadonlySignal = computed(() => c.value);
       const c: ReadonlySignal = computed(() => d.value);
       const d: ReadonlySignal = computed(() => a.peek());
-      expect(() => a.peek()).to.throw(
-        import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-      );
+      expect(() => a.peek()).to.throw(/Cycle detected/);
     });
 
     it('should not make surrounding effect depend on the computed', () => {

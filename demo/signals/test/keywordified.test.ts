@@ -776,7 +776,8 @@ describe('effect()', () => {
         a[K.value] = NaN;
       });
 
-    expect(fn).to.throw(import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/);
+    // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+    expect(fn).to.throw(new RegExp(K['Cycle detected']));
   });
 
   it('should throw on indirect cycles', () => {
@@ -798,7 +799,8 @@ describe('effect()', () => {
         c[K.value];
       });
 
-    expect(fn).to.throw(import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/);
+    // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+    expect(fn).to.throw(new RegExp(K['Cycle detected']));
   });
 
   it('should allow disposing the effect multiple times', () => {
@@ -1011,9 +1013,8 @@ describe('effect()', () => {
       const done1 = e1[K._start]();
       const done2 = e2[K._start]();
       try {
-        expect(() => done1()).to.throw(
-          import.meta.custom.DEV_MODE ? /Out-of-order/ : /^$/,
-        );
+        // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+        expect(() => done1()).to.throw(new RegExp(K['Out-of-order effect']));
       } finally {
         done2();
         done1();
@@ -1028,9 +1029,8 @@ describe('effect()', () => {
 
       const done = e[K._start]();
       try {
-        expect(() => e[K._start]()).to.throw(
-          import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-        );
+        // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+        expect(() => e[K._start]()).to.throw(new RegExp(K['Cycle detected']));
       } finally {
         done();
       }
@@ -1187,9 +1187,8 @@ describe('computed()', () => {
 
   it('should detect simple dependency cycles', () => {
     const a: ReadonlySignal = computed(() => a[K.value]);
-    expect(() => a[K.value]).to.throw(
-      import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-    );
+    // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+    expect(() => a[K.value]).to.throw(new RegExp(K['Cycle detected']));
   });
 
   it('should detect deep dependency cycles', () => {
@@ -1197,9 +1196,8 @@ describe('computed()', () => {
     const b: ReadonlySignal = computed(() => c[K.value]);
     const c: ReadonlySignal = computed(() => d[K.value]);
     const d: ReadonlySignal = computed(() => a[K.value]);
-    expect(() => a[K.value]).to.throw(
-      import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-    );
+    // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+    expect(() => a[K.value]).to.throw(new RegExp(K['Cycle detected']));
   });
 
   it('should not allow a computed signal to become a direct dependency of itself', () => {
@@ -1510,9 +1508,8 @@ describe('computed()', () => {
 
     it('should detect simple dependency cycles', () => {
       const a: ReadonlySignal = computed(() => a[K.peek]());
-      expect(() => a[K.peek]()).to.throw(
-        import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-      );
+      // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+      expect(() => a[K.peek]()).to.throw(new RegExp(K['Cycle detected']));
     });
 
     it('should detect deep dependency cycles', () => {
@@ -1520,9 +1517,8 @@ describe('computed()', () => {
       const b: ReadonlySignal = computed(() => c[K.value]);
       const c: ReadonlySignal = computed(() => d[K.value]);
       const d: ReadonlySignal = computed(() => a[K.peek]());
-      expect(() => a[K.peek]()).to.throw(
-        import.meta.custom.DEV_MODE ? /Cycle detected/ : /^$/,
-      );
+      // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
+      expect(() => a[K.peek]()).to.throw(new RegExp(K['Cycle detected']));
     });
 
     it('should not make surrounding effect depend on the computed', () => {

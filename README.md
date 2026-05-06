@@ -22,9 +22,9 @@ A side-by-side comparison of the minified production bundles:
 | [Unmodified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/original.ts) (Standard Minification) | [Keywordified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/keywordified.ts) (Literal Obfuscation) |
 |:---:|:---:|
 | <img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.js.png" width="400" alt="Original"> | <img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.js.png" width="400" alt="Keywordified"> |
-| 6.79 kB │ gzip: **2.06 kB** | **5.99 kB** │ gzip: 2.39 kB |
+| 6.86 kB │ gzip: **2.09 kB** | **6.02 kB** │ gzip: 2.42 kB |
 
-*While the uncompressed bundle is 11.8% smaller, the gzipped output is 16.0% larger because high-entropy base62 hashes reduce the repetitive structural redundancy that compression algorithms rely on.*
+*While the uncompressed bundle is 12.2% smaller, the gzipped output is 15.8% larger because high-entropy base62 hashes reduce the repetitive structural redundancy that compression algorithms rely on.*
 
 *For more information, see the [demo documentation](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/README.md).*
 
@@ -102,7 +102,7 @@ npx keywords
 
 > **Note:** For a seamless developer experience, the plugin automatically runs a background type generation process during the bundler's `buildStart` phase. Manual CLI execution is only necessary for pre-flight type checking (e.g., in CI) before the bundler runs.
 
-## Real-World Usage: Architecture & Directives
+## Real-World Usage: Class-Based Architectures
 
 The namespace import pattern shines in complex, class-based architectures where structural symbols are heavily used for internal state and lifecycle methods.
 

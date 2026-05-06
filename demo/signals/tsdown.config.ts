@@ -130,8 +130,5 @@ export default defineConfig([
       keywords({ isDev: false, secret: '' }),
       ...(skipImage ? [] : [image()]),
     ],
-    define: {
-      'import.meta.custom.DEV_MODE': JSON.stringify(false),
-    },
   },
 ]);

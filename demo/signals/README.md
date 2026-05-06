@@ -23,14 +23,14 @@ Compilation via `tsdown` confirms the uncompressed byte reduction and the expect
 ```bash
 $ NO_IMAGE=1 pnpm build --no-color
   ...
-  ℹ dist/original.js      6.79 kB │ gzip: 2.06 kB
-  ℹ dist/keywordified.js  5.99 kB │ gzip: 2.39 kB
-  ℹ 2 files, total: 12.78 kB
-  ✔ Build complete in 251ms
+  ℹ dist/original.js      6.86 kB │ gzip: 2.09 kB
+  ℹ dist/keywordified.js  6.02 kB │ gzip: 2.42 kB
+  ℹ 2 files, total: 12.88 kB
+  ✔ Build complete in 222ms
 ```
 
 ### 2. Behavioral Equivalence
-To guarantee zero runtime regressions, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [DEV_MODE: on, off]`.
+To guarantee zero runtime regressions, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [isDev: true, false]`.
 
 The resulting 632 test executions empirically prove semantic equivalence.
 
@@ -39,8 +39,8 @@ $ pnpm test --no-color
   ...
   Test Files  4 passed (4)
        Tests  632 passed (632)
-    Start at  18:35:06
-    Duration  854ms (transform 1.80s, setup 0ms, import 1.93s, tests 223ms, environment 1ms)
+    Start at  22:10:03
+    Duration  820ms (transform 1.80s, setup 0ms, import 1.95s, tests 203ms, environment 0ms)
 ```
 
 ## License Notice
