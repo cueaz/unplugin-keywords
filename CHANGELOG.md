@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1](https://github.com/cueaz/unplugin-keywords/compare/v2.2.0...v2.2.1) (2026-05-06)
+
+
+### Miscellaneous Chores
+
+* force release ([c94dcd4](https://github.com/cueaz/unplugin-keywords/commit/c94dcd4d49b896f17e028f256ee2799800420c64))
+
 ## [2.2.0](https://github.com/cueaz/unplugin-keywords/compare/v2.1.0...v2.2.0) (2026-05-05)
 
 
