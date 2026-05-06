@@ -9,6 +9,10 @@
     "typegen": "keywords"
   },
   "devDependencies": {
+    "@expo-google-fonts/jetbrains-mono": "catalog:",
+    "@resvg/resvg-js": "catalog:",
+    "satori": "catalog:",
+    "shiki": "catalog:",
     "tsdown": "catalog:",
     "unplugin-keywords": "workspace:*",
     "vitest": "catalog:"
