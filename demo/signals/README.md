@@ -4,14 +4,14 @@ This directory contains a practical, real-world demonstration of `unplugin-keywo
 
 ## Purpose
 
-The goal of this demo is to visualize the tangible impact of AST-level structural string obfuscation on a complex codebase.
+The goal of this demo is to demonstrate the impact of structural string obfuscation on a complex codebase.
 
 - `src/original.ts`: The baseline implementation of signals.
 - `src/keywordified.ts`: The exact same logic, but with internal properties and lifecycle methods explicitly routed through the `virtual:keywords` namespace.
 
 By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./dist_sample/original.min.js) and [`keywordified.min.js`](./dist_sample/keywordified.min.js)), you can observe how `unplugin-keywords` eradicates semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to deterministic short hashes and further compressing the final production bundle.
 
-> **Note on Compression Entropy:** While the uncompressed bundle size strictly decreases, the gzipped size increases. In [V1](https://github.com/cueaz/vite-plugin-keywords), properties were mapped to `Symbol()`, which resulted in repetitive syntax that LZ77 compression algorithms could effortlessly dictionary-match. V2 replaces this with high-entropy base62 hashes (`"a3B"`, `"zXp"`). The introduction of this structural randomness inherently reduces gzip compression efficiency, despite the smaller raw file size.
+> **Note on Compression Entropy:** While the uncompressed bundle size decreases, the gzipped size increases. In [V1](https://github.com/cueaz/vite-plugin-keywords), properties were mapped to `Symbol()`, which resulted in repetitive syntax that LZ77 compression algorithms could effortlessly dictionary-match. V2 replaces this with high-entropy base62 hashes (`"a3B"`, `"zXp"`). The introduction of this structural randomness inherently reduces gzip compression efficiency, despite the smaller uncompressed file size.
 
 ## Verification
 
@@ -30,9 +30,7 @@ $ NO_IMAGE=1 pnpm build --no-color
 ```
 
 ### 2. Behavioral Equivalence
-To guarantee zero runtime regressions, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [isDev: true, false]`.
-
-The resulting 632 test executions empirically prove semantic equivalence.
+To ensure logical correctness, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [isDev: true, false]`.
 
 ```bash
 $ pnpm test --no-color
