@@ -9,7 +9,7 @@ The goal of this demo is to visualize the tangible impact of AST-level structura
 - `src/original.ts`: The baseline implementation of signals.
 - `src/keywordified.ts`: The exact same logic, but with internal properties and lifecycle methods explicitly routed through the `virtual:keywords` namespace.
 
-By comparing the minified outputs in `dist_sample/` (see [`original.js`](./dist_sample/original.js) and [`keywordified.js`](./dist_sample/keywordified.js)), you can observe how `unplugin-keywords` eradicates semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to deterministic short hashes and further compressing the final production bundle.
+By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./dist_sample/original.min.js) and [`keywordified.min.js`](./dist_sample/keywordified.min.js)), you can observe how `unplugin-keywords` eradicates semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to deterministic short hashes and further compressing the final production bundle.
 
 > **Note on Compression Entropy:** While the uncompressed bundle size strictly decreases, the gzipped size increases. In [V1](https://github.com/cueaz/vite-plugin-keywords), properties were mapped to `Symbol()`, which resulted in repetitive syntax that LZ77 compression algorithms could effortlessly dictionary-match. V2 replaces this with high-entropy base62 hashes (`"a3B"`, `"zXp"`). The introduction of this structural randomness inherently reduces gzip compression efficiency, despite the smaller raw file size.
 
@@ -23,10 +23,10 @@ Compilation via `tsdown` confirms the uncompressed byte reduction and the expect
 ```bash
 $ NO_IMAGE=1 pnpm build --no-color
   ...
-  ℹ dist/original.js      6.86 kB │ gzip: 2.09 kB
-  ℹ dist/keywordified.js  6.02 kB │ gzip: 2.42 kB
+  ℹ dist/original.min.js      6.86 kB │ gzip: 2.09 kB
+  ℹ dist/keywordified.min.js  6.02 kB │ gzip: 2.42 kB
   ℹ 2 files, total: 12.88 kB
-  ✔ Build complete in 222ms
+  ✔ Build complete in 235ms
 ```
 
 ### 2. Behavioral Equivalence

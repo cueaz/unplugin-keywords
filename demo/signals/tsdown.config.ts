@@ -52,8 +52,6 @@ const tokensToVNode = (
 };
 
 function image() {
-  const lang = 'javascript';
-  const theme = 'vitesse-dark';
   let highlighter: Highlighter;
   let fontBuffer: Buffer;
 
@@ -62,8 +60,8 @@ function image() {
 
     async buildStart() {
       highlighter = await createHighlighter({
-        langs: [lang],
-        themes: [theme],
+        langs: ['javascript'],
+        themes: ['light', 'dark'].map((scheme) => `vitesse-${scheme}`),
       });
       const fontPath = path.join(
         'node_modules',
@@ -85,31 +83,33 @@ function image() {
         if (!fileName.endsWith('.js') || !code) {
           continue;
         }
-        const { tokens, bg, fg } = highlighter.codeToTokens(code, {
-          lang,
-          theme,
-        });
-        const vnode = tokensToVNode(tokens, bg, fg);
-        const svg = await satori(vnode, {
-          width: 600,
-          height: 634,
-          fonts: [
-            {
-              name: 'JetBrains Mono',
-              data: fontBuffer,
-              weight: 400,
-              style: 'normal',
-            },
-          ],
-        });
-        const resvg = new Resvg(svg, {
-          background: 'transparent',
-          fitTo: { mode: 'zoom', value: 3 },
-          font: { loadSystemFonts: false },
-        });
-        const png = resvg.render().asPng();
-        const outPath = path.join(outDir, `${fileName}.png`);
-        await writeFile(outPath, png);
+        for (const scheme of ['light', 'dark']) {
+          const { tokens, bg, fg } = highlighter.codeToTokens(code, {
+            lang: 'javascript',
+            theme: `vitesse-${scheme}`,
+          });
+          const vnode = tokensToVNode(tokens, bg, fg);
+          const svg = await satori(vnode, {
+            width: 600,
+            height: 634,
+            fonts: [
+              {
+                name: 'JetBrains Mono',
+                data: fontBuffer,
+                weight: 400,
+                style: 'normal',
+              },
+            ],
+          });
+          const resvg = new Resvg(svg, {
+            background: 'transparent',
+            fitTo: { mode: 'zoom', value: 3 },
+            font: { loadSystemFonts: false },
+          });
+          const png = resvg.render().asPng();
+          const outPath = path.join(outDir, `${fileName}.${scheme}.png`);
+          await writeFile(outPath, png);
+        }
       }
     },
   };
@@ -123,8 +123,11 @@ export default defineConfig([
     sourcemap: false,
     fixedExtension: false,
     minify: true,
+    outputOptions: {
+      entryFileNames: '[name].min.js',
+    },
     checks: {
-      pluginTimings: false,
+      pluginTimings: skipImage,
     },
     plugins: [
       keywords({ isDev: false, secret: '' }),
