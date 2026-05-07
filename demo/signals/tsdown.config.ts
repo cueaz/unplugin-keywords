@@ -52,8 +52,9 @@ const tokensToVNode = (
 };
 
 function image() {
+  const modes = ['light', 'dark'] as const;
+  const fontBuffers: Map<(typeof modes)[number], Buffer> = new Map();
   let highlighter: Highlighter;
-  let fontBuffer: Buffer;
 
   return {
     name: 'rollup-plugin-code-image',
@@ -61,16 +62,19 @@ function image() {
     async buildStart() {
       highlighter = await createHighlighter({
         langs: ['javascript'],
-        themes: ['light', 'dark'].map((scheme) => `vitesse-${scheme}`),
+        themes: modes.map((mode) => `vitesse-${mode}`),
       });
-      const fontPath = path.join(
-        'node_modules',
-        '@expo-google-fonts',
-        'jetbrains-mono',
-        '400Regular',
-        'JetBrainsMono_400Regular.ttf',
-      );
-      fontBuffer = await readFile(fontPath);
+      for (const mode of modes) {
+        const weight = mode === 'light' ? '500Medium' : '400Regular';
+        const fontPath = path.join(
+          'node_modules',
+          '@expo-google-fonts',
+          'jetbrains-mono',
+          weight,
+          `JetBrainsMono_${weight}.ttf`,
+        );
+        fontBuffers.set(mode, await readFile(fontPath));
+      }
     },
 
     async writeBundle(
@@ -83,10 +87,10 @@ function image() {
         if (!fileName.endsWith('.js') || !code) {
           continue;
         }
-        for (const scheme of ['light', 'dark']) {
+        for (const mode of modes) {
           const { tokens, bg, fg } = highlighter.codeToTokens(code, {
             lang: 'javascript',
-            theme: `vitesse-${scheme}`,
+            theme: `vitesse-${mode}`,
           });
           const vnode = tokensToVNode(tokens, bg, fg);
           const svg = await satori(vnode, {
@@ -95,9 +99,7 @@ function image() {
             fonts: [
               {
                 name: 'JetBrains Mono',
-                data: fontBuffer,
-                weight: 400,
-                style: 'normal',
+                data: fontBuffers.get(mode) as Buffer,
               },
             ],
           });
@@ -107,7 +109,7 @@ function image() {
             font: { loadSystemFonts: false },
           });
           const png = resvg.render().asPng();
-          const outPath = path.join(outDir, `${fileName}.${scheme}.png`);
+          const outPath = path.join(outDir, `${fileName}.${mode}.png`);
           await writeFile(outPath, png);
         }
       }
