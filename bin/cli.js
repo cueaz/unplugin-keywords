@@ -1,3 +1,4 @@
-import { run } from '../dist/api.js';
+import { createRunner } from '../dist/api.js';
 
-await run();
+const runner = createRunner();
+await runner.run();

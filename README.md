@@ -100,7 +100,7 @@ npx keywords
 }
 ```
 
-> **Note:** For a seamless developer experience, the plugin automatically runs a background type generation process during the bundler's `buildStart` phase. Manual CLI execution is only necessary for pre-flight type checking (e.g., in CI) before the bundler runs.
+> **Note:** For a seamless developer experience, the plugin automatically runs a background type generation process while the bundler is running. Manual CLI execution is only necessary for pre-flight type checking (e.g., in CI) before the bundler runs.
 
 ## Real-World Usage: Class-Based Architectures
 

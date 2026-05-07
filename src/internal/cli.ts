@@ -55,31 +55,35 @@ const collectKeywordsFromRoot = async (
   return collectedKeywords;
 };
 
-interface RunOptions {
+interface RunnerOptions {
   root: string;
   silent: boolean;
   dirname: string;
   filename: string;
 }
 
-const runImpl = async (options: RunOptions): Promise<void> => {
-  const { root, silent, dirname, filename } = options;
-  const keywords = await collectKeywordsFromRoot(root, silent);
-  const content = generateTypeDeclaration(keywords);
-  const outDir = path.join(root, dirname);
-  await mkdir(outDir, { recursive: true });
-  await writeFile(path.join(outDir, filename), `${content.trim()}\n`);
-};
-
-const runLimit = pLimit({ concurrency: 1 });
-
-export const run = async (options?: Partial<RunOptions>): Promise<void> => {
+export const createRunner = (options?: Partial<RunnerOptions>) => {
   const {
     root = process.cwd(),
     silent = false,
     dirname = 'node_modules',
     filename = '.keywords.d.ts',
   } = options ?? {};
-  runLimit.clearQueue();
-  await runLimit(() => runImpl({ root, silent, dirname, filename }));
+  return {
+    async collect(): Promise<Set<string>> {
+      return collectKeywordsFromRoot(root, silent);
+    },
+
+    async save(keywords: Set<string>): Promise<void> {
+      const content = generateTypeDeclaration(keywords);
+      const outDir = path.join(root, dirname);
+      await mkdir(outDir, { recursive: true });
+      await writeFile(path.join(outDir, filename), `${content.trim()}\n`);
+    },
+
+    async run(): Promise<void> {
+      const keywords = await this.collect();
+      await this.save(keywords);
+    },
+  };
 };
