@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { encodeIdentifier, toSafeVarName } from '../../src/internal/encode.js';
+import { encodeIdentifier } from '../../src/internal/encode.js';
 
 describe('internal/encode', () => {
   describe('encodeIdentifier', () => {
@@ -22,13 +22,6 @@ describe('internal/encode', () => {
     it('handles purely special characters', () => {
       expect(encodeIdentifier('-')).toBe('$002d');
       expect(encodeIdentifier('@#')).toBe('$0040$0023');
-    });
-  });
-
-  describe('toSafeVarName', () => {
-    it('prepends _$ to the encoded string', () => {
-      expect(toSafeVarName('myKeyword')).toBe('_$myKeyword');
-      expect(toSafeVarName('kebab$002dcase')).toBe('_$kebab$002dcase');
     });
   });
 });
