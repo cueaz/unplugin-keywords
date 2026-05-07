@@ -1,3 +1,3 @@
-import { run } from '../dist/cli.js';
+import { run } from '../dist/api.js';
 
 await run();
