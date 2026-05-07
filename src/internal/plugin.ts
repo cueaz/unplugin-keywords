@@ -9,7 +9,7 @@ import {
   VIRTUAL_MODULE_ID,
 } from './constants.js';
 import { encodeIdentifier } from './encode.js';
-import { createHasher, type Hasher } from './hash.js';
+import { createCounter, createHasher, type Hasher } from './hash.js';
 import { extractKeywords, transformCode } from './transform.js';
 
 const resolveId = (id: string): string => `\0${id}`;
@@ -29,7 +29,7 @@ const COMMON_EXCLUDES = [/\/node_modules\//];
 
 export interface Options {
   isDev: boolean;
-  secret: string;
+  secret: string | false;
 }
 
 export const unpluginFactory: UnpluginFactory<Options> = ({
@@ -59,7 +59,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
     name: PLUGIN_NAME,
 
     buildStart() {
-      hasher = createHasher(secret);
+      hasher = secret === false ? createCounter() : createHasher(secret);
       resolvedMap = new Map();
       runnerLimit(async () => {
         if (!isInitialized) {

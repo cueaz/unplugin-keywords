@@ -53,7 +53,8 @@ const tokensToVNode = (
 
 function image() {
   const modes = ['light', 'dark'] as const;
-  const fontBuffers: Map<(typeof modes)[number], Buffer> = new Map();
+  const [lang, theme] = ['javascript', 'vitesse'] as const;
+  let fontBuffers: Map<(typeof modes)[number], Buffer>;
   let highlighter: Highlighter;
 
   return {
@@ -61,9 +62,10 @@ function image() {
 
     async buildStart() {
       highlighter = await createHighlighter({
-        langs: ['javascript'],
-        themes: modes.map((mode) => `vitesse-${mode}`),
+        langs: [lang],
+        themes: modes.map((mode) => `${theme}-${mode}`),
       });
+      fontBuffers = new Map();
       for (const mode of modes) {
         const weight = mode === 'light' ? '500Medium' : '400Regular';
         const fontPath = path.join(
@@ -89,8 +91,8 @@ function image() {
         }
         for (const mode of modes) {
           const { tokens, bg, fg } = highlighter.codeToTokens(code, {
-            lang: 'javascript',
-            theme: `vitesse-${mode}`,
+            lang,
+            theme: `${theme}-${mode}`,
           });
           const vnode = tokensToVNode(tokens, bg, fg);
           const svg = await satori(vnode, {

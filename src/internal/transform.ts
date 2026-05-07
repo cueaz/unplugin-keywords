@@ -169,7 +169,7 @@ const transformPlugin = (
             }
 
             // 2) Slow Path: TS Types
-            // NOTE: This can be skipped due to type erasure, but for consistency
+            // NOTE: Can be skipped due to type erasure, but for consistency
             path.parentPath.traverse({
               // e.g., type T = typeof abc;
               TSTypeQuery(tsPath) {
