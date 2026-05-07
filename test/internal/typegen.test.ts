@@ -18,8 +18,8 @@ describe('internal/typegen', () => {
       const keywords = new Set(['abc', 'SET_USER']);
       const output = generateTypeDeclaration(keywords);
 
-      expect(output).toContain('declare const _$SET_USER: "*******|SET_USER";');
-      expect(output).toContain('declare const _$abc: "*******|abc";');
+      expect(output).toContain('declare const _$SET_USER: "*******.SET_USER";');
+      expect(output).toContain('declare const _$abc: "*******.abc";');
       expect(output).toContain('_$SET_USER as "SET_USER",');
       expect(output).toContain('_$abc as "abc",');
     });
@@ -29,10 +29,10 @@ describe('internal/typegen', () => {
       const output = generateTypeDeclaration(keywords);
 
       expect(output).toContain(
-        'declare const _$kebab$002dcase: "*******|kebab-case";',
+        'declare const _$kebab$002dcase: "*******.kebab-case";',
       );
       expect(output).toContain(
-        'declare const _$$0040special: "*******|@special";',
+        'declare const _$$0040special: "*******.@special";',
       );
       expect(output).toContain('_$kebab$002dcase as "kebab-case",');
       expect(output).toContain('_$$0040special as "@special",');

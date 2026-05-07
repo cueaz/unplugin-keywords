@@ -6,7 +6,11 @@ import {
   types as t,
   transformSync,
 } from '@babel/core';
-import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants.js';
+import {
+  KEYWORD_ROUTE_SEGMENT,
+  PLUGIN_NAME,
+  VIRTUAL_MODULE_ID,
+} from './constants.js';
 import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 const isPureTypeSpace = (path: NodePath): boolean => {
@@ -92,7 +96,9 @@ const transformPlugin = (
                 const encoded = encodeIdentifier(keyword);
                 return t.importDeclaration(
                   [t.importDefaultSpecifier(safeId)],
-                  t.stringLiteral(`${VIRTUAL_MODULE_ID}/${encoded}`),
+                  t.stringLiteral(
+                    `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                  ),
                 );
               },
             );
@@ -311,7 +317,9 @@ const transformPlugin = (
                     specifierPath.node.exported,
                   ),
                 ],
-                t.stringLiteral(`${VIRTUAL_MODULE_ID}/${encoded}`),
+                t.stringLiteral(
+                  `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                ),
               );
             }
             return null;

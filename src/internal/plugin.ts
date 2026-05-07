@@ -1,6 +1,11 @@
 import type { UnpluginFactory } from 'unplugin';
 import { run } from './cli.js';
-import { PLUGIN_NAME, VIRTUAL_MODULE_ID } from './constants.js';
+import {
+  DEBUG_SEPARATOR,
+  KEYWORD_ROUTE_SEGMENT,
+  PLUGIN_NAME,
+  VIRTUAL_MODULE_ID,
+} from './constants.js';
 import { encodeIdentifier } from './encode.js';
 import { createHasher, type Hasher } from './hash.js';
 import { transformCode } from './transform.js';
@@ -86,9 +91,11 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         const { code: transformed, map, keywords } = result;
         for (const keyword of keywords) {
           const encoded = encodeIdentifier(keyword);
-          const resolvedId = resolveId(`${VIRTUAL_MODULE_ID}/${encoded}`);
+          const resolvedId = resolveId(
+            `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+          );
           const hash = hasher(keyword);
-          const value = isDev ? `${hash}|${keyword}` : hash;
+          const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
           resolvedMap.set(
             resolvedId,
             `export default ${JSON.stringify(value)};\n`,

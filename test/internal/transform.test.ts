@@ -14,10 +14,10 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual(new Set(['abc', 'kebab-case']));
       expect(result?.code).toContain(
-        'import _$abc from "virtual:keywords/abc";',
+        'import _$abc from "virtual:keywords/k/abc";',
       );
       expect(result?.code).toContain(
-        'import _$kebab$002dcase from "virtual:keywords/kebab$002dcase";',
+        'import _$kebab$002dcase from "virtual:keywords/k/kebab$002dcase";',
       );
       expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
     });
@@ -30,7 +30,7 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual(new Set(['default']));
       expect(result?.code).toContain(
-        'import _$default from "virtual:keywords/default";',
+        'import _$default from "virtual:keywords/k/default";',
       );
       expect(result?.code).toContain('console.log(_$default);');
     });
@@ -44,10 +44,10 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual(new Set(['abc', 'sec-wer']));
       expect(result?.code).toContain(
-        'import _$abc from "virtual:keywords/abc";',
+        'import _$abc from "virtual:keywords/k/abc";',
       );
       expect(result?.code).toContain(
-        'import _$sec$002dwer from "virtual:keywords/sec$002dwer";',
+        'import _$sec$002dwer from "virtual:keywords/k/sec$002dwer";',
       );
       expect(result?.code).toContain('console.log(_$abc);');
       expect(result?.code).toContain('console.log(_$sec$002dwer);');
@@ -111,10 +111,10 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual(new Set(['edf', 'hyphen-export']));
       expect(result?.code).toContain(
-        'export { default as edf } from "virtual:keywords/edf";',
+        'export { default as edf } from "virtual:keywords/k/edf";',
       );
       expect(result?.code).toContain(
-        'export { default as myHyphen } from "virtual:keywords/hyphen$002dexport";',
+        'export { default as myHyphen } from "virtual:keywords/k/hyphen$002dexport";',
       );
     });
 
@@ -159,10 +159,10 @@ describe('internal/transform', () => {
       expect(result?.keywords).toEqual(new Set(['abc', 'kebab-case']));
       expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
       expect(result?.code).toContain(
-        'import _$abc from "virtual:keywords/abc";',
+        'import _$abc from "virtual:keywords/k/abc";',
       );
       expect(result?.code).toContain(
-        'import _$kebab$002dcase from "virtual:keywords/kebab$002dcase";',
+        'import _$kebab$002dcase from "virtual:keywords/k/kebab$002dcase";',
       );
     });
     it('does not transform unrelated object properties or keys', () => {

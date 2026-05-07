@@ -75,7 +75,7 @@ import keywords from 'unplugin-keywords/vite';
 export default defineConfig(({ mode }) => ({
   plugins: [
     keywords({
-      // Preserves keyword suffix in development for debugging (e.g., "zXpL21k|SET_USER")
+      // Preserves keyword suffix in development for debugging (e.g., "zXpL21k.SET_USER")
       isDev: mode === 'development',
       // Initializes the hashing algorithm. Modify to rotate hashes globally.
       secret: 'my-secret-key',

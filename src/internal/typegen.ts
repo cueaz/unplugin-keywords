@@ -1,4 +1,4 @@
-import { MAX_HASH_LENGTH } from './constants.js';
+import { DEBUG_SEPARATOR, MAX_HASH_LENGTH } from './constants.js';
 import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 export const generateTypeDeclaration = (keywords: Set<string>): string => {
@@ -13,7 +13,7 @@ export const generateTypeDeclaration = (keywords: Set<string>): string => {
     const encoded = encodeIdentifier(keyword);
     const safeName = toSafeVarName(encoded);
     const hash = '*'.repeat(MAX_HASH_LENGTH);
-    const value = `${hash}|${keyword}`;
+    const value = `${hash}${DEBUG_SEPARATOR}${keyword}`;
     // content.push(
     //   `declare const ${safeName}: Keyword<${JSON.stringify(keyword)}, ${JSON.stringify(value)}>;`,
     // );
