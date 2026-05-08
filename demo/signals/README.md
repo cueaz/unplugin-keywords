@@ -1,24 +1,24 @@
 # `@preact/signals-core` Keywordification Demo
 
-This directory contains a practical, real-world demonstration of `unplugin-keywords` applied to the core logic of the highly optimized [`@preact/signals-core`](https://github.com/preactjs/signals) library.
+This directory contains a practical, real-world demonstration of `unplugin-keywords` applied to the core logic of the [`@preact/signals-core`](https://github.com/preactjs/signals) library.
 
 ## Purpose
 
 The goal of this demo is to demonstrate the impact of structural string obfuscation on a complex codebase.
 
 - `src/original.ts`: The baseline implementation of signals.
-- `src/keywordified.ts`: The exact same logic, but with internal properties and lifecycle methods explicitly routed through the `virtual:keywords` namespace.
+- `src/keywordified.ts`: The exact same logic, but with internal properties and lifecycle methods explicitly routed through the `virtual:keywords` and `virtual:keywords/lex` namespaces.
 
-By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./dist_sample/original.min.js) and [`keywordified.min.js`](./dist_sample/keywordified.min.js)), you can observe how `unplugin-keywords` eradicates semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to deterministic short hashes and further compressing the final production bundle.
+By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./dist_sample/original.min.js) and [`keywordified.min.js`](./dist_sample/keywordified.min.js)), you can observe how `unplugin-keywords` replaces semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to short sequential identifiers and reducing the final bundle size.
 
-> **Note on Compression Entropy:** While the uncompressed bundle size decreases, the gzipped size increases. In [V1](https://github.com/cueaz/vite-plugin-keywords), properties were mapped to `Symbol()`, which resulted in repetitive syntax that LZ77 compression algorithms could effortlessly dictionary-match. V2 replaces this with high-entropy base62 hashes (`"a3B"`, `"zXp"`). The introduction of this structural randomness inherently reduces gzip compression efficiency, despite the smaller uncompressed file size.
+> **Note on Compression Efficiency:** As shown in the side-by-side comparison, the LZ77 algorithm compresses the unmodified semantic identifiers highly effectively. While the plugin reduces raw parsing size and provides obfuscation, the gzipped network payload difference is marginal. If network transfer size is the only concern, adopting this plugin is unnecessary.
 
 ## Verification
 
 The obfuscation process is validated across two constraints: Size Reduction and Behavioral Equivalence.
 
 ### 1. Bundle Size Output
-Compilation via `tsdown` confirms the uncompressed byte reduction and the expected gzip entropy shift.
+Compilation via `tsdown` confirms the uncompressed byte reduction and the gzip size reduction.
 
 ```bash
 $ NO_IMAGE=1 pnpm build --no-color

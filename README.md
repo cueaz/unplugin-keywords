@@ -13,7 +13,7 @@
 
 A build plugin for structural string literal minification and obfuscation.
 
-`unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, event names, or structural identifiers. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism empowers bundlers to aggressively inline and obfuscate application internals without breaking semantic contracts.
+`unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, event names, or structural identifiers. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism empowers bundlers to inline and obfuscate application internals without breaking semantic contracts.
 
 ## Visual Demo: `@preact/signals-core`
 
@@ -24,7 +24,7 @@ A side-by-side comparison of the minified production bundles:
 | <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.dark.png" width="400" alt="Original"></picture> | <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.dark.png" width="400" alt="Keywordified"></picture> |
 | 6.86 kB │ gzip: **2.09 kB** | **5.40 kB** │ gzip: 2.03 kB |
 
-*While the uncompressed bundle is 21.3% smaller, the gzipped output is only 2.9% smaller because high-entropy base62 hashes reduce the repetitive structural redundancy that compression algorithms rely on.*
+*While the raw bundle size is reduced by 21.3%, the gzipped size is only 2.9% smaller. This side-by-side comparison demonstrates the effectiveness of the LZ77 algorithm on unmodified code: if minimizing the gzipped network payload is the sole objective, adopting this plugin is unnecessary.*
 
 *For more information, see the [demo documentation](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/README.md).*
 
@@ -47,7 +47,7 @@ const action = {
 ```
 
 **2. AST Transformation**
-During the build phase, the plugin traverses the AST, resolving bindings and statically resolving member expressions. It replaces valid identifier access with a generated AST node pointing to a deterministic base62 hash.
+During the build phase, the plugin traverses the AST, resolving bindings and statically resolving member expressions. It replaces valid identifier access with a generated AST node pointing to a deterministic base62 hash or a minimal lexical sequence.
 
 **3. Minified Output (Production)**
 The bundler receives the transformed code and processes the hashed literals. Depending on the frequency of usage, the minifier will either inline the strings directly or extract them into single-character variables to save bytes.
@@ -59,7 +59,7 @@ const _="z2pL21k";const a={a3fB9zX:_,k1Mw8pA:data};
 
 ## Dual-Module Architecture
 
-`unplugin-keywords` provides two distinct virtual modules. While exclusively using `virtual:keywords` is a perfectly valid and robust approach, leveraging the dual-module system enables extreme bundle size optimization.
+`unplugin-keywords` provides two distinct virtual modules. While exclusively using `K.*` is a perfectly valid and robust approach, the dual-module system allows further bundle size reduction.
 
 *   **`virtual:keywords` (Stable Hash)**
     Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., `package.json` exports).
@@ -69,8 +69,8 @@ const _="z2pL21k";const a={a3fB9zX:_,k1Mw8pA:data};
     Generates the shortest possible sequential identifiers via bijection numeration (e.g., `"_a"`, `"_b"`, `"_c"`). Strictly designated for **internal and local** implementations where cross-boundary stability is irrelevant.
     *Convention:* `import * as L from 'virtual:keywords/lex';` (Think `L` for Local).
 
-**The Bifurcated Strategy**
-For extreme byte minimization, developers are encouraged to partition their identifiers: bind public interfaces to `K.*`, and obscure all internal state and private members behind `L.*`.
+**Module Separation**
+To minimize bundle size, identifiers can be partitioned: bind public interfaces to `K.*`, and obscure all internal state and private members behind `L.*`.
 
 ## Integration
 
@@ -115,13 +115,13 @@ npx keywords
 }
 ```
 
-> **Note:** For a seamless developer experience, the plugin automatically runs a background type generation process while the bundler is running. Manual CLI execution is only necessary for pre-flight type checking (e.g., in CI) before the bundler runs.
+> **Note:** During development, the plugin automatically runs a background type generation process while the bundler is running. Manual CLI execution is only necessary for pre-flight type checking (e.g., in CI) before the bundler runs.
 
 ## Real-World Usage: Class-Based Architectures
 
-The namespace import pattern shines in complex, class-based architectures where structural symbols are heavily used for internal state and lifecycle methods.
+The namespace import pattern is applicable in class-based architectures where structural symbols are heavily used for internal state and lifecycle methods.
 
-> **Note:** Overriding lifecycle methods (e.g., `[K.render]`) requires a modified base class—such as a custom build of Lit—compiled with `unplugin-keywords` to dispatch the hashed keys. Sharing this dictionary across the ecosystem enables total obfuscation.
+> **Note:** Overriding lifecycle methods (e.g., `[K.render]`) requires a modified base class—such as a custom build of Lit—compiled with `unplugin-keywords` to dispatch the hashed keys. Sharing this dictionary across the ecosystem enables consistent obfuscation.
 
 ```ts
 // Source: https://github.com/lit/lit/blob/main/packages/lit-html/src/directives/async-replace.ts
