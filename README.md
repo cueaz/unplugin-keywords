@@ -26,9 +26,9 @@ Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mang
 *   **Cross-Boundary Consistency:**
     Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `virtual:keywords` relies on deterministic hashing, identical keys inherently produce identical hashes across independent builds (provided they share the same `secret` configuration), preserving structural contracts.
 *   **Universal Application:**
-    Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and arbitrary static strings (`throw new Error(K['Invalid State'])`).
+    Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
 *   **Trade-offs:**
-    This explicit approach sacrifices source code readability. Furthermore, as demonstrated in the benchmarks below, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the architectural overhead of this plugin outweighs the minimal payload reduction.
+    This explicit approach sacrifices some source code readability. Furthermore, as demonstrated in the benchmarks below, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the architectural overhead of this plugin outweighs the minimal payload reduction.
 
 ## Visual Demo: `@preact/signals-core`
 
@@ -84,7 +84,7 @@ const _="z2pL21k";const a={a3fB9zX:_,k1Mw8pA:data};
     *Convention:* `import * as K from 'virtual:keywords';`
 
 *   **`virtual:keywords/local` (Lexical Counter):**
-    Generates the shortest possible sequential identifiers via bijection numeration (e.g., `"_a"`, `"_b"`, `"_c"`). Strictly designated for **internal and local** implementations where cross-boundary stability is irrelevant.
+    Generates the shortest possible sequential identifiers via bijective numeration (e.g., `"_a"`, `"_b"`, `"_c"`). Strictly designated for **internal and local** implementations where cross-boundary stability is irrelevant.
     *Convention:* `import * as L from 'virtual:keywords/local';`
 
 **Module Separation:**
@@ -234,7 +234,7 @@ import { type, 'kebab-case' as kebab } from 'virtual:keywords';
 // JSX Injection
 const View = () => (
   <K.Container>
-    <type />
+    <div />
   </K.Container>
 );
 
@@ -247,7 +247,7 @@ interface StateMachine {
 // Module Re-exports
 export { internalState as state } from 'virtual:keywords';
 
-// UNSUPPORTED: Export All
+// UNSUPPORTED: Export All (Lacks static traceability)
 export * from 'virtual:keywords';
 ```
 
