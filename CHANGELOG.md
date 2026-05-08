@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/cueaz/unplugin-keywords/compare/v2.4.0...v2.5.0) (2026-05-08)
+
+
+### Features
+
+* rename lex to local ([b224081](https://github.com/cueaz/unplugin-keywords/commit/b224081fff1c564c98b1dcd28ecb4b35a312aec0))
+
 ## [2.4.0](https://github.com/cueaz/unplugin-keywords/compare/v2.3.0...v2.4.0) (2026-05-08)
 
 
