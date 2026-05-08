@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/cueaz/unplugin-keywords/compare/v2.5.0...v2.5.1) (2026-05-08)
+
+
+### Bug Fixes
+
+* update options doc ([b368319](https://github.com/cueaz/unplugin-keywords/commit/b3683194c26f1625abb51da92ab9a3b29931d7fd))
+
 ## [2.5.0](https://github.com/cueaz/unplugin-keywords/compare/v2.4.0...v2.5.0) (2026-05-08)
 
 
