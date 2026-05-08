@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.4.0](https://github.com/cueaz/unplugin-keywords/compare/v2.3.0...v2.4.0) (2026-05-08)
+
+
+### Features
+
+* unify exposed apis ([8562b5e](https://github.com/cueaz/unplugin-keywords/commit/8562b5e0092df647ba853b7fea009a9331319feb))
+* wip incremental type generation ([8e451df](https://github.com/cueaz/unplugin-keywords/commit/8e451df3d3116fc02be8c8d199ddd56d3ee71655))
+* wip lex module ([3ab9ea5](https://github.com/cueaz/unplugin-keywords/commit/3ab9ea53a0e2c9aaf824677001d0ad4601e9143f))
+
+
+### Bug Fixes
+
+* make hasher more collision-free ([a7f897d](https://github.com/cueaz/unplugin-keywords/commit/a7f897d28eb957e2283ac1ad20a96a09616ced3e))
+* use dot separator for url usage ([a91b92c](https://github.com/cueaz/unplugin-keywords/commit/a91b92cafa293036699b32cde8543d37addf0c7d))
+
 ## [2.3.0](https://github.com/cueaz/unplugin-keywords/compare/v2.2.1...v2.3.0) (2026-05-06)
 
 
