@@ -11,7 +11,6 @@ The goal of this demo is to demonstrate the impact of structural string obfuscat
 
 By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./dist_sample/original.min.js) and [`keywordified.min.js`](./dist_sample/keywordified.min.js)), you can observe how `unplugin-keywords` replaces semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to short sequential identifiers and reducing the final bundle size.
 
-> **Note on Compression Efficiency:** As shown in the side-by-side comparison, the LZ77 algorithm compresses the unmodified semantic identifiers highly effectively. While the plugin reduces raw parsing size and provides obfuscation, the gzipped network payload difference is marginal. If network transfer size is the only concern, adopting this plugin is unnecessary.
 
 ## Verification
 
@@ -28,6 +27,9 @@ $ NO_IMAGE=1 pnpm build --no-color
   ℹ 2 files, total: 12.25 kB
   ✔ Build complete in 324ms
 ```
+
+> [!NOTE]
+> For a detailed analysis of these metrics (including LZ77 compression efficiency and baseline comparison with the official Preact bundle), please refer to the [Visual Demo section in the main README](../../README.md#visual-demo-preactsignals-core).
 
 ### 2. Behavioral Equivalence
 To ensure logical correctness, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [isDev: true, false]`.

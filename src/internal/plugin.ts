@@ -33,7 +33,17 @@ const SUFFIX_REGEX = /\.m?[jt]sx?$/;
 const COMMON_EXCLUDES = [/\/node_modules\//];
 
 export interface Options {
+  /**
+   * If true, preserves the original keyword as a suffix in the generated
+   * identifier for easier debugging (e.g., `"zXpL21k.SET_USER"`).
+   */
   isDev: boolean;
+  /**
+   * The secret string used to salt the deterministic hashing algorithm.
+   * Modifying this value will globally rotate all generated hashes.
+   * To ensure cross-boundary consistency between independent builds,
+   * they must share the same secret.
+   */
   secret: string;
 }
 
