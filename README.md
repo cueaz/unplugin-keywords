@@ -151,6 +151,7 @@ The namespace import pattern is applicable in class-based architectures where st
  * SPDX-License-Identifier: BSD-3-Clause
  */
 import * as K from 'virtual:keywords';
+import * as L from 'virtual:keywords/lex';
 import {
   AsyncDirective,
   type DirectiveParameters,
