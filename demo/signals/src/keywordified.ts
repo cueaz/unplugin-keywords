@@ -1,5 +1,5 @@
 import * as K from 'virtual:keywords';
-import * as L from 'virtual:keywords/lex';
+import * as L from 'virtual:keywords/local';
 
 // An named symbol/brand for detecting Signal instances even when they weren't
 // created using the same signals library version.

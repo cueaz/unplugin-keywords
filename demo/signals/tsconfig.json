@@ -4,7 +4,7 @@
   "compilerOptions": {
     "paths": {
       "virtual:keywords": ["./node_modules/.keywords/index.d.ts"],
-      "virtual:keywords/lex": ["./node_modules/.keywords/lex.d.ts"]
+      "virtual:keywords/local": ["./node_modules/.keywords/local.d.ts"]
     }
   }
 }

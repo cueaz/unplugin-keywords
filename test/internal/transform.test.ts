@@ -14,7 +14,7 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
         main: new Set(['abc', 'kebab-case']),
-        lex: new Set(),
+        local: new Set(),
       });
       expect(result?.code).toContain(
         'import _$abc from "virtual:keywords/_/abc";',
@@ -33,7 +33,7 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
         main: new Set(['default']),
-        lex: new Set(),
+        local: new Set(),
       });
       expect(result?.code).toContain(
         'import _$default from "virtual:keywords/_/default";',
@@ -50,7 +50,7 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
         main: new Set(['abc', 'sec-wer']),
-        lex: new Set(),
+        local: new Set(),
       });
       expect(result?.code).toContain(
         'import _$abc from "virtual:keywords/_/abc";',
@@ -72,7 +72,7 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.tsx');
       expect(result?.keywords).toEqual({
         main: new Set(['Component', 'Abc', 'div']),
-        lex: new Set(),
+        local: new Set(),
       });
       expect(result?.code).toContain(
         '<_$Component><_$Abc /><div /></_$Component>',
@@ -99,7 +99,7 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.ts');
       expect(result?.keywords).toEqual({
         main: new Set(['myType', 'my-indexed-type', 'Abc']),
-        lex: new Set(),
+        local: new Set(),
       });
       expect(result?.code).toContain('interface Abc {}');
       expect(result?.code).toContain('let x: typeof _$myType;');
@@ -124,7 +124,7 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
         main: new Set(['edf', 'hyphen-export']),
-        lex: new Set(),
+        local: new Set(),
       });
       expect(result?.code).toContain(
         'export { default as edf } from "virtual:keywords/_/edf";',
@@ -174,7 +174,7 @@ describe('internal/transform', () => {
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
         main: new Set(['abc', 'kebab-case']),
-        lex: new Set(),
+        local: new Set(),
       });
       expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
       expect(result?.code).toContain(
@@ -196,18 +196,18 @@ describe('internal/transform', () => {
       expect(result?.code).toContain('console.log(obj.abc);');
     });
 
-    it('transforms lex imports', () => {
+    it('transforms local imports', () => {
       const code = `
-        import * as L from 'virtual:keywords/lex';
+        import * as L from 'virtual:keywords/local';
         console.log(L._source);
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
         main: new Set(),
-        lex: new Set(['_source']),
+        local: new Set(['_source']),
       });
       expect(result?.code).toContain(
-        'import _$_source from "virtual:keywords/lex/_/_source";',
+        'import _$_source from "virtual:keywords/local/_/_source";',
       );
       expect(result?.code).toContain('console.log(_$_source);');
     });
@@ -219,14 +219,17 @@ describe('internal/transform', () => {
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
         main: new Set(['abc', 'kebab-case']),
-        lex: new Set(),
+        local: new Set(),
       });
     });
 
     it('extracts from default import', () => {
       const code = `import myDefault from 'virtual:keywords';`;
       const keywords = extractKeywords(code);
-      expect(keywords).toEqual({ main: new Set(['default']), lex: new Set() });
+      expect(keywords).toEqual({
+        main: new Set(['default']),
+        local: new Set(),
+      });
     });
 
     it('extracts from namespace property accesses', () => {
@@ -238,7 +241,7 @@ describe('internal/transform', () => {
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
         main: new Set(['abc', 'sec-wer']),
-        lex: new Set(),
+        local: new Set(),
       });
     });
 
@@ -250,7 +253,7 @@ describe('internal/transform', () => {
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
         main: new Set(['Component']),
-        lex: new Set(),
+        local: new Set(),
       });
     });
 
@@ -261,7 +264,10 @@ describe('internal/transform', () => {
         let y: typeof A.myType2;
       `;
       const keywords = extractKeywords(code);
-      expect(keywords).toEqual({ main: new Set(['myType2']), lex: new Set() });
+      expect(keywords).toEqual({
+        main: new Set(['myType2']),
+        local: new Set(),
+      });
     });
 
     it('extracts from TypeScript indexed access types (value space only)', () => {
@@ -279,7 +285,7 @@ describe('internal/transform', () => {
           'my-indexed-type1',
           'my-indexed-type3',
         ]),
-        lex: new Set(),
+        local: new Set(),
       });
     });
 
@@ -290,7 +296,7 @@ describe('internal/transform', () => {
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
         main: new Set(['edf', 'hyphen-export']),
-        lex: new Set(),
+        local: new Set(),
       });
     });
 
@@ -303,7 +309,7 @@ describe('internal/transform', () => {
         }
       `;
       const keywords = extractKeywords(code);
-      expect(keywords).toEqual({ main: new Set([]), lex: new Set() });
+      expect(keywords).toEqual({ main: new Set([]), local: new Set() });
     });
 
     it('handles hoisted imports (usage before declaration)', () => {
@@ -312,7 +318,7 @@ describe('internal/transform', () => {
         import * as A from 'virtual:keywords';
       `;
       const keywords = extractKeywords(code);
-      expect(keywords).toEqual({ main: new Set(['abc']), lex: new Set() });
+      expect(keywords).toEqual({ main: new Set(['abc']), local: new Set() });
     });
 
     it('does not extract unrelated object properties', () => {
@@ -328,15 +334,15 @@ describe('internal/transform', () => {
         console.log(obj.A);
       `;
       const keywords2 = extractKeywords(code2);
-      expect(keywords2).toEqual({ main: new Set([]), lex: new Set() });
+      expect(keywords2).toEqual({ main: new Set([]), local: new Set() });
     });
 
-    it('extracts lex imports', () => {
-      const code = `import * as L from 'virtual:keywords/lex'; console.log(L._source);`;
+    it('extracts local imports', () => {
+      const code = `import * as L from 'virtual:keywords/local'; console.log(L._source);`;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
         main: new Set(),
-        lex: new Set(['_source']),
+        local: new Set(['_source']),
       });
     });
   });

@@ -11,7 +11,7 @@ const collectKeywordsFromRoot = async (
   ignoredDirs: string[] = [],
   concurrency: number = 100,
 ): Promise<KeywordSet> => {
-  const collectedKeywords: KeywordSet = { main: new Set(), lex: new Set() };
+  const collectedKeywords: KeywordSet = { main: new Set(), local: new Set() };
 
   const start = performance.now();
   if (!silent) {
@@ -37,8 +37,8 @@ const collectKeywordsFromRoot = async (
       for (const keyword of keywords.main) {
         collectedKeywords.main.add(keyword);
       }
-      for (const keyword of keywords.lex) {
-        collectedKeywords.lex.add(keyword);
+      for (const keyword of keywords.local) {
+        collectedKeywords.local.add(keyword);
       }
       processed++;
     } catch (error) {
@@ -51,7 +51,7 @@ const collectKeywordsFromRoot = async (
   const elapsed = performance.now() - start;
   if (!silent) {
     console.error(
-      `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.main.size} main, ${collectedKeywords.lex.size} lex keywords (${elapsed.toFixed(2)}ms).`,
+      `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.main.size} main, ${collectedKeywords.local.size} local keywords (${elapsed.toFixed(2)}ms).`,
     );
   }
 
@@ -77,11 +77,14 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
 
     async save(keywords: KeywordSet): Promise<void> {
       const content = generateTypeDeclaration(keywords.main);
-      const lexContent = generateTypeDeclaration(keywords.lex, true);
+      const localContent = generateTypeDeclaration(keywords.local, true);
       const outPath = path.join(root, outDir);
       await mkdir(outPath, { recursive: true });
       await writeFile(path.join(outPath, 'index.d.ts'), `${content.trim()}\n`);
-      await writeFile(path.join(outPath, 'lex.d.ts'), `${lexContent.trim()}\n`);
+      await writeFile(
+        path.join(outPath, 'local.d.ts'),
+        `${localContent.trim()}\n`,
+      );
     },
 
     async run(): Promise<void> {

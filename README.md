@@ -83,9 +83,9 @@ const _="z2pL21k";const a={a3fB9zX:_,k1Mw8pA:data};
     Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., `package.json` exports).
     *Convention:* `import * as K from 'virtual:keywords';`
 
-*   **`virtual:keywords/lex` (Lexical Counter)**
+*   **`virtual:keywords/local` (Lexical Counter)**
     Generates the shortest possible sequential identifiers via bijection numeration (e.g., `"_a"`, `"_b"`, `"_c"`). Strictly designated for **internal and local** implementations where cross-boundary stability is irrelevant.
-    *Convention:* `import * as L from 'virtual:keywords/lex';` (Think `L` for Local).
+    *Convention:* `import * as L from 'virtual:keywords/local';`
 
 **Module Separation**
 To minimize bundle size, identifiers can be partitioned: bind public interfaces to `K.*`, and obscure all internal state and private members behind `L.*`.
@@ -127,7 +127,7 @@ npx keywords
   "compilerOptions": {
     "paths": {
       "virtual:keywords": ["./node_modules/.keywords/index.d.ts"],
-      "virtual:keywords/lex": ["./node_modules/.keywords/lex.d.ts"]
+      "virtual:keywords/local": ["./node_modules/.keywords/local.d.ts"]
     }
   }
 }
@@ -151,7 +151,7 @@ The namespace import pattern is applicable in class-based architectures where st
  * SPDX-License-Identifier: BSD-3-Clause
  */
 import * as K from 'virtual:keywords';
-import * as L from 'virtual:keywords/lex';
+import * as L from 'virtual:keywords/local';
 import {
   AsyncDirective,
   type DirectiveParameters,
@@ -219,7 +219,7 @@ export class AsyncReplaceDirective extends AsyncDirective {
   }
 }
 ```
-*In production, all internal properties (e.g., `__value`, `__pauser`) will be completely minified to short sequence identifiers (via `virtual:keywords/lex`), obfuscating internal property names from the bundled Lit component.*
+*In production, all internal properties (e.g., `__value`, `__pauser`) will be completely minified to short sequence identifiers (via `virtual:keywords/local`), obfuscating internal property names from the bundled Lit component.*
 
 > [!TIP]
 > Native ECMAScript private fields (`#prop`) are safely mangled by standard minifiers, eliminating the need for plugin obfuscation for internal class state.

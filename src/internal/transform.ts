@@ -9,14 +9,14 @@ import {
 import {
   KEYWORD_ROUTE_SEGMENT,
   PLUGIN_NAME,
-  VIRTUAL_LEX_MODULE_ID,
+  VIRTUAL_LOCAL_MODULE_ID,
   VIRTUAL_MODULE_ID,
 } from './constants.js';
 import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 export interface KeywordSet {
   main: Set<string>;
-  lex: Set<string>;
+  local: Set<string>;
 }
 
 const isPureTypeSpace = (path: NodePath): boolean => {
@@ -74,12 +74,12 @@ interface TransformState extends PluginPass {
   keywords: KeywordSet;
   keywordUids: {
     main: Map<string, t.Identifier>;
-    lex: Map<string, t.Identifier>;
+    local: Map<string, t.Identifier>;
   };
 }
 
 interface TransformMetadata {
-  keywords?: { main: string[]; lex: string[] };
+  keywords?: { main: string[]; local: string[] };
 }
 
 const transformPlugin = (
@@ -91,15 +91,15 @@ const transformPlugin = (
     visitor: {
       Program: {
         enter(_, state) {
-          state.keywords = { main: new Set(), lex: new Set() };
-          state.keywordUids = { main: new Map(), lex: new Map() };
+          state.keywords = { main: new Set(), local: new Set() };
+          state.keywordUids = { main: new Map(), local: new Map() };
         },
 
         exit(path, state) {
           const metadata = state.file.metadata as TransformMetadata;
           metadata.keywords = {
             main: Array.from(state.keywords.main),
-            lex: Array.from(state.keywords.lex),
+            local: Array.from(state.keywords.local),
           };
 
           if (mode === 'transform') {
@@ -115,13 +115,13 @@ const transformPlugin = (
                 ),
               );
             }
-            for (const [keyword, safeId] of state.keywordUids.lex.entries()) {
+            for (const [keyword, safeId] of state.keywordUids.local.entries()) {
               const encoded = encodeIdentifier(keyword);
               newImports.push(
                 t.importDeclaration(
                   [t.importDefaultSpecifier(safeId)],
                   t.stringLiteral(
-                    `${VIRTUAL_LEX_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                    `${VIRTUAL_LOCAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
                   ),
                 ),
               );
@@ -137,14 +137,14 @@ const transformPlugin = (
         const sourceValue = path.node.source.value;
         if (
           sourceValue !== VIRTUAL_MODULE_ID &&
-          sourceValue !== VIRTUAL_LEX_MODULE_ID
+          sourceValue !== VIRTUAL_LOCAL_MODULE_ID
         ) {
           return;
         }
-        const isLex = sourceValue === VIRTUAL_LEX_MODULE_ID;
-        const targetSet = isLex ? state.keywords.lex : state.keywords.main;
-        const targetMap = isLex
-          ? state.keywordUids.lex
+        const isLocal = sourceValue === VIRTUAL_LOCAL_MODULE_ID;
+        const targetSet = isLocal ? state.keywords.local : state.keywords.main;
+        const targetMap = isLocal
+          ? state.keywordUids.local
           : state.keywordUids.main;
 
         const programScope = path.scope.getProgramParent();
@@ -318,12 +318,12 @@ const transformPlugin = (
         const sourceValue = path.node.source?.value;
         if (
           sourceValue !== VIRTUAL_MODULE_ID &&
-          sourceValue !== VIRTUAL_LEX_MODULE_ID
+          sourceValue !== VIRTUAL_LOCAL_MODULE_ID
         ) {
           return;
         }
-        const isLex = sourceValue === VIRTUAL_LEX_MODULE_ID;
-        const targetSet = isLex ? state.keywords.lex : state.keywords.main;
+        const isLocal = sourceValue === VIRTUAL_LOCAL_MODULE_ID;
+        const targetSet = isLocal ? state.keywords.local : state.keywords.main;
 
         if (mode === 'extract') {
           for (const specifierPath of path.get('specifiers')) {
@@ -385,7 +385,7 @@ export const transformCode = (
 } | null => {
   if (
     !code.includes(VIRTUAL_MODULE_ID) &&
-    !code.includes(VIRTUAL_LEX_MODULE_ID)
+    !code.includes(VIRTUAL_LOCAL_MODULE_ID)
   ) {
     return null;
   }
@@ -406,7 +406,7 @@ export const transformCode = (
   const metadata = result.metadata as TransformMetadata | undefined;
   const keywords: KeywordSet = {
     main: new Set(metadata?.keywords?.main ?? []),
-    lex: new Set(metadata?.keywords?.lex ?? []),
+    local: new Set(metadata?.keywords?.local ?? []),
   };
   return {
     code: result.code ?? '',
@@ -418,7 +418,7 @@ export const transformCode = (
 export const extractKeywords = (code: string): KeywordSet | null => {
   if (
     !code.includes(VIRTUAL_MODULE_ID) &&
-    !code.includes(VIRTUAL_LEX_MODULE_ID)
+    !code.includes(VIRTUAL_LOCAL_MODULE_ID)
   ) {
     return null;
   }
@@ -445,6 +445,6 @@ export const extractKeywords = (code: string): KeywordSet | null => {
   const metadata = result.metadata as TransformMetadata | undefined;
   return {
     main: new Set(metadata?.keywords?.main ?? []),
-    lex: new Set(metadata?.keywords?.lex ?? []),
+    local: new Set(metadata?.keywords?.local ?? []),
   };
 };

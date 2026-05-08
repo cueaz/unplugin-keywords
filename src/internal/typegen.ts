@@ -3,7 +3,7 @@ import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 export const generateTypeDeclaration = (
   keywords: Set<string>,
-  isLex: boolean = false,
+  isLocal: boolean = false,
 ): string => {
   const sortedKeywords = Array.from(keywords).sort();
   const content = [];
@@ -15,7 +15,7 @@ export const generateTypeDeclaration = (
   for (const keyword of sortedKeywords) {
     const encoded = encodeIdentifier(keyword);
     const safeName = toSafeVarName(encoded);
-    const hash = isLex ? '==' : '*'.repeat(HASH_LENGTH);
+    const hash = isLocal ? '==' : '*'.repeat(HASH_LENGTH);
     const value = `${hash}${DEBUG_SEPARATOR}${keyword}`;
     // content.push(
     //   `declare const ${safeName}: Keyword<${JSON.stringify(keyword)}, ${JSON.stringify(value)}>;`,

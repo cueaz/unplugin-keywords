@@ -1,5 +1,5 @@
 export const VIRTUAL_MODULE_ID = 'virtual:keywords';
-export const VIRTUAL_LEX_MODULE_ID = 'virtual:keywords/lex';
+export const VIRTUAL_LOCAL_MODULE_ID = 'virtual:keywords/local';
 
 export const PLUGIN_NAME = 'unplugin-keywords';
 

@@ -24,7 +24,7 @@ describe('internal/typegen', () => {
       expect(output).toContain('_$abc as "abc",');
     });
 
-    it('generates definitions for lex identifiers', () => {
+    it('generates definitions for local identifiers', () => {
       const keywords = new Set(['abc', 'SET_USER']);
       const output = generateTypeDeclaration(keywords, true);
 

@@ -1,5 +1,5 @@
 import * as K from 'virtual:keywords';
-import * as L from 'virtual:keywords/lex';
+import * as L from 'virtual:keywords/local';
 
 import { describe, expect, it, vi } from 'vitest';
 import {
