@@ -39,10 +39,10 @@ export interface Options {
    */
   isDev: boolean;
   /**
-   * The secret string used to salt the deterministic hashing algorithm.
+   * The cryptographic key used to initialize the deterministic HMAC algorithm.
    * Modifying this value will globally rotate all generated hashes.
    * To ensure cross-boundary consistency between independent builds,
-   * they must share the same secret.
+   * they must share the same secret key.
    */
   secret: string;
 }
