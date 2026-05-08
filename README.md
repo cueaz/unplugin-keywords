@@ -19,15 +19,15 @@ A build plugin for structural string literal minification and obfuscation.
 
 Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
 
-*   **Explicit Opt-In**
+*   **Explicit Opt-In:**
     Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K`). Developers unambiguously declare which identifiers are safe to obfuscate directly in the source code.
-*   **Gradual Adoption**
+*   **Gradual Adoption:**
     Unlike global mangling flags that affect the entire codebase simultaneously, installing this plugin alters nothing by default. It allows incremental adoption on a per-file or per-module basis.
-*   **Cross-Boundary Consistency**
+*   **Cross-Boundary Consistency:**
     Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `virtual:keywords` relies on deterministic hashing, identical keys inherently produce identical hashes across independent builds (provided they share the same `secret` configuration), preserving structural contracts.
-*   **Universal Application**
+*   **Universal Application:**
     Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and arbitrary static strings (`throw new Error(K['Invalid State'])`).
-*   **Trade-offs**
+*   **Trade-offs:**
     This explicit approach sacrifices source code readability. Furthermore, as demonstrated in the benchmarks below, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the architectural overhead of this plugin outweighs the minimal payload reduction.
 
 ## Visual Demo: `@preact/signals-core`
@@ -52,7 +52,7 @@ Standard minifiers operate exclusively on variable bindings and function names, 
 
 `unplugin-keywords` shifts this paradigm by treating structural strings as imported module bindings.
 
-**1. Source Code (Development)**
+**1. Source Code (Development):**
 Developers reference strings via a virtual module. The strongly recommended pattern is to use a namespace import (`import * as K`), which clearly demarcates keyword usage throughout the file.
 
 ```ts
@@ -64,10 +64,10 @@ const action = {
 };
 ```
 
-**2. AST Transformation**
+**2. AST Transformation:**
 During the build phase, the plugin traverses the AST, resolving bindings and statically resolving member expressions. It replaces valid identifier access with a generated AST node pointing to a deterministic base62 hash or a minimal lexical sequence.
 
-**3. Minified Output (Production)**
+**3. Minified Output (Production):**
 The bundler receives the transformed code and processes the hashed literals. Depending on the frequency of usage, the minifier will either inline the strings directly or extract them into single-character variables to save bytes.
 
 ```ts
@@ -79,15 +79,15 @@ const _="z2pL21k";const a={a3fB9zX:_,k1Mw8pA:data};
 
 `unplugin-keywords` provides two distinct virtual modules. While exclusively using `K.*` is a perfectly valid and robust approach, the dual-module system allows further bundle size reduction.
 
-*   **`virtual:keywords` (Stable Hash)**
+*   **`virtual:keywords` (Stable Hash):**
     Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., `package.json` exports).
     *Convention:* `import * as K from 'virtual:keywords';`
 
-*   **`virtual:keywords/local` (Lexical Counter)**
+*   **`virtual:keywords/local` (Lexical Counter):**
     Generates the shortest possible sequential identifiers via bijection numeration (e.g., `"_a"`, `"_b"`, `"_c"`). Strictly designated for **internal and local** implementations where cross-boundary stability is irrelevant.
     *Convention:* `import * as L from 'virtual:keywords/local';`
 
-**Module Separation**
+**Module Separation:**
 To minimize bundle size, identifiers can be partitioned: bind public interfaces to `K.*`, and obscure all internal state and private members behind `L.*`.
 
 ## Integration
