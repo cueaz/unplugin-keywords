@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { globby } from 'globby';
 import pLimit from 'p-limit';
-import { extractKeywords } from './transform.js';
+import { extractKeywords, type KeywordSet } from './transform.js';
 import { generateTypeDeclaration } from './typegen.js';
 
 const collectKeywordsFromRoot = async (
@@ -10,8 +10,8 @@ const collectKeywordsFromRoot = async (
   silent: boolean,
   ignoredDirs: string[] = [],
   concurrency: number = 100,
-): Promise<Set<string>> => {
-  const collectedKeywords = new Set<string>();
+): Promise<KeywordSet> => {
+  const collectedKeywords: KeywordSet = { main: new Set(), lex: new Set() };
 
   const start = performance.now();
   if (!silent) {
@@ -34,8 +34,11 @@ const collectKeywordsFromRoot = async (
       if (!keywords) {
         return;
       }
-      for (const keyword of keywords) {
-        collectedKeywords.add(keyword);
+      for (const keyword of keywords.main) {
+        collectedKeywords.main.add(keyword);
+      }
+      for (const keyword of keywords.lex) {
+        collectedKeywords.lex.add(keyword);
       }
       processed++;
     } catch (error) {
@@ -48,7 +51,7 @@ const collectKeywordsFromRoot = async (
   const elapsed = performance.now() - start;
   if (!silent) {
     console.error(
-      `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.size} unique keywords (${elapsed.toFixed(2)}ms).`,
+      `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.main.size} main, ${collectedKeywords.lex.size} lex keywords (${elapsed.toFixed(2)}ms).`,
     );
   }
 
@@ -58,27 +61,27 @@ const collectKeywordsFromRoot = async (
 interface RunnerOptions {
   root: string;
   silent: boolean;
-  dirname: string;
-  filename: string;
+  outDir: string;
 }
 
 export const createRunner = (options?: Partial<RunnerOptions>) => {
   const {
     root = process.cwd(),
     silent = false,
-    dirname = 'node_modules',
-    filename = '.keywords.d.ts',
+    outDir = path.join('node_modules', '.keywords'),
   } = options ?? {};
   return {
-    async collect(): Promise<Set<string>> {
+    async collect(): Promise<KeywordSet> {
       return collectKeywordsFromRoot(root, silent);
     },
 
-    async save(keywords: Set<string>): Promise<void> {
-      const content = generateTypeDeclaration(keywords);
-      const outDir = path.join(root, dirname);
-      await mkdir(outDir, { recursive: true });
-      await writeFile(path.join(outDir, filename), `${content.trim()}\n`);
+    async save(keywords: KeywordSet): Promise<void> {
+      const content = generateTypeDeclaration(keywords.main);
+      const lexContent = generateTypeDeclaration(keywords.lex, true);
+      const outPath = path.join(root, outDir);
+      await mkdir(outPath, { recursive: true });
+      await writeFile(path.join(outPath, 'index.d.ts'), `${content.trim()}\n`);
+      await writeFile(path.join(outPath, 'lex.d.ts'), `${lexContent.trim()}\n`);
     },
 
     async run(): Promise<void> {

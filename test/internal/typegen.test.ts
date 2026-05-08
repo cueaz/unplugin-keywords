@@ -24,6 +24,16 @@ describe('internal/typegen', () => {
       expect(output).toContain('_$abc as "abc",');
     });
 
+    it('generates definitions for lex identifiers', () => {
+      const keywords = new Set(['abc', 'SET_USER']);
+      const output = generateTypeDeclaration(keywords, true);
+
+      expect(output).toContain('declare const _$SET_USER: "==.SET_USER";');
+      expect(output).toContain('declare const _$abc: "==.abc";');
+      expect(output).toContain('_$SET_USER as "SET_USER",');
+      expect(output).toContain('_$abc as "abc",');
+    });
+
     it('generates definitions for non-standard identifiers', () => {
       const keywords = new Set(['kebab-case', '@special']);
       const output = generateTypeDeclaration(keywords);

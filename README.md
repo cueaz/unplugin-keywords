@@ -57,6 +57,21 @@ The bundler receives the transformed code and processes the hashed literals. Dep
 const _="z2pL21k";const a={a3fB9zX:_,k1Mw8pA:data};
 ```
 
+## Dual-Module Architecture
+
+`unplugin-keywords` provides two distinct virtual modules. While exclusively using `virtual:keywords` is a perfectly valid and robust approach, leveraging the dual-module system enables extreme bundle size optimization.
+
+*   **`virtual:keywords` (Stable Hash)**
+    Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., `package.json` exports).
+    *Convention:* `import * as K from 'virtual:keywords';`
+
+*   **`virtual:keywords/lex` (Lexical Counter)**
+    Generates the shortest possible sequential identifiers via bijection numeration (e.g., `"_a"`, `"_b"`, `"_c"`). Strictly designated for **internal and local** implementations where cross-boundary stability is irrelevant.
+    *Convention:* `import * as L from 'virtual:keywords/lex';` (Think `L` for Local).
+
+**The Bifurcated Strategy**
+For extreme byte minimization, developers are encouraged to partition their identifiers: bind public interfaces to `K.*`, and obscure all internal state and private members behind `L.*`.
+
 ## Integration
 
 Install the package:
@@ -93,7 +108,8 @@ npx keywords
 {
   "compilerOptions": {
     "paths": {
-      "virtual:keywords": ["./node_modules/.keywords.d.ts"]
+      "virtual:keywords": ["./node_modules/.keywords/index.d.ts"],
+      "virtual:keywords/lex": ["./node_modules/.keywords/lex.d.ts"]
     }
   }
 }
@@ -125,9 +141,9 @@ import { forAwaitOf, Pauser, PseudoWeakRef } from './private-async-helpers.js';
 type Mapper<T> = (v: T, index?: number) => unknown;
 
 export class AsyncReplaceDirective extends AsyncDirective {
-  private [K.__value]?: AsyncIterable<unknown>;
-  private [K.__weakThis] = new PseudoWeakRef(this);
-  private [K.__pauser] = new Pauser();
+  private [L.__value]?: AsyncIterable<unknown>;
+  private [L.__weakThis] = new PseudoWeakRef(this);
+  private [L.__pauser] = new Pauser();
 
   [K.render]<T>(_value: AsyncIterable<T>, _mapper?: Mapper<T>) {
     return noChange;
@@ -138,21 +154,21 @@ export class AsyncReplaceDirective extends AsyncDirective {
       this[K.disconnected]();
     }
 
-    if (value === this[K.__value]) {
+    if (value === this[L.__value]) {
       return noChange;
     }
-    this[K.__value] = value;
+    this[L.__value] = value;
     let i = 0;
-    const { [K.__weakThis]: weakThis, [K.__pauser]: pauser } = this;
+    const { [L.__weakThis]: weakThis, [L.__pauser]: pauser } = this;
 
     forAwaitOf(value, async (v: unknown) => {
-      while (pauser[K.get]()) {
-        await pauser[K.get]();
+      while (pauser[L.get]()) {
+        await pauser[L.get]();
       }
 
-      const _this = weakThis[K.deref]();
+      const _this = weakThis[L.deref]();
       if (_this !== undefined) {
-        if (_this[K.__value] !== value) {
+        if (_this[L.__value] !== value) {
           return false;
         }
         if (mapper !== undefined) {
@@ -172,17 +188,17 @@ export class AsyncReplaceDirective extends AsyncDirective {
   }
 
   override [K.disconnected]() {
-    this[K.__weakThis][K.disconnect]();
-    this[K.__pauser][K.pause]();
+    this[L.__weakThis][L.disconnect]();
+    this[L.__pauser][L.pause]();
   }
 
   override [K.reconnected]() {
-    this[K.__weakThis][K.reconnect](this);
-    this[K.__pauser][K.resume]();
+    this[L.__weakThis][L.reconnect](this);
+    this[L.__pauser][L.resume]();
   }
 }
 ```
-*In production, all internal properties (e.g., `__value`, `commitValue`) will be completely minified to short hashes, removing all trace of internal implementation details from the bundled Lit component.*
+*In production, all internal properties (e.g., `__value`, `__pauser`) will be completely minified to short sequence identifiers (via `virtual:keywords/lex`), removing all trace of internal implementation details from the bundled Lit component.*
 
 ## Other Supported Patterns
 

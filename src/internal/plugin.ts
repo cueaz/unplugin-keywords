@@ -6,11 +6,16 @@ import {
   DEBUG_SEPARATOR,
   KEYWORD_ROUTE_SEGMENT,
   PLUGIN_NAME,
+  VIRTUAL_LEX_MODULE_ID,
   VIRTUAL_MODULE_ID,
 } from './constants.js';
 import { encodeIdentifier } from './encode.js';
 import { createCounter, createHasher, type Hasher } from './hash.js';
-import { extractKeywords, transformCode } from './transform.js';
+import {
+  extractKeywords,
+  type KeywordSet,
+  transformCode,
+} from './transform.js';
 
 const resolveId = (id: string): string => `\0${id}`;
 
@@ -29,7 +34,7 @@ const COMMON_EXCLUDES = [/\/node_modules\//];
 
 export interface Options {
   isDev: boolean;
-  secret: string | false;
+  secret: string;
 }
 
 export const unpluginFactory: UnpluginFactory<Options> = ({
@@ -38,28 +43,33 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
 }) => {
   const runner = createRunner({ silent: true });
   const runnerLimit = pLimit({ concurrency: 1 });
-  const allKeywords = new Set<string>();
+  const allKeywords: KeywordSet = { main: new Set(), lex: new Set() };
 
   let isInitialized = false;
   const runInit = async () => {
     try {
       const keywords = await runner.collect();
-      for (const keyword of keywords) {
-        allKeywords.add(keyword);
+      for (const keyword of keywords.main) {
+        allKeywords.main.add(keyword);
+      }
+      for (const keyword of keywords.lex) {
+        allKeywords.lex.add(keyword);
       }
       await runner.save(allKeywords);
       isInitialized = true;
     } catch {}
   };
 
-  let hasher: Hasher;
+  let hasherMain: Hasher;
+  let hasherLex: Hasher;
   let resolvedMap: Map<string, string>;
 
   return {
     name: PLUGIN_NAME,
 
     buildStart() {
-      hasher = secret === false ? createCounter() : createHasher(secret);
+      hasherMain = createHasher(secret);
+      hasherLex = createCounter();
       resolvedMap = new Map();
       runnerLimit(async () => {
         if (!isInitialized) {
@@ -71,7 +81,10 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
     resolveId: {
       filter: {
         id: {
-          include: toIncludes(VIRTUAL_MODULE_ID),
+          include: [
+            ...toIncludes(VIRTUAL_MODULE_ID),
+            ...toIncludes(VIRTUAL_LEX_MODULE_ID),
+          ],
           exclude: COMMON_EXCLUDES,
         },
       },
@@ -83,7 +96,10 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
     load: {
       filter: {
         id: {
-          include: toIncludes(resolveId(VIRTUAL_MODULE_ID)),
+          include: [
+            ...toIncludes(resolveId(VIRTUAL_MODULE_ID)),
+            ...toIncludes(resolveId(VIRTUAL_LEX_MODULE_ID)),
+          ],
           exclude: COMMON_EXCLUDES,
         },
       },
@@ -103,7 +119,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           exclude: COMMON_EXCLUDES,
         },
         code: {
-          include: [VIRTUAL_MODULE_ID],
+          include: [VIRTUAL_MODULE_ID, VIRTUAL_LEX_MODULE_ID],
         },
       },
       handler(code, id) {
@@ -112,12 +128,24 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           return null;
         }
         const { code: transformed, map, keywords } = result;
-        for (const keyword of keywords) {
+        for (const keyword of keywords.main) {
           const encoded = encodeIdentifier(keyword);
           const resolvedId = resolveId(
             `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
           );
-          const hash = hasher(keyword);
+          const hash = hasherMain(keyword);
+          const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
+          resolvedMap.set(
+            resolvedId,
+            `export default ${JSON.stringify(value)};\n`,
+          );
+        }
+        for (const keyword of keywords.lex) {
+          const encoded = encodeIdentifier(keyword);
+          const resolvedId = resolveId(
+            `${VIRTUAL_LEX_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+          );
+          const hash = hasherLex(keyword);
           const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
           resolvedMap.set(
             resolvedId,
@@ -147,9 +175,15 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         return;
       }
       let isAdded = false;
-      for (const keyword of keywords) {
-        if (!allKeywords.has(keyword)) {
-          allKeywords.add(keyword);
+      for (const keyword of keywords.main) {
+        if (!allKeywords.main.has(keyword)) {
+          allKeywords.main.add(keyword);
+          isAdded = true;
+        }
+      }
+      for (const keyword of keywords.lex) {
+        if (!allKeywords.lex.has(keyword)) {
+          allKeywords.lex.add(keyword);
           isAdded = true;
         }
       }

@@ -9,9 +9,15 @@ import {
 import {
   KEYWORD_ROUTE_SEGMENT,
   PLUGIN_NAME,
+  VIRTUAL_LEX_MODULE_ID,
   VIRTUAL_MODULE_ID,
 } from './constants.js';
 import { encodeIdentifier, toSafeVarName } from './encode.js';
+
+export interface KeywordSet {
+  main: Set<string>;
+  lex: Set<string>;
+}
 
 const isPureTypeSpace = (path: NodePath): boolean => {
   let current: NodePath | null = path;
@@ -65,12 +71,15 @@ const isPureTypeSpace = (path: NodePath): boolean => {
 };
 
 interface TransformState extends PluginPass {
-  allKeywords: Set<string>;
-  keywordUids: Map<string, t.Identifier>;
+  keywords: KeywordSet;
+  keywordUids: {
+    main: Map<string, t.Identifier>;
+    lex: Map<string, t.Identifier>;
+  };
 }
 
 interface TransformMetadata {
-  keywords?: string[];
+  keywords?: { main: string[]; lex: string[] };
 }
 
 const transformPlugin = (
@@ -82,26 +91,41 @@ const transformPlugin = (
     visitor: {
       Program: {
         enter(_, state) {
-          state.allKeywords = new Set();
-          state.keywordUids = new Map();
+          state.keywords = { main: new Set(), lex: new Set() };
+          state.keywordUids = { main: new Map(), lex: new Map() };
         },
 
         exit(path, state) {
           const metadata = state.file.metadata as TransformMetadata;
-          metadata.keywords = Array.from(state.allKeywords);
+          metadata.keywords = {
+            main: Array.from(state.keywords.main),
+            lex: Array.from(state.keywords.lex),
+          };
 
           if (mode === 'transform') {
-            const newImports = Array.from(state.keywordUids.entries()).map(
-              ([keyword, safeId]) => {
-                const encoded = encodeIdentifier(keyword);
-                return t.importDeclaration(
+            const newImports = [];
+            for (const [keyword, safeId] of state.keywordUids.main.entries()) {
+              const encoded = encodeIdentifier(keyword);
+              newImports.push(
+                t.importDeclaration(
                   [t.importDefaultSpecifier(safeId)],
                   t.stringLiteral(
                     `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
                   ),
-                );
-              },
-            );
+                ),
+              );
+            }
+            for (const [keyword, safeId] of state.keywordUids.lex.entries()) {
+              const encoded = encodeIdentifier(keyword);
+              newImports.push(
+                t.importDeclaration(
+                  [t.importDefaultSpecifier(safeId)],
+                  t.stringLiteral(
+                    `${VIRTUAL_LEX_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                  ),
+                ),
+              );
+            }
             if (newImports.length > 0) {
               path.unshiftContainer('body', newImports);
             }
@@ -110,23 +134,32 @@ const transformPlugin = (
       },
 
       ImportDeclaration(path, state) {
-        if (path.node.source.value !== VIRTUAL_MODULE_ID) {
+        const sourceValue = path.node.source.value;
+        if (
+          sourceValue !== VIRTUAL_MODULE_ID &&
+          sourceValue !== VIRTUAL_LEX_MODULE_ID
+        ) {
           return;
         }
+        const isLex = sourceValue === VIRTUAL_LEX_MODULE_ID;
+        const targetSet = isLex ? state.keywords.lex : state.keywords.main;
+        const targetMap = isLex
+          ? state.keywordUids.lex
+          : state.keywordUids.main;
 
         const programScope = path.scope.getProgramParent();
         const processKeyword = (keyword: string): t.Identifier | null => {
-          state.allKeywords.add(keyword);
+          targetSet.add(keyword);
           if (mode === 'extract') {
             return null;
           }
-          if (state.keywordUids.has(keyword)) {
-            return state.keywordUids.get(keyword) as t.Identifier;
+          if (targetMap.has(keyword)) {
+            return targetMap.get(keyword) as t.Identifier;
           }
           const encoded = encodeIdentifier(keyword);
           const safeName = toSafeVarName(encoded);
           const uid = programScope.generateUidIdentifier(safeName);
-          state.keywordUids.set(keyword, uid);
+          targetMap.set(keyword, uid);
           return uid;
         };
 
@@ -282,9 +315,15 @@ const transformPlugin = (
       },
 
       ExportNamedDeclaration(path, state) {
-        if (path.node.source?.value !== VIRTUAL_MODULE_ID) {
+        const sourceValue = path.node.source?.value;
+        if (
+          sourceValue !== VIRTUAL_MODULE_ID &&
+          sourceValue !== VIRTUAL_LEX_MODULE_ID
+        ) {
           return;
         }
+        const isLex = sourceValue === VIRTUAL_LEX_MODULE_ID;
+        const targetSet = isLex ? state.keywords.lex : state.keywords.main;
 
         if (mode === 'extract') {
           for (const specifierPath of path.get('specifiers')) {
@@ -293,7 +332,7 @@ const transformPlugin = (
                 | t.Identifier
                 | t.StringLiteral; // local can be a StringLiteral in ES2022
               const keyword = t.isIdentifier(local) ? local.name : local.value;
-              state.allKeywords.add(keyword);
+              targetSet.add(keyword);
             }
           }
           return;
@@ -307,7 +346,7 @@ const transformPlugin = (
                 | t.Identifier
                 | t.StringLiteral; // local can be a StringLiteral in ES2022
               const keyword = t.isIdentifier(local) ? local.name : local.value;
-              state.allKeywords.add(keyword);
+              targetSet.add(keyword);
               const encoded = encodeIdentifier(keyword);
               return t.exportNamedDeclaration(
                 null,
@@ -318,7 +357,7 @@ const transformPlugin = (
                   ),
                 ],
                 t.stringLiteral(
-                  `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                  `${sourceValue}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
                 ),
               );
             }
@@ -342,9 +381,12 @@ export const transformCode = (
 ): {
   code: string;
   map: NonNullable<BabelFileResult['map']> | null;
-  keywords: Set<string>;
+  keywords: KeywordSet;
 } | null => {
-  if (!code.includes(VIRTUAL_MODULE_ID)) {
+  if (
+    !code.includes(VIRTUAL_MODULE_ID) &&
+    !code.includes(VIRTUAL_LEX_MODULE_ID)
+  ) {
     return null;
   }
   const result = transformSync(code, {
@@ -362,7 +404,10 @@ export const transformCode = (
     return null;
   }
   const metadata = result.metadata as TransformMetadata | undefined;
-  const keywords = new Set(metadata?.keywords ?? []);
+  const keywords: KeywordSet = {
+    main: new Set(metadata?.keywords?.main ?? []),
+    lex: new Set(metadata?.keywords?.lex ?? []),
+  };
   return {
     code: result.code ?? '',
     map: result.map ?? null,
@@ -370,8 +415,11 @@ export const transformCode = (
   };
 };
 
-export const extractKeywords = (code: string): Set<string> | null => {
-  if (!code.includes(VIRTUAL_MODULE_ID)) {
+export const extractKeywords = (code: string): KeywordSet | null => {
+  if (
+    !code.includes(VIRTUAL_MODULE_ID) &&
+    !code.includes(VIRTUAL_LEX_MODULE_ID)
+  ) {
     return null;
   }
   let result: BabelFileResult | null;
@@ -395,5 +443,8 @@ export const extractKeywords = (code: string): Set<string> | null => {
     return null;
   }
   const metadata = result.metadata as TransformMetadata | undefined;
-  return new Set(metadata?.keywords ?? []);
+  return {
+    main: new Set(metadata?.keywords?.main ?? []),
+    lex: new Set(metadata?.keywords?.lex ?? []),
+  };
 };

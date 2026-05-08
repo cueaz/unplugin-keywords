@@ -37,14 +37,12 @@ describe('internal/hash', () => {
 
       // 1. Empty string input
       const emptyHash = hasher('');
-      expect(emptyHash.length).toBeGreaterThan(0);
-      expect(emptyHash.length).toBeLessThanOrEqual(7);
+      expect(emptyHash.length).toBe(7);
 
       // 2. Extremely long string input
       const longInput = 'A'.repeat(10000);
       const longHash = hasher(longInput);
-      expect(longHash.length).toBeGreaterThan(0);
-      expect(longHash.length).toBeLessThanOrEqual(7);
+      expect(longHash.length).toBe(7);
 
       // 3. Force a hash collision check with different parameters
       expect(emptyHash).not.toBe(longHash);

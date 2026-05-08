@@ -1,4 +1,5 @@
 import * as K from 'virtual:keywords';
+import * as L from 'virtual:keywords/lex';
 
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -19,10 +20,10 @@ import {
  * These mirror the internal `Effect` interface from src/index.ts.
  */
 interface EffectInternals {
-  [K._callback]: (() => void) | ((...args: unknown[]) => unknown);
-  [K._start]: () => () => void;
-  [K._dispose]: () => void;
-  [K._sources]: unknown;
+  [L._callback]: (() => void) | ((...args: unknown[]) => unknown);
+  [L._start]: () => () => void;
+  [L._dispose]: () => void;
+  [L._sources]: unknown;
 }
 
 describe('signal', () => {
@@ -948,8 +949,8 @@ describe('effect()', () => {
       effect(function (this: EffectInternals) {
         e = this;
       });
-      expect(typeof e[K._start]).to.equal('function');
-      expect(typeof e[K._dispose]).to.equal('function');
+      expect(typeof e[L._start]).to.equal('function');
+      expect(typeof e[L._dispose]).to.equal('function');
     });
 
     it('should allow setting _callback that replaces the default functionality', () => {
@@ -965,7 +966,7 @@ describe('effect()', () => {
       });
       oldSpy.mockClear();
 
-      e[K._callback] = newSpy;
+      e[L._callback] = newSpy;
       a[K.value] = 1;
 
       expect(oldSpy).not.toHaveBeenCalled();
@@ -981,9 +982,9 @@ describe('effect()', () => {
       });
 
       const spy = vi.fn();
-      e[K._callback] = spy;
+      e[L._callback] = spy;
 
-      const done1 = e[K._start]();
+      const done1 = e[L._start]();
       s[K.value];
       done1();
       expect(spy).not.toHaveBeenCalled();
@@ -992,7 +993,7 @@ describe('effect()', () => {
       expect(spy).toHaveBeenCalled();
       spy.mockClear();
 
-      const done2 = e[K._start]();
+      const done2 = e[L._start]();
       done2();
 
       s[K.value] = 3;
@@ -1010,8 +1011,8 @@ describe('effect()', () => {
         e2 = this;
       });
 
-      const done1 = e1[K._start]();
-      const done2 = e2[K._start]();
+      const done1 = e1[L._start]();
+      const done2 = e2[L._start]();
       try {
         // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
         expect(() => done1()).to.throw(new RegExp(K['Out-of-order effect']));
@@ -1027,10 +1028,10 @@ describe('effect()', () => {
         e = this;
       });
 
-      const done = e[K._start]();
+      const done = e[L._start]();
       try {
         // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-        expect(() => e[K._start]()).to.throw(new RegExp(K['Cycle detected']));
+        expect(() => e[L._start]()).to.throw(new RegExp(K['Cycle detected']));
       } finally {
         done();
       }
@@ -1045,9 +1046,9 @@ describe('effect()', () => {
       });
 
       const spy = vi.fn();
-      e[K._callback] = spy;
+      e[L._callback] = spy;
 
-      const done = e[K._start]();
+      const done = e[L._start]();
       try {
         s[K.value];
       } finally {
@@ -1059,7 +1060,7 @@ describe('effect()', () => {
       expect(spy).toHaveBeenCalled();
       spy.mockClear();
 
-      e[K._dispose]();
+      e[L._dispose]();
       s[K.value] = 3;
       expect(spy).not.toHaveBeenCalled();
     });
@@ -1073,10 +1074,10 @@ describe('effect()', () => {
       });
 
       const spy = vi.fn();
-      e[K._callback] = spy;
-      e[K._dispose]();
+      e[L._callback] = spy;
+      e[L._dispose]();
 
-      const done = e[K._start]();
+      const done = e[L._start]();
       try {
         s[K.value];
       } finally {
@@ -1093,30 +1094,30 @@ describe('effect()', () => {
       effect(function (this: EffectInternals) {
         e = this;
       });
-      expect(e[K._sources]).to.be.undefined;
+      expect(e[L._sources]).to.be.undefined;
 
-      const done1 = e[K._start]();
+      const done1 = e[L._start]();
       try {
         s[K.value];
       } finally {
         done1();
       }
-      expect(e[K._sources]).not.to.be.undefined;
+      expect(e[L._sources]).not.to.be.undefined;
 
-      const done2: () => void = e[K._start]();
+      const done2: () => void = e[L._start]();
       done2();
-      expect(e[K._sources]).to.be.undefined;
+      expect(e[L._sources]).to.be.undefined;
 
-      const done3: () => void = e[K._start]();
+      const done3: () => void = e[L._start]();
       try {
         s[K.value];
       } finally {
         done3();
       }
-      expect(e[K._sources]).not.to.be.undefined;
+      expect(e[L._sources]).not.to.be.undefined;
 
-      e[K._dispose]();
-      expect(e[K._sources]).to.be.undefined;
+      e[L._dispose]();
+      expect(e[L._sources]).to.be.undefined;
     });
   });
 });

@@ -1,7 +1,10 @@
 import { DEBUG_SEPARATOR, HASH_LENGTH } from './constants.js';
 import { encodeIdentifier, toSafeVarName } from './encode.js';
 
-export const generateTypeDeclaration = (keywords: Set<string>): string => {
+export const generateTypeDeclaration = (
+  keywords: Set<string>,
+  isLex: boolean = false,
+): string => {
   const sortedKeywords = Array.from(keywords).sort();
   const content = [];
   // content.push(
@@ -12,7 +15,7 @@ export const generateTypeDeclaration = (keywords: Set<string>): string => {
   for (const keyword of sortedKeywords) {
     const encoded = encodeIdentifier(keyword);
     const safeName = toSafeVarName(encoded);
-    const hash = '*'.repeat(HASH_LENGTH);
+    const hash = isLex ? '==' : '*'.repeat(HASH_LENGTH);
     const value = `${hash}${DEBUG_SEPARATOR}${keyword}`;
     // content.push(
     //   `declare const ${safeName}: Keyword<${JSON.stringify(keyword)}, ${JSON.stringify(value)}>;`,

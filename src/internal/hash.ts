@@ -50,6 +50,7 @@ export const createCounter = (): Hasher => {
   let index = 0;
   return () => {
     let result = '_';
+
     result += ALPHA_CHARS[index % ALPHA_CHARS.length];
     let remain = Math.floor(index / ALPHA_CHARS.length);
     while (remain > 0) {
@@ -57,6 +58,7 @@ export const createCounter = (): Hasher => {
       result += BASE62_CHARS[remain % BASE62_CHARS.length];
       remain = Math.floor(remain / BASE62_CHARS.length);
     }
+
     index++;
     return result;
   };
