@@ -24,9 +24,9 @@ Compilation via `tsdown` confirms the uncompressed byte reduction and the expect
 $ NO_IMAGE=1 pnpm build --no-color
   ...
   ℹ dist/original.min.js      6.86 kB │ gzip: 2.09 kB
-  ℹ dist/keywordified.min.js  6.02 kB │ gzip: 2.42 kB
-  ℹ 2 files, total: 12.88 kB
-  ✔ Build complete in 235ms
+  ℹ dist/keywordified.min.js  5.40 kB │ gzip: 2.03 kB
+  ℹ 2 files, total: 12.25 kB
+  ✔ Build complete in 324ms
 ```
 
 ### 2. Behavioral Equivalence
@@ -37,8 +37,8 @@ $ pnpm test --no-color
   ...
   Test Files  4 passed (4)
        Tests  632 passed (632)
-    Start at  22:10:03
-    Duration  820ms (transform 1.80s, setup 0ms, import 1.95s, tests 203ms, environment 0ms)
+    Start at  16:21:53
+    Duration  2.06s (transform 2.71s, setup 0ms, import 3.16s, tests 269ms, environment 0ms)
 ```
 
 ## License Notice
