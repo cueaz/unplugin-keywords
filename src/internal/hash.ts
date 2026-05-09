@@ -56,9 +56,11 @@ export const createHasher = (secret: string): Hasher => {
 const shuffle = (str: string, secret: string, salt: string): string => {
   const arr = Array.from(str);
   const requiredBytes = (arr.length - 1) * 4;
+
   const info = VIRTUAL_LOCAL_MODULE_ID;
   const keyingMaterial = hkdfSync('sha256', secret, salt, info, requiredBytes);
   const prngBuffer = Buffer.from(keyingMaterial);
+
   let byteOffset = 0;
   for (let i = arr.length - 1; i > 0; i--) {
     const random32 = prngBuffer.readUInt32BE(byteOffset);
@@ -68,6 +70,7 @@ const shuffle = (str: string, secret: string, salt: string): string => {
     arr[i] = arr[j] as string;
     arr[j] = temp;
   }
+
   return arr.join('');
 };
 

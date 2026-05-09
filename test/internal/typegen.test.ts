@@ -7,9 +7,6 @@ describe('internal/typegen', () => {
       const keywords = new Set<string>();
       const output = generateTypeDeclaration(keywords);
 
-      // expect(output).toContain(
-      //   'type Keyword<K, V> = V & { readonly __keyword__: K };',
-      // );
       expect(output).toContain('export {');
       expect(output).toContain('};');
     });
