@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 import keywords from 'unplugin-keywords/rollup';
 import { defineConfig } from 'vitest/config';
 

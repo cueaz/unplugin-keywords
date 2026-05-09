@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 import { defineConfig } from 'tsdown';
 
 export default defineConfig([

@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 import { describe, expect, it } from 'vitest';
 import { createHasher } from '../../src/internal/hash.js';
 

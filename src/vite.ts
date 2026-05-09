@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 import { createVitePlugin } from 'unplugin';
 import { type Options, unpluginFactory } from './internal/plugin.js';
 

@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 declare const __encoded__: unique symbol;
 type Encoded = string & { [__encoded__]: never };
 

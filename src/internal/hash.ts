@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 import { createHmac, hkdfSync } from 'node:crypto';
 import {
   HASH_LENGTH,

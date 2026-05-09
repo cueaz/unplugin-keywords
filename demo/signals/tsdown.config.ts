@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 import { readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { Resvg } from '@resvg/resvg-js';

@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 import { DEBUG_SEPARATOR, HASH_LENGTH } from './constants.js';
 import { encodeIdentifier, toSafeVarName } from './encode.js';
 

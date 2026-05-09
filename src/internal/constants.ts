@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 export const VIRTUAL_MODULE_ID = 'virtual:keywords';
 export const VIRTUAL_LOCAL_MODULE_ID = 'virtual:keywords/local';
 

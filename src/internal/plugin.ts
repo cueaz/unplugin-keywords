@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: MIT
+ */
+
 import { readFile } from 'node:fs/promises';
 import pLimit from 'p-limit';
 import type { UnpluginFactory } from 'unplugin';
