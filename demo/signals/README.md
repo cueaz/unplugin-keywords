@@ -28,9 +28,6 @@ $ NO_IMAGE=1 pnpm build --no-color
   ✔ Build complete in 324ms
 ```
 
-> [!NOTE]
-> For a detailed analysis of these metrics (including LZ77 compression efficiency and baseline comparison with the official Preact bundle), please refer to the [Visual Demo section in the main README](../../README.md#visual-demo-preactsignals-core).
-
 ### 2. Behavioral Equivalence
 To ensure logical correctness, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [isDev: true, false]`.
 

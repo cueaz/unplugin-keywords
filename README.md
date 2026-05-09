@@ -40,7 +40,7 @@ A side-by-side comparison of minified bundles:
 | 6.86 kB │ gzip: **2.09 kB** | **5.40 kB** │ gzip: 2.05 kB |
 
 > [!NOTE]
-> **Baseline Metrics:** The "Unmodified" metrics represent standard `tsdown` minification. The official [`@preact/signals-core@1.14.1`](https://bundlephobia.com/package/@preact/signals-core@1.14.1) release achieves a smaller footprint (5.4 kB Minified / 1.9 kB Gzipped) by employing a hand-crafted [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json) for manual property obfuscation.
+> **Baseline Metrics:** Both the "Unmodified" and "Keywordified" metrics represent standard `tsdown` minification. The official [`@preact/signals-core@1.14.1`](https://bundlephobia.com/package/@preact/signals-core@1.14.1) release achieves a smaller footprint (5.4 kB Minified / 1.9 kB Gzipped) by employing a hand-crafted [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json) for manual property obfuscation.
 >
 > **Compression Efficiency:** While the uncompressed bundle size is reduced by 21.3%, the gzipped size is only 1.9% smaller. This demonstrates the effectiveness of standard gzip compression on unmodified code: if minimizing the gzipped network payload is the sole objective, adopting this plugin is unnecessary.
 
