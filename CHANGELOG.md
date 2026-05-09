@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.0](https://github.com/cueaz/unplugin-keywords/compare/v2.5.1...v2.6.0) (2026-05-09)
+
+
+### Features
+
+* refine lexical counter ([242196b](https://github.com/cueaz/unplugin-keywords/commit/242196b404f49a2234c616cdf89d15116c43bc3f))
+
 ## [2.5.1](https://github.com/cueaz/unplugin-keywords/compare/v2.5.0...v2.5.1) (2026-05-08)
 
 
