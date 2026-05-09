@@ -28,7 +28,7 @@ Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mang
 *   **Universal Application:**
     Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
 *   **Trade-offs:**
-    This explicit approach sacrifices some source code readability. Furthermore, as demonstrated in the benchmarks below, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the architectural overhead of this plugin outweighs the minimal payload reduction.
+    This explicit approach sacrifices some source code readability. Furthermore, as demonstrated in the benchmarks below, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the effort of adopting this plugin may not justify the minimal payload reduction.
 
 ## Visual Demo: `@preact/signals-core`
 
@@ -50,7 +50,7 @@ A side-by-side comparison of minified bundles:
 
 Standard minifiers operate exclusively on variable bindings and function names, leaving structural strings intact. While this preserves the semantic contract, it inflates bundle size and exposes internal state architecture (e.g., Redux action types, state machine nodes).
 
-`unplugin-keywords` shifts this paradigm by treating structural strings as imported module bindings.
+`unplugin-keywords` solves this by treating structural strings as imported module bindings.
 
 **1. Source Code (Development):**
 Developers reference strings via a virtual module. The strongly recommended pattern is to use a namespace import (`import * as K`), which clearly demarcates keyword usage throughout the file.
@@ -84,7 +84,7 @@ const _="z2pL21k";const a={a3fB9zX:_,k1Mw8pA:data};
     *Convention:* `import * as K from 'virtual:keywords';`
 
 *   **`virtual:keywords/local` (Lexical Counter):**
-    Generates the shortest possible sequential identifiers via bijective numeration (e.g., `"_a"`, `"_b"`, `"_c"`). Strictly designated for **internal and local** implementations where cross-boundary stability is irrelevant.
+    Generates the shortest possible sequential identifiers (min length: 2, e.g., `"a0"`, `"b0"`). Intended for **internal and local** implementations where cross-boundary stability is irrelevant.
     *Convention:* `import * as L from 'virtual:keywords/local';`
 
 **Module Separation:**
