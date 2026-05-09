@@ -23,7 +23,7 @@ Compilation via `tsdown` confirms the uncompressed byte reduction and the gzip s
 $ NO_IMAGE=1 pnpm build --no-color
   ...
   ℹ dist/original.min.js      6.86 kB │ gzip: 2.09 kB
-  ℹ dist/keywordified.min.js  5.40 kB │ gzip: 2.03 kB
+  ℹ dist/keywordified.min.js  5.40 kB │ gzip: 2.05 kB
   ℹ 2 files, total: 12.25 kB
   ✔ Build complete in 324ms
 ```

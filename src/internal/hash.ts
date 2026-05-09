@@ -1,5 +1,9 @@
-import { createHmac } from 'node:crypto';
-import { HASH_LENGTH } from './constants.js';
+import { createHmac, hkdfSync } from 'node:crypto';
+import {
+  HASH_LENGTH,
+  VIRTUAL_LOCAL_MODULE_ID,
+  VIRTUAL_MODULE_ID,
+} from './constants.js';
 
 const ALPHA_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const DIGIT_CHARS = '0123456789';
@@ -26,10 +30,12 @@ export const createHasher = (secret: string): Hasher => {
       return cache.get(input) as string;
     }
 
+    const info = VIRTUAL_MODULE_ID;
+    const payload = `${info.length}:${info}|${input.length}:${input}`;
     const hasher = createHmac('sha256', secret);
-    const buffer = hasher.update(input).digest();
+    const buffer = hasher.update(payload).digest('hex');
 
-    let entropy = buffer.readBigUInt64BE(0);
+    let entropy = BigInt(`0x${buffer}`);
     let result = '';
 
     result += ALPHA_CHARS[Number(entropy % ALPHA_LEN)];
@@ -46,20 +52,52 @@ export const createHasher = (secret: string): Hasher => {
   };
 };
 
-export const createCounter = (): Hasher => {
-  let index = 0;
-  return () => {
-    let result = '_';
+// Fisher-Yates based deterministic shuffle
+const shuffle = (str: string, secret: string, salt: string): string => {
+  const arr = Array.from(str);
+  const requiredBytes = (arr.length - 1) * 4;
+  const info = VIRTUAL_LOCAL_MODULE_ID;
+  const keyingMaterial = hkdfSync('sha256', secret, salt, info, requiredBytes);
+  const prngBuffer = Buffer.from(keyingMaterial);
+  let byteOffset = 0;
+  for (let i = arr.length - 1; i > 0; i--) {
+    const random32 = prngBuffer.readUInt32BE(byteOffset);
+    byteOffset += 4;
+    const j = random32 % (i + 1);
+    const temp = arr[i] as string;
+    arr[i] = arr[j] as string;
+    arr[j] = temp;
+  }
+  return arr.join('');
+};
 
-    result += ALPHA_CHARS[index % ALPHA_CHARS.length];
-    let remain = Math.floor(index / ALPHA_CHARS.length);
-    while (remain > 0) {
-      remain--;
-      result += BASE62_CHARS[remain % BASE62_CHARS.length];
-      remain = Math.floor(remain / BASE62_CHARS.length);
+export const createCounter = (secret: string): Hasher => {
+  const shuffledAlpha = shuffle(ALPHA_CHARS, secret, 'alpha');
+  const shuffledDigit = shuffle(DIGIT_CHARS, secret, 'digit');
+  const shuffledBase62 = shuffle(BASE62_CHARS, secret, 'base62');
+
+  let index = 0;
+  const cache = new Map<string, string>();
+  return (input) => {
+    if (cache.has(input)) {
+      return cache.get(input) as string;
     }
 
+    let result = '';
+    let current = index;
     index++;
+
+    result += shuffledAlpha[current % shuffledAlpha.length];
+    current = Math.floor(current / shuffledAlpha.length);
+    result += shuffledDigit[current % shuffledDigit.length];
+    current = Math.floor(current / shuffledDigit.length);
+    while (current > 0) {
+      current--;
+      result += shuffledBase62[current % shuffledBase62.length];
+      current = Math.floor(current / shuffledBase62.length);
+    }
+
+    cache.set(input, result);
     return result;
   };
 };

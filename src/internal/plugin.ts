@@ -79,7 +79,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
 
     buildStart() {
       hasherMain = createHasher(secret);
-      hasherLocal = createCounter();
+      hasherLocal = createCounter(secret);
       resolvedMap = new Map();
       runnerLimit(async () => {
         if (!isInitialized) {
@@ -143,6 +143,9 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           const resolvedId = resolveId(
             `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
           );
+          if (resolvedMap.has(resolvedId)) {
+            continue;
+          }
           const hash = hasherMain(keyword);
           const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
           resolvedMap.set(
@@ -155,6 +158,9 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           const resolvedId = resolveId(
             `${VIRTUAL_LOCAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
           );
+          if (resolvedMap.has(resolvedId)) {
+            continue;
+          }
           const hash = hasherLocal(keyword);
           const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
           resolvedMap.set(
