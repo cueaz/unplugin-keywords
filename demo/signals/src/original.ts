@@ -1,3 +1,12 @@
+/**
+ * @license
+ * Copyright 2026 cueaz (Modifications)
+ * Copyright 2022-present Preact Team (Original Work)
+ *
+ * This file has been modified from its original version.
+ * SPDX-License-Identifier: MIT
+ */
+
 // An named symbol/brand for detecting Signal instances even when they weren't
 // created using the same signals library version.
 const BRAND_SYMBOL = Symbol.for('preact-signals');
