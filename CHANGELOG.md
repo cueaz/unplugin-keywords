@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.0](https://github.com/cueaz/unplugin-keywords/compare/v2.6.0...v2.7.0) (2026-05-09)
+
+
+### Features
+
+* update readme ([dae11fb](https://github.com/cueaz/unplugin-keywords/commit/dae11fbcdf69390b811bafb581c320c2aaa0614a))
+
 ## [2.6.0](https://github.com/cueaz/unplugin-keywords/compare/v2.5.1...v2.6.0) (2026-05-09)
 
 
