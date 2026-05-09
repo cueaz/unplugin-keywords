@@ -20,11 +20,11 @@ A build plugin for structural string literal minification and obfuscation.
 Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
 
 *   **Explicit Opt-In:**
-    Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K`). Developers unambiguously declare which identifiers are safe to obfuscate directly in the source code.
+    Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from 'virtual:keywords'`). Developers unambiguously declare which identifiers are safe to obfuscate directly in the source code.
 *   **Gradual Adoption:**
     Unlike global mangling flags that affect the entire codebase simultaneously, installing this plugin alters nothing by default. It allows incremental adoption on a per-file or per-module basis.
 *   **Cross-Boundary Consistency:**
-    Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `virtual:keywords` relies on deterministic hashing, identical keys inherently produce identical hashes across independent builds (provided they share the same `secret` configuration), preserving structural contracts.
+    Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `virtual:keywords` relies on deterministic hashing, identical keys inherently produce identical hashes across independent builds, preserving structural contracts.
 *   **Universal Application:**
     Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
 *   **Trade-offs:**
@@ -40,7 +40,7 @@ A side-by-side comparison of minified bundles:
 | 6.86 kB │ gzip: **2.09 kB** | **5.40 kB** │ gzip: 2.05 kB |
 
 > [!NOTE]
-> **Baseline Metrics:** The "Unmodified" metrics represent standard `tsdown` minification. The official [`@preact/signals-core@1.14.1`](https://bundlephobia.com/package/@preact/signals-core@1.14.1) release achieves a smaller footprint (5.4 kB Minified / 1.9 kB Gzipped) by employing a hand-crafted [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json) for manual property obfuscation.
+> **Baseline Metrics:** Both the "Unmodified" and "Keywordified" metrics represent standard `tsdown` minification. The official [`@preact/signals-core@1.14.1`](https://bundlephobia.com/package/@preact/signals-core@1.14.1) release achieves a smaller footprint (5.4 kB Minified / 1.9 kB Gzipped) by employing a hand-crafted [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json) for manual property obfuscation.
 >
 > **Compression Efficiency:** While the uncompressed bundle size is reduced by 21.3%, the gzipped size is only 1.9% smaller. This demonstrates the effectiveness of standard gzip compression on unmodified code: if minimizing the gzipped network payload is the sole objective, adopting this plugin is unnecessary.
 

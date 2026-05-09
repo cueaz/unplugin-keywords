@@ -7,7 +7,7 @@ This directory contains a practical, real-world demonstration of `unplugin-keywo
 The goal of this demo is to demonstrate the impact of structural string obfuscation on a complex codebase.
 
 - `src/original.ts`: The baseline implementation of signals.
-- `src/keywordified.ts`: The exact same logic, but with internal properties and lifecycle methods explicitly routed through the `virtual:keywords` and `virtual:keywords/local` namespaces.
+- `src/keywordified.ts`: The exact same logic, but with internal properties and methods explicitly routed through the `virtual:keywords` and `virtual:keywords/local` namespaces.
 
 By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./dist_sample/original.min.js) and [`keywordified.min.js`](./dist_sample/keywordified.min.js)), you can observe how `unplugin-keywords` replaces semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to short sequential identifiers and reducing the final bundle size.
 
@@ -27,9 +27,6 @@ $ NO_IMAGE=1 pnpm build --no-color
   ℹ 2 files, total: 12.25 kB
   ✔ Build complete in 324ms
 ```
-
-> [!NOTE]
-> For a detailed analysis of these metrics (including LZ77 compression efficiency and baseline comparison with the official Preact bundle), please refer to the [Visual Demo section in the main README](../../README.md#visual-demo-preactsignals-core).
 
 ### 2. Behavioral Equivalence
 To ensure logical correctness, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [isDev: true, false]`.
