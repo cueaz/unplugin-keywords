@@ -150,8 +150,10 @@ The namespace import pattern is applicable in class-based architectures where st
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
 import * as K from 'virtual:keywords';
 import * as L from 'virtual:keywords/local';
+
 import {
   AsyncDirective,
   type DirectiveParameters,

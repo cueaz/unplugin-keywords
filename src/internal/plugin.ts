@@ -58,19 +58,19 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
 }) => {
   const runner = createRunner({ silent: true });
   const runnerLimit = pLimit({ concurrency: 1 });
-  const allKeywords: KeywordSet = { main: new Set(), local: new Set() };
+  const typegenKeywords: KeywordSet = { main: new Set(), local: new Set() };
 
   let isInitialized = false;
   const runInit = async () => {
     try {
       const keywords = await runner.collect();
       for (const keyword of keywords.main) {
-        allKeywords.main.add(keyword);
+        typegenKeywords.main.add(keyword);
       }
       for (const keyword of keywords.local) {
-        allKeywords.local.add(keyword);
+        typegenKeywords.local.add(keyword);
       }
-      await runner.save(allKeywords);
+      await runner.save(typegenKeywords);
       isInitialized = true;
     } catch {}
   };
@@ -197,14 +197,14 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       }
       let isAdded = false;
       for (const keyword of keywords.main) {
-        if (!allKeywords.main.has(keyword)) {
-          allKeywords.main.add(keyword);
+        if (!typegenKeywords.main.has(keyword)) {
+          typegenKeywords.main.add(keyword);
           isAdded = true;
         }
       }
       for (const keyword of keywords.local) {
-        if (!allKeywords.local.has(keyword)) {
-          allKeywords.local.add(keyword);
+        if (!typegenKeywords.local.has(keyword)) {
+          typegenKeywords.local.add(keyword);
           isAdded = true;
         }
       }
@@ -214,7 +214,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
             await runInit();
           } else if (isAdded) {
             try {
-              await runner.save(allKeywords);
+              await runner.save(typegenKeywords);
             } catch {}
           }
         });
