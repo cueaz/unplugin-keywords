@@ -133,6 +133,7 @@ export default defineConfig([
     fixedExtension: false,
     minify: true,
     outputOptions: {
+      comments: false,
       entryFileNames: '[name].min.js',
     },
     checks: {
