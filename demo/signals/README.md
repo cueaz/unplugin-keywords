@@ -11,12 +11,12 @@ The goal of this demo is to demonstrate the impact of structural string obfuscat
 
 By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./dist_sample/original.min.js) and [`keywordified.min.js`](./dist_sample/keywordified.min.js)), you can observe how `unplugin-keywords` replaces semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to short sequential identifiers and reducing the final bundle size.
 
-
 ## Verification
 
 The obfuscation process is validated across two constraints: Size Reduction and Behavioral Equivalence.
 
 ### 1. Bundle Size Output
+
 Compilation via `tsdown` confirms the uncompressed byte reduction and the gzip size reduction.
 
 ```bash
@@ -29,6 +29,7 @@ $ NO_IMAGE=1 pnpm build --no-color
 ```
 
 ### 2. Behavioral Equivalence
+
 To ensure logical correctness, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [isDev: true, false]`.
 
 ```bash
