@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-export const VIRTUAL_MODULE_ID = 'virtual:keywords';
-export const VIRTUAL_LOCAL_MODULE_ID = 'virtual:keywords/local';
+export const VIRTUAL_MODULE_ID = '~keywords';
+export const VIRTUAL_LOCAL_MODULE_ID = '~keywords/local';
 
 export const PLUGIN_NAME = 'unplugin-keywords';
 

@@ -7,7 +7,7 @@ This directory contains a practical, real-world demonstration of `unplugin-keywo
 The goal of this demo is to demonstrate the impact of structural string obfuscation on a complex codebase.
 
 - `src/original.ts`: The baseline implementation of signals.
-- `src/keywordified.ts`: The exact same logic, but with internal properties and methods explicitly routed through the `virtual:keywords` and `virtual:keywords/local` namespaces.
+- `src/keywordified.ts`: The exact same logic, but with internal properties and methods explicitly routed through the `~keywords` and `~keywords/local` namespaces.
 
 By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./dist_sample/original.min.js) and [`keywordified.min.js`](./dist_sample/keywordified.min.js)), you can observe how `unplugin-keywords` replaces semantic internal properties (e.g., `_nextBatchedEffect`, `_batchSnapshotVersion`), mapping them to short sequential identifiers and reducing the final bundle size.
 

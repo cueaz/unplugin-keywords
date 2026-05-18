@@ -20,11 +20,11 @@ A build plugin for structural string literal minification and obfuscation.
 Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
 
 *   **Explicit Opt-In:**
-    Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from 'virtual:keywords'`). Developers unambiguously declare which identifiers are safe to obfuscate directly in the source code.
+    Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from '~keywords'`). Developers unambiguously declare which identifiers are safe to obfuscate directly in the source code.
 *   **Gradual Adoption:**
     Unlike global mangling flags that affect the entire codebase simultaneously, installing this plugin alters nothing by default. It allows incremental adoption on a per-file or per-module basis.
 *   **Cross-Boundary Consistency:**
-    Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `virtual:keywords` relies on deterministic hashing, identical keys inherently produce identical hashes across independent builds, preserving structural contracts.
+    Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `~keywords` relies on deterministic hashing, identical keys inherently produce identical hashes across independent builds, preserving structural contracts.
 *   **Universal Application:**
     Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
 *   **Trade-offs:**
@@ -56,7 +56,7 @@ Standard minifiers operate exclusively on variable bindings and function names, 
 Developers reference strings via a virtual module. The strongly recommended pattern is to use a namespace import (`import * as K`), which clearly demarcates keyword usage throughout the file.
 
 ```ts
-import * as K from 'virtual:keywords';
+import * as K from '~keywords';
 
 const action = {
   [K.type]: K.SET_USER,
@@ -79,13 +79,13 @@ const _="z2pL21k";const a={a3fB9zX:_,k1Mw8pA:data};
 
 `unplugin-keywords` provides two distinct virtual modules. While exclusively using `K.*` is a perfectly valid and robust approach, the dual-module system allows further bundle size reduction.
 
-*   **`virtual:keywords` (Stable Hash):**
+*   **`~keywords` (Stable Hash):**
     Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., `package.json` exports).
-    *Convention:* `import * as K from 'virtual:keywords';`
+    *Convention:* `import * as K from '~keywords';`
 
-*   **`virtual:keywords/local` (Lexical Counter):**
+*   **`~keywords/local` (Lexical Counter):**
     Generates the shortest possible sequential identifiers (min length: 2, e.g., `"a0"`, `"b0"`). Intended for **internal and local** implementations where cross-boundary stability is irrelevant.
-    *Convention:* `import * as L from 'virtual:keywords/local';`
+    *Convention:* `import * as L from '~keywords/local';`
 
 **Module Separation:**
 To minimize bundle size, identifiers can be partitioned: bind public interfaces to `K.*`, and obscure all internal state and private members behind `L.*`.
@@ -116,21 +116,10 @@ export default defineConfig(({ mode }) => ({
 }));
 ```
 
-To enable type checking and IDE auto-completion, execute the CLI and register the output in `tsconfig.json`:
+To enable type checking and IDE auto-completion, execute the CLI. It will automatically generate type declarations and a `package.json` inside `node_modules/~keywords`, allowing your project to resolve the virtual modules:
 
 ```bash
 npx keywords
-```
-
-```jsonc
-{
-  "compilerOptions": {
-    "paths": {
-      "virtual:keywords": ["./node_modules/.keywords/index.d.ts"],
-      "virtual:keywords/local": ["./node_modules/.keywords/local.d.ts"]
-    }
-  }
-}
 ```
 
 > [!TIP]
@@ -151,8 +140,8 @@ The namespace import pattern is applicable in class-based architectures where st
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import * as K from 'virtual:keywords';
-import * as L from 'virtual:keywords/local';
+import * as K from '~keywords';
+import * as L from '~keywords/local';
 
 import {
   AsyncDirective,
@@ -221,7 +210,7 @@ export class AsyncReplaceDirective extends AsyncDirective {
   }
 }
 ```
-*In production, all internal properties (e.g., `__value`, `__pauser`) will be completely minified to short sequence identifiers (via `virtual:keywords/local`), obfuscating internal property names from the bundled Lit component.*
+*In production, all internal properties (e.g., `__value`, `__pauser`) will be completely minified to short sequence identifiers (via `~keywords/local`), obfuscating internal property names from the bundled Lit component.*
 
 > [!TIP]
 > Native ECMAScript private fields (`#prop`) are safely mangled by standard minifiers, eliminating the need for plugin obfuscation for internal class state.
@@ -231,7 +220,7 @@ export class AsyncReplaceDirective extends AsyncDirective {
 
 ```ts
 // Modular Imports
-import { type, 'kebab-case' as kebab } from 'virtual:keywords';
+import { type, 'kebab-case' as kebab } from '~keywords';
 
 // JSX Injection
 const View = () => (
@@ -247,10 +236,10 @@ interface StateMachine {
 }
 
 // Module Re-exports
-export { internalState as state } from 'virtual:keywords';
+export { internalState as state } from '~keywords';
 
 // UNSUPPORTED: Export All (Lacks static traceability)
-export * from 'virtual:keywords';
+export * from '~keywords';
 ```
 
 ## License

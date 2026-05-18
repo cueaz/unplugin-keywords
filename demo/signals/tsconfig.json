@@ -1,10 +1,4 @@
 {
   "extends": ["../../tsconfig.base.json"],
-  "include": ["src", "test", "*.config.ts"],
-  "compilerOptions": {
-    "paths": {
-      "virtual:keywords": ["./node_modules/.keywords/index.d.ts"],
-      "virtual:keywords/local": ["./node_modules/.keywords/local.d.ts"]
-    }
-  }
+  "include": ["src", "test", "*.config.ts"]
 }

@@ -13,7 +13,7 @@ describe('internal/transform', () => {
   describe('transformCode', () => {
     it('transforms named imports', () => {
       const code = `
-        import { abc, 'kebab-case' as kebab } from 'virtual:keywords';
+        import { abc, 'kebab-case' as kebab } from '~keywords';
         console.log(abc, kebab);
       `;
       const result = transformCode(code, 'test.js');
@@ -21,18 +21,16 @@ describe('internal/transform', () => {
         main: new Set(['abc', 'kebab-case']),
         local: new Set(),
       });
+      expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
       expect(result?.code).toContain(
-        'import _$abc from "virtual:keywords/_/abc";',
-      );
-      expect(result?.code).toContain(
-        'import _$kebab$002dcase from "virtual:keywords/_/kebab$002dcase";',
+        'import _$kebab$002dcase from "~keywords/_/kebab$002dcase";',
       );
       expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
     });
 
     it('transforms default import', () => {
       const code = `
-        import myDefault from 'virtual:keywords';
+        import myDefault from '~keywords';
         console.log(myDefault);
       `;
       const result = transformCode(code, 'test.js');
@@ -41,14 +39,14 @@ describe('internal/transform', () => {
         local: new Set(),
       });
       expect(result?.code).toContain(
-        'import _$default from "virtual:keywords/_/default";',
+        'import _$default from "~keywords/_/default";',
       );
       expect(result?.code).toContain('console.log(_$default);');
     });
 
     it('transforms namespace imports and member accesses', () => {
       const code = `
-        import * as A from 'virtual:keywords';
+        import * as A from '~keywords';
         console.log(A.abc);
         console.log(A['sec-wer']);
       `;
@@ -57,11 +55,9 @@ describe('internal/transform', () => {
         main: new Set(['abc', 'sec-wer']),
         local: new Set(),
       });
+      expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
       expect(result?.code).toContain(
-        'import _$abc from "virtual:keywords/_/abc";',
-      );
-      expect(result?.code).toContain(
-        'import _$sec$002dwer from "virtual:keywords/_/sec$002dwer";',
+        'import _$sec$002dwer from "~keywords/_/sec$002dwer";',
       );
       expect(result?.code).toContain('console.log(_$abc);');
       expect(result?.code).toContain('console.log(_$sec$002dwer);');
@@ -70,8 +66,8 @@ describe('internal/transform', () => {
 
     it('transforms JSX elements', () => {
       const code = `
-        import * as A from 'virtual:keywords';
-        import { Abc, div } from 'virtual:keywords';
+        import * as A from '~keywords';
+        import { Abc, div } from '~keywords';
         const App = () => <A.Component><Abc /><div /></A.Component>;
       `;
       const result = transformCode(code, 'test.tsx');
@@ -86,8 +82,8 @@ describe('internal/transform', () => {
 
     it('transforms TypeScript types (value space only)', () => {
       const code = `
-        import * as A from 'virtual:keywords';
-        import { Abc } from 'virtual:keywords';
+        import * as A from '~keywords';
+        import { Abc } from '~keywords';
         interface Abc {}
         let x: typeof A.myType;
         let y: A.myType;
@@ -124,7 +120,7 @@ describe('internal/transform', () => {
 
     it('transforms re-exports', () => {
       const code = `
-        export { edf, 'hyphen-export' as myHyphen } from 'virtual:keywords';
+        export { edf, 'hyphen-export' as myHyphen } from '~keywords';
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
@@ -132,17 +128,17 @@ describe('internal/transform', () => {
         local: new Set(),
       });
       expect(result?.code).toContain(
-        'export { default as edf } from "virtual:keywords/_/edf";',
+        'export { default as edf } from "~keywords/_/edf";',
       );
       expect(result?.code).toContain(
-        'export { default as myHyphen } from "virtual:keywords/_/hyphen$002dexport";',
+        'export { default as myHyphen } from "~keywords/_/hyphen$002dexport";',
       );
     });
 
     it('protects against local scope shadowing', () => {
       const code = `
-        import { abc } from 'virtual:keywords';
-        import * as A from 'virtual:keywords';
+        import { abc } from '~keywords';
+        import * as A from '~keywords';
 
         function test() {
           const abc = 'shadow';
@@ -161,7 +157,7 @@ describe('internal/transform', () => {
 
     it('protects against top-level identifier collision using Uids', () => {
       const code = `
-        import { abc } from 'virtual:keywords';
+        import { abc } from '~keywords';
         const _$abc = 'colliding var';
         console.log(abc, _$abc);
       `;
@@ -173,8 +169,8 @@ describe('internal/transform', () => {
     it('handles hoisted imports (usage before declaration)', () => {
       const code = `
         console.log(A.abc, kebab);
-        import * as A from 'virtual:keywords';
-        import { 'kebab-case' as kebab } from 'virtual:keywords';
+        import * as A from '~keywords';
+        import { 'kebab-case' as kebab } from '~keywords';
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
@@ -182,16 +178,14 @@ describe('internal/transform', () => {
         local: new Set(),
       });
       expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
+      expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
       expect(result?.code).toContain(
-        'import _$abc from "virtual:keywords/_/abc";',
-      );
-      expect(result?.code).toContain(
-        'import _$kebab$002dcase from "virtual:keywords/_/kebab$002dcase";',
+        'import _$kebab$002dcase from "~keywords/_/kebab$002dcase";',
       );
     });
     it('does not transform unrelated object properties or keys', () => {
       const code = `
-        import { abc } from 'virtual:keywords';
+        import { abc } from '~keywords';
         const obj = { abc: 1, c: abc };
         console.log(obj.abc);
       `;
@@ -203,7 +197,7 @@ describe('internal/transform', () => {
 
     it('transforms local imports', () => {
       const code = `
-        import * as L from 'virtual:keywords/local';
+        import * as L from '~keywords/local';
         console.log(L._source);
       `;
       const result = transformCode(code, 'test.js');
@@ -212,7 +206,7 @@ describe('internal/transform', () => {
         local: new Set(['_source']),
       });
       expect(result?.code).toContain(
-        'import _$_source from "virtual:keywords/local/_/_source";',
+        'import _$_source from "~keywords/local/_/_source";',
       );
       expect(result?.code).toContain('console.log(_$_source);');
     });
@@ -220,7 +214,7 @@ describe('internal/transform', () => {
 
   describe('extractKeywords', () => {
     it('extracts from named imports', () => {
-      const code = `import { abc, 'kebab-case' as kebab } from 'virtual:keywords';`;
+      const code = `import { abc, 'kebab-case' as kebab } from '~keywords';`;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
         main: new Set(['abc', 'kebab-case']),
@@ -229,7 +223,7 @@ describe('internal/transform', () => {
     });
 
     it('extracts from default import', () => {
-      const code = `import myDefault from 'virtual:keywords';`;
+      const code = `import myDefault from '~keywords';`;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
         main: new Set(['default']),
@@ -239,7 +233,7 @@ describe('internal/transform', () => {
 
     it('extracts from namespace property accesses', () => {
       const code = `
-        import * as A from 'virtual:keywords';
+        import * as A from '~keywords';
         console.log(A.abc);
         console.log(A['sec-wer']);
       `;
@@ -252,7 +246,7 @@ describe('internal/transform', () => {
 
     it('extracts from JSX member accesses', () => {
       const code = `
-        import * as A from 'virtual:keywords';
+        import * as A from '~keywords';
         const App = () => <A.Component />;
       `;
       const keywords = extractKeywords(code);
@@ -264,7 +258,7 @@ describe('internal/transform', () => {
 
     it('extracts from TypeScript qualified names (value space only)', () => {
       const code = `
-        import * as A from 'virtual:keywords';
+        import * as A from '~keywords';
         let x: A.myType;
         let y: typeof A.myType2;
       `;
@@ -277,7 +271,7 @@ describe('internal/transform', () => {
 
     it('extracts from TypeScript indexed access types (value space only)', () => {
       const code = `
-        import * as A from 'virtual:keywords';
+        import * as A from '~keywords';
         type T = (typeof A)['my-indexed-type'];
         type T1 = typeof A['my-indexed-type1'];
         type T2 = A['my-indexed-type2'];
@@ -296,7 +290,7 @@ describe('internal/transform', () => {
 
     it('extracts from exported keywords', () => {
       const code = `
-        export { edf, 'hyphen-export' as myHyphen } from 'virtual:keywords';
+        export { edf, 'hyphen-export' as myHyphen } from '~keywords';
       `;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
@@ -307,7 +301,7 @@ describe('internal/transform', () => {
 
     it('ignores shadowed variables in local scopes', () => {
       const code = `
-        import * as A from 'virtual:keywords';
+        import * as A from '~keywords';
         function test() {
           const A = { 'sec-wer': 1 };
           console.log(A['sec-wer']);
@@ -320,7 +314,7 @@ describe('internal/transform', () => {
     it('handles hoisted imports (usage before declaration)', () => {
       const code = `
         console.log(A.abc);
-        import * as A from 'virtual:keywords';
+        import * as A from '~keywords';
       `;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({ main: new Set(['abc']), local: new Set() });
@@ -328,13 +322,13 @@ describe('internal/transform', () => {
 
     it('does not extract unrelated object properties', () => {
       const code = `
-        import { abc } from 'virtual:keywords';
+        import { abc } from '~keywords';
         const obj = { abc: 1 };
         console.log(obj.abc);
       `;
       extractKeywords(code);
       const code2 = `
-        import * as A from 'virtual:keywords';
+        import * as A from '~keywords';
         const obj = { A: 1 };
         console.log(obj.A);
       `;
@@ -343,7 +337,7 @@ describe('internal/transform', () => {
     });
 
     it('extracts local imports', () => {
-      const code = `import * as L from 'virtual:keywords/local'; console.log(L._source);`;
+      const code = `import * as L from '~keywords/local'; console.log(L._source);`;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
         main: new Set(),

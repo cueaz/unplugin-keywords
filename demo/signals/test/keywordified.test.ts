@@ -7,10 +7,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as K from 'virtual:keywords';
-import * as L from 'virtual:keywords/local';
-
 import { describe, expect, it, vi } from 'vitest';
+import * as K from '~keywords';
+import * as L from '~keywords/local';
 import {
   batch,
   computed,

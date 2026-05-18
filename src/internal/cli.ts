@@ -7,6 +7,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { globby } from 'globby';
 import pLimit from 'p-limit';
+import { KEYWORD_ROUTE_SEGMENT } from './constants.js';
 import { extractKeywords, type KeywordSet } from './transform.js';
 import { generateTypeDeclaration } from './typegen.js';
 
@@ -63,6 +64,25 @@ const collectKeywordsFromRoot = async (
   return collectedKeywords;
 };
 
+const pkgJson = {
+  name: '~keywords',
+  version: '0.0.0',
+  private: true,
+  type: 'module',
+  sideEffects: false,
+  types: './index.d.ts',
+  exports: {
+    '.': {
+      types: './index.d.ts',
+    },
+    './local': {
+      types: './local.d.ts',
+    },
+    [`./${KEYWORD_ROUTE_SEGMENT}/*`]: `./${KEYWORD_ROUTE_SEGMENT}/*`,
+    [`./local/${KEYWORD_ROUTE_SEGMENT}/*`]: `./local/${KEYWORD_ROUTE_SEGMENT}/*`,
+  },
+};
+
 interface RunnerOptions {
   root: string;
   silent: boolean;
@@ -73,7 +93,7 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
   const {
     root = process.cwd(),
     silent = false,
-    outDir = path.join('node_modules', '.keywords'),
+    outDir = path.join('node_modules', '~keywords'),
   } = options ?? {};
   return {
     async collect(): Promise<KeywordSet> {
@@ -89,6 +109,10 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
       await writeFile(
         path.join(outPath, 'local.d.ts'),
         `${localContent.trim()}\n`,
+      );
+      await writeFile(
+        path.join(outPath, 'package.json'),
+        `${JSON.stringify(pkgJson, null, 2)}\n`,
       );
     },
 
