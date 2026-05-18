@@ -65,8 +65,6 @@ const collectKeywordsFromRoot = async (
 };
 
 const pkgJson = {
-  name: '~keywords',
-  version: '0.0.0',
   private: true,
   type: 'module',
   sideEffects: false,
