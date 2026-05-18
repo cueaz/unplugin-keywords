@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.0](https://github.com/cueaz/unplugin-keywords/compare/v2.6.2...v2.7.0) (2026-05-18)
+
+
+### Features
+
+* make virtual module name compatible with other bundlers ([1a95afe](https://github.com/cueaz/unplugin-keywords/commit/1a95afe0a9d58d9a0c5f2d2aa30edbf9f340be23))
+
 ## [2.6.2](https://github.com/cueaz/unplugin-keywords/compare/v2.6.1...v2.6.2) (2026-05-16)
 
 
