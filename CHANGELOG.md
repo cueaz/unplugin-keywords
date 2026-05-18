@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.1](https://github.com/cueaz/unplugin-keywords/compare/v2.7.0...v2.7.1) (2026-05-18)
+
+
+### Miscellaneous Chores
+
+* minor cleanup ([f1728da](https://github.com/cueaz/unplugin-keywords/commit/f1728dac57368b828db4b7883c672c1502e9facc))
+
 ## [2.7.0](https://github.com/cueaz/unplugin-keywords/compare/v2.6.2...v2.7.0) (2026-05-18)
 
 
