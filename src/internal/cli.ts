@@ -70,7 +70,6 @@ const pkgJson = {
   private: true,
   type: 'module',
   sideEffects: false,
-  types: './index.d.ts',
   exports: {
     '.': {
       types: './index.d.ts',
