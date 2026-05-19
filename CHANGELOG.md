@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.0](https://github.com/cueaz/unplugin-keywords/compare/v2.7.2...v2.8.0) (2026-05-19)
+
+
+### Features
+
+* export plugins for various bundlers ([eabc7aa](https://github.com/cueaz/unplugin-keywords/commit/eabc7aa7e50e5d5589ae3e8a336b3e427f5c7de0))
+
 ## [2.7.2](https://github.com/cueaz/unplugin-keywords/compare/v2.7.1...v2.7.2) (2026-05-18)
 
 
