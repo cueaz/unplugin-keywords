@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.0](https://github.com/cueaz/unplugin-keywords/compare/v2.8.0...v2.9.0) (2026-05-19)
+
+
+### Features
+
+* migrate to babel 8 ([08653ce](https://github.com/cueaz/unplugin-keywords/commit/08653cea479a3c3b120442e672f3d5101ed3aa12))
+
 ## [2.8.0](https://github.com/cueaz/unplugin-keywords/compare/v2.7.2...v2.8.0) (2026-05-19)
 
 
