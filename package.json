@@ -91,7 +91,6 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "@tsconfig/bases": "catalog:",
-    "@types/babel__core": "catalog:",
     "@types/node": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",

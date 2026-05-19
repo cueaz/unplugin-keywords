@@ -4,9 +4,10 @@
  */
 
 import {
-  type BabelFileResult,
+  type FileResult,
   type NodePath,
-  type PluginObj,
+  type PluginItem,
+  type PluginObject,
   type PluginPass,
   types as t,
   transformSync,
@@ -46,7 +47,8 @@ const isPureTypeSpace = (path: NodePath): boolean => {
       parent.isTSType() ||
       parent.isTSTypeParameterDeclaration() ||
       parent.isTSTypeParameterInstantiation() ||
-      parent.isTSExpressionWithTypeArguments()
+      parent.isTSClassImplements() ||
+      parent.isTSInterfaceHeritage()
     ) {
       return true;
     }
@@ -87,10 +89,8 @@ interface TransformMetadata {
   keywords?: { main: string[]; local: string[] };
 }
 
-const transformPlugin = (
-  mode: 'extract' | 'transform',
-): PluginObj<TransformState> => {
-  return {
+const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
+  const plugin: PluginObject<TransformState> = {
     name: `${PLUGIN_NAME}:${mode}`,
 
     visitor: {
@@ -286,11 +286,7 @@ const transformPlugin = (
 
               // e.g., type T = ((typeof A))['prop'];
               TSIndexedAccessType(tsPath) {
-                let objPath = tsPath.get('objectType') as NodePath;
-                // Unpack highly nested parentheses gracefully
-                while (objPath.isTSParenthesizedType()) {
-                  objPath = objPath.get('typeAnnotation') as NodePath;
-                }
+                const objPath = tsPath.get('objectType') as NodePath;
                 if (
                   objPath.isTSTypeQuery() &&
                   t.isIdentifier(objPath.node.exprName) &&
@@ -378,6 +374,8 @@ const transformPlugin = (
       },
     },
   };
+
+  return (() => plugin as PluginObject) as PluginItem;
 };
 
 export const transformCode = (
@@ -385,7 +383,7 @@ export const transformCode = (
   id: string,
 ): {
   code: string;
-  map: NonNullable<BabelFileResult['map']> | null;
+  map: NonNullable<FileResult['map']> | null;
   keywords: KeywordSet;
 } | null => {
   if (
@@ -427,7 +425,7 @@ export const extractKeywords = (code: string): KeywordSet | null => {
   ) {
     return null;
   }
-  let result: BabelFileResult | null;
+  let result: FileResult | null;
   try {
     result = transformSync(code, {
       babelrc: false,

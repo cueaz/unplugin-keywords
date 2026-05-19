@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * @license
  * SPDX-License-Identifier: MIT
