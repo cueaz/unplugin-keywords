@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import keywords from 'unplugin-keywords/rollup';
+import keywords from 'unplugin-keywords/vite';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({

@@ -9,7 +9,7 @@ import { Resvg } from '@resvg/resvg-js';
 import satori from 'satori';
 import { createHighlighter, type Highlighter, type ThemedToken } from 'shiki';
 import { defineConfig } from 'tsdown';
-import keywords from 'unplugin-keywords/rollup';
+import keywords from 'unplugin-keywords/rolldown';
 
 const skipImage = !!(process.env as { NO_IMAGE?: string }).NO_IMAGE;
 

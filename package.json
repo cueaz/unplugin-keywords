@@ -28,13 +28,29 @@
       "types": "./dist/api.d.ts",
       "default": "./dist/api.js"
     },
+    "./bun": {
+      "types": "./dist/bun.d.ts",
+      "default": "./dist/bun.js"
+    },
     "./esbuild": {
       "types": "./dist/esbuild.d.ts",
       "default": "./dist/esbuild.js"
     },
+    "./farm": {
+      "types": "./dist/farm.d.ts",
+      "default": "./dist/farm.js"
+    },
+    "./rolldown": {
+      "types": "./dist/rolldown.d.ts",
+      "default": "./dist/rolldown.js"
+    },
     "./rollup": {
       "types": "./dist/rollup.d.ts",
       "default": "./dist/rollup.js"
+    },
+    "./rspack": {
+      "types": "./dist/rspack.d.ts",
+      "default": "./dist/rspack.js"
     },
     "./vite": {
       "types": "./dist/vite.d.ts",
