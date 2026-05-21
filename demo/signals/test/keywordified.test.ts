@@ -9,7 +9,7 @@
 
 import { describe, expect, it, vi } from 'vitest';
 import * as K from '~keywords';
-import * as L from '~keywords/local';
+import * as PK from '~keywords/public';
 import {
   batch,
   computed,
@@ -28,17 +28,17 @@ import {
  * These mirror the internal `Effect` interface from src/index.ts.
  */
 interface EffectInternals {
-  [L._callback]: (() => void) | ((...args: unknown[]) => unknown);
-  [L._start]: () => () => void;
-  [L._dispose]: () => void;
-  [L._sources]: unknown;
+  [K._callback]: (() => void) | ((...args: unknown[]) => unknown);
+  [K._start]: () => () => void;
+  [K._dispose]: () => void;
+  [K._sources]: unknown;
 }
 
 describe('signal', () => {
   it('should return value', () => {
     const v = [1, 2];
     const s = signal(v);
-    expect(s[K.value]).to.equal(v);
+    expect(s[PK.value]).to.equal(v);
   });
 
   it('should inherit from Signal', () => {
@@ -76,13 +76,13 @@ describe('signal', () => {
   it('should notify other listeners of changes after one listener is disposed', () => {
     const s = signal(0);
     const spy1 = vi.fn(() => {
-      s[K.value];
+      s[PK.value];
     });
     const spy2 = vi.fn(() => {
-      s[K.value];
+      s[PK.value];
     });
     const spy3 = vi.fn(() => {
-      s[K.value];
+      s[PK.value];
     });
 
     effect(spy1);
@@ -95,59 +95,59 @@ describe('signal', () => {
 
     dispose();
 
-    s[K.value] = 1;
+    s[PK.value] = 1;
     expect(spy1).toHaveBeenCalledTimes(2);
     expect(spy2).toHaveBeenCalledOnce();
     expect(spy3).toHaveBeenCalledTimes(2);
   });
 
-  describe('[K.peek]()', () => {
+  describe('[PK.peek]()', () => {
     it('should get value', () => {
       const s = signal(1);
-      expect(s[K.peek]()).equal(1);
+      expect(s[PK.peek]()).equal(1);
     });
 
     it('should get the updated value after a value change', () => {
       const s = signal(1);
-      s[K.value] = 2;
-      expect(s[K.peek]()).equal(2);
+      s[PK.value] = 2;
+      expect(s[PK.peek]()).equal(2);
     });
 
     it('should not make surrounding effect depend on the signal', () => {
       const s = signal(1);
       const spy = vi.fn(() => {
-        s[K.peek]();
+        s[PK.peek]();
       });
 
       effect(spy);
       expect(spy).toHaveBeenCalledOnce();
 
-      s[K.value] = 2;
+      s[PK.value] = 2;
       expect(spy).toHaveBeenCalledOnce();
     });
 
     it('should not make surrounding computed depend on the signal', () => {
       const s = signal(1);
       const spy = vi.fn(() => {
-        s[K.peek]();
+        s[PK.peek]();
       });
       const d = computed(spy);
 
-      d[K.value];
+      d[PK.value];
       expect(spy).toHaveBeenCalledOnce();
 
-      s[K.value] = 2;
-      d[K.value];
+      s[PK.value] = 2;
+      d[PK.value];
       expect(spy).toHaveBeenCalledOnce();
     });
   });
 
-  describe('[K.subscribe]()', () => {
+  describe('[PK.subscribe]()', () => {
     it('should subscribe to a signal', () => {
       const spy = vi.fn();
       const a = signal(1);
 
-      a[K.subscribe](spy);
+      a[PK.subscribe](spy);
       expect(spy).toHaveBeenCalledWith(1);
     });
 
@@ -155,9 +155,9 @@ describe('signal', () => {
       const spy = vi.fn();
       const a = signal(1);
 
-      a[K.subscribe](spy);
+      a[PK.subscribe](spy);
 
-      a[K.value] = 2;
+      a[PK.value] = 2;
       expect(spy).toHaveBeenCalledWith(2);
     });
 
@@ -165,11 +165,11 @@ describe('signal', () => {
       const spy = vi.fn();
       const a = signal(1);
 
-      const dispose = a[K.subscribe](spy);
+      const dispose = a[PK.subscribe](spy);
       dispose();
       spy.mockClear();
 
-      a[K.value] = 2;
+      a[PK.value] = 2;
       expect(spy).not.toHaveBeenCalled();
     });
 
@@ -178,14 +178,14 @@ describe('signal', () => {
       const a = signal(0);
       const b = signal(0);
 
-      a[K.subscribe](() => {
-        b[K.value];
+      a[PK.subscribe](() => {
+        b[PK.value];
         spy();
       });
       expect(spy).toHaveBeenCalledOnce();
       spy.mockClear();
 
-      b[K.value]++;
+      b[PK.value]++;
       expect(spy).not.toHaveBeenCalled();
     });
 
@@ -195,15 +195,15 @@ describe('signal', () => {
       const b = signal(0);
 
       effect(() => {
-        a[K.subscribe](() => {
-          b[K.value];
+        a[PK.subscribe](() => {
+          b[PK.value];
         });
         spy();
       });
       expect(spy).toHaveBeenCalledOnce();
       spy.mockClear();
 
-      b[K.value]++;
+      b[PK.value]++;
       expect(spy).not.toHaveBeenCalled();
     });
   });
@@ -212,11 +212,11 @@ describe('signal', () => {
     it('should call watched when first subscription occurs', () => {
       const watched = vi.fn();
       const unwatched = vi.fn();
-      const s = signal(1, { [K.watched]: watched, [K.unwatched]: unwatched });
+      const s = signal(1, { [PK.watched]: watched, [PK.unwatched]: unwatched });
       expect(watched).not.toHaveBeenCalled();
-      const unsubscribe = s[K.subscribe](() => {});
+      const unsubscribe = s[PK.subscribe](() => {});
       expect(watched).toHaveBeenCalledOnce();
-      const unsubscribe2 = s[K.subscribe](() => {});
+      const unsubscribe2 = s[PK.subscribe](() => {});
       expect(watched).toHaveBeenCalledOnce();
       unsubscribe();
       unsubscribe2();
@@ -227,17 +227,17 @@ describe('signal', () => {
       const calls: number[] = [];
       const watched = vi.fn(() => {
         setTimeout(() => {
-          s[K.value] = 2;
+          s[PK.value] = 2;
         });
       });
       const unwatched = vi.fn();
-      const s = signal(1, { [K.watched]: watched, [K.unwatched]: unwatched });
+      const s = signal(1, { [PK.watched]: watched, [PK.unwatched]: unwatched });
       expect(watched).not.toHaveBeenCalled();
-      const unsubscribe = s[K.subscribe](() => {
-        calls.push(s[K.value]);
+      const unsubscribe = s[PK.subscribe](() => {
+        calls.push(s[PK.value]);
       });
       expect(watched).toHaveBeenCalledOnce();
-      const unsubscribe2 = s[K.subscribe](() => {});
+      const unsubscribe2 = s[PK.subscribe](() => {});
       expect(watched).toHaveBeenCalledOnce();
       await new Promise((resolve) => setTimeout(resolve));
       unsubscribe();
@@ -250,13 +250,13 @@ describe('signal', () => {
   it('signals should be identified with a symbol', () => {
     const a = signal(0);
     // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-    expect(a[K.brand]).to.equal(Symbol.for(K['preact-signals']));
+    expect(a[PK.brand]).to.equal(Symbol.for(PK['preact-signals']));
   });
 
   it('should be identified with a symbol', () => {
     const a = computed(() => {});
     // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-    expect(a[K.brand]).to.equal(Symbol.for(K['preact-signals']));
+    expect(a[PK.brand]).to.equal(Symbol.for(PK['preact-signals']));
   });
 });
 
@@ -264,7 +264,7 @@ describe('effect()', () => {
   it('should run the callback immediately', () => {
     const s = signal(123);
     const spy = vi.fn(() => {
-      s[K.value];
+      s[PK.value];
     });
     effect(spy);
     expect(spy).toHaveBeenCalled();
@@ -273,12 +273,12 @@ describe('effect()', () => {
   it('should subscribe to signals', () => {
     const s = signal(123);
     const spy = vi.fn(() => {
-      s[K.value];
+      s[PK.value];
     });
     effect(spy);
     spy.mockClear();
 
-    s[K.value] = 42;
+    s[PK.value] = 42;
     expect(spy).toHaveBeenCalled();
   });
 
@@ -286,14 +286,14 @@ describe('effect()', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      a[K.value];
-      b[K.value];
+      a[PK.value];
+      b[PK.value];
     });
     effect(spy);
     spy.mockClear();
 
-    a[K.value] = 'aa';
-    b[K.value] = 'bb';
+    a[PK.value] = 'aa';
+    b[PK.value] = 'bb';
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
@@ -301,7 +301,7 @@ describe('effect()', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      `${a[K.value]} ${b[K.value]}`;
+      `${a[PK.value]} ${b[PK.value]}`;
     });
     const dispose = effect(spy);
     spy.mockClear();
@@ -309,8 +309,8 @@ describe('effect()', () => {
     dispose();
     expect(spy).not.toHaveBeenCalled();
 
-    a[K.value] = 'aa';
-    b[K.value] = 'bb';
+    a[PK.value] = 'aa';
+    b[PK.value] = 'bb';
     expect(spy).not.toHaveBeenCalled();
   });
 
@@ -318,21 +318,21 @@ describe('effect()', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      `${a[K.value]} ${b[K.value]}`;
+      `${a[PK.value]} ${b[PK.value]}`;
     });
     effect(function () {
       spy();
-      if (a[K.value] === 'aa') {
-        this[K.dispose]();
+      if (a[PK.value] === 'aa') {
+        this[PK.dispose]();
       }
     });
 
     expect(spy).toHaveBeenCalled();
 
-    a[K.value] = 'aa';
+    a[PK.value] = 'aa';
     expect(spy).toHaveBeenCalledTimes(2);
 
-    a[K.value] = 'aaa';
+    a[PK.value] = 'aaa';
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
@@ -340,19 +340,19 @@ describe('effect()', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      `${a[K.value]} ${b[K.value]}`;
+      `${a[PK.value]} ${b[PK.value]}`;
     });
     effect(function () {
       spy();
-      this[K.dispose]();
+      this[PK.dispose]();
     });
 
     expect(spy).toHaveBeenCalledOnce();
 
-    a[K.value] = 'aa';
+    a[PK.value] = 'aa';
     expect(spy).toHaveBeenCalledOnce();
 
-    a[K.value] = 'aaa';
+    a[PK.value] = 'aaa';
     expect(spy).toHaveBeenCalledOnce();
   });
 
@@ -360,22 +360,22 @@ describe('effect()', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      `${a[K.value]} ${b[K.value]}`;
+      `${a[PK.value]} ${b[PK.value]}`;
     });
     const dispose = effect(function () {
       spy();
-      if (a[K.value] === 'aa') {
-        this[K.dispose]();
+      if (a[PK.value] === 'aa') {
+        this[PK.dispose]();
       }
     });
 
     expect(spy).toHaveBeenCalled();
 
-    a[K.value] = 'aa';
+    a[PK.value] = 'aa';
     expect(spy).toHaveBeenCalledTimes(2);
     dispose();
 
-    a[K.value] = 'aaa';
+    a[PK.value] = 'aaa';
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
@@ -383,19 +383,19 @@ describe('effect()', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      `${a[K.value]} ${b[K.value]}`;
+      `${a[PK.value]} ${b[PK.value]}`;
     });
     effect(function () {
-      this[K.dispose]();
+      this[PK.dispose]();
       spy();
     });
 
     expect(spy).toHaveBeenCalledOnce();
 
-    a[K.value] = 'aa';
+    a[PK.value] = 'aa';
     expect(spy).toHaveBeenCalledOnce();
 
-    a[K.value] = 'aaa';
+    a[PK.value] = 'aaa';
     expect(spy).toHaveBeenCalledOnce();
   });
 
@@ -403,33 +403,33 @@ describe('effect()', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      `${a[K.value]} ${b[K.value]}`;
+      `${a[PK.value]} ${b[PK.value]}`;
     });
     const dispose = effect(function () {
       spy();
-      this[K.dispose]();
+      this[PK.dispose]();
     });
 
     expect(spy).toHaveBeenCalledOnce();
 
-    a[K.value] = 'aa';
+    a[PK.value] = 'aa';
     expect(spy).toHaveBeenCalledOnce();
     dispose();
 
-    a[K.value] = 'aaa';
+    a[PK.value] = 'aaa';
     expect(spy).toHaveBeenCalledOnce();
   });
 
   it('should unsubscribe from signal', () => {
     const s = signal(123);
     const spy = vi.fn(() => {
-      s[K.value];
+      s[PK.value];
     });
     const unsub = effect(spy);
     spy.mockClear();
 
     unsub();
-    s[K.value] = 42;
+    s[PK.value] = 42;
     expect(spy).not.toHaveBeenCalled();
   });
 
@@ -439,35 +439,35 @@ describe('effect()', () => {
     const cond = signal(true);
 
     const spy = vi.fn(() => {
-      cond[K.value] ? a[K.value] : b[K.value];
+      cond[PK.value] ? a[PK.value] : b[PK.value];
     });
 
     effect(spy);
     expect(spy).toHaveBeenCalledOnce();
 
-    b[K.value] = 'bb';
+    b[PK.value] = 'bb';
     expect(spy).toHaveBeenCalledOnce();
 
-    cond[K.value] = false;
+    cond[PK.value] = false;
     expect(spy).toHaveBeenCalledTimes(2);
 
     spy.mockClear();
 
-    a[K.value] = 'aaa';
+    a[PK.value] = 'aaa';
     expect(spy).not.toHaveBeenCalled();
   });
 
   it('should batch writes', () => {
     const a = signal('a');
     const spy = vi.fn(() => {
-      a[K.value];
+      a[PK.value];
     });
     effect(spy);
     spy.mockClear();
 
     effect(() => {
-      a[K.value] = 'aa';
-      a[K.value] = 'aaa';
+      a[PK.value] = 'aa';
+      a[PK.value] = 'aaa';
     });
 
     expect(spy).toHaveBeenCalledOnce();
@@ -478,13 +478,13 @@ describe('effect()', () => {
     const spy = vi.fn();
 
     effect(() => {
-      a[K.value];
+      a[PK.value];
       return spy;
     });
     expect(spy).not.toHaveBeenCalled();
-    a[K.value] = 1;
+    a[PK.value] = 1;
     expect(spy).toHaveBeenCalledOnce();
-    a[K.value] = 2;
+    a[PK.value] = 2;
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
@@ -495,19 +495,19 @@ describe('effect()', () => {
     const a = signal(spy1);
 
     effect(() => {
-      return a[K.value];
+      return a[PK.value];
     });
 
     expect(spy1).not.toHaveBeenCalled();
     expect(spy2).not.toHaveBeenCalled();
     expect(spy3).not.toHaveBeenCalled();
 
-    a[K.value] = spy2;
+    a[PK.value] = spy2;
     expect(spy1).toHaveBeenCalledOnce();
     expect(spy2).not.toHaveBeenCalled();
     expect(spy3).not.toHaveBeenCalled();
 
-    a[K.value] = spy3;
+    a[PK.value] = spy3;
     expect(spy1).toHaveBeenCalledOnce();
     expect(spy2).toHaveBeenCalledOnce();
     expect(spy3).not.toHaveBeenCalled();
@@ -527,17 +527,17 @@ describe('effect()', () => {
   it('should not recompute if the effect has been notified about changes, but no direct dependency has actually changed', () => {
     const s = signal(0);
     const c = computed(() => {
-      s[K.value];
+      s[PK.value];
       return 0;
     });
     const spy = vi.fn(() => {
-      c[K.value];
+      c[PK.value];
     });
     effect(spy);
     expect(spy).toHaveBeenCalledOnce();
     spy.mockClear();
 
-    s[K.value] = 1;
+    s[PK.value] = 1;
     expect(spy).not.toHaveBeenCalled();
   });
 
@@ -546,19 +546,19 @@ describe('effect()', () => {
     const a = signal(0);
     const b = signal(0);
     const c = computed(() => {
-      b[K.value];
+      b[PK.value];
       spy();
     });
     effect(() => {
-      if (a[K.value] === 0) {
-        c[K.value];
+      if (a[PK.value] === 0) {
+        c[PK.value];
       }
     });
     expect(spy).toHaveBeenCalledOnce();
 
     batch(() => {
-      b[K.value] = 1;
-      a[K.value] = 1;
+      b[PK.value] = 1;
+      a[PK.value] = 1;
     });
     expect(spy).toHaveBeenCalledOnce();
   });
@@ -568,31 +568,31 @@ describe('effect()', () => {
     const b = signal(1);
     const c = signal(1);
 
-    const spy = vi.fn(() => c[K.value]);
+    const spy = vi.fn(() => c[PK.value]);
     const d = computed(spy);
 
     effect(() => {
-      if (a[K.value] > 0) {
-        b[K.value];
-        d[K.value];
+      if (a[PK.value] > 0) {
+        b[PK.value];
+        d[PK.value];
       } else {
-        b[K.value];
+        b[PK.value];
       }
     });
     spy.mockClear();
 
     batch(() => {
-      a[K.value] = 2;
-      b[K.value] = 2;
-      c[K.value] = 2;
+      a[PK.value] = 2;
+      b[PK.value] = 2;
+      c[PK.value] = 2;
     });
     expect(spy).toHaveBeenCalledOnce();
     spy.mockClear();
 
     batch(() => {
-      a[K.value] = -1;
-      b[K.value] = -1;
-      c[K.value] = -1;
+      a[PK.value] = -1;
+      b[PK.value] = -1;
+      c[PK.value] = -1;
     });
     expect(spy).not.toHaveBeenCalled();
     spy.mockClear();
@@ -601,8 +601,8 @@ describe('effect()', () => {
   it('should recompute if a dependency changes during computation after becoming a dependency', () => {
     const a = signal(0);
     const spy = vi.fn(() => {
-      if (a[K.value] === 0) {
-        a[K.value]++;
+      if (a[PK.value] === 0) {
+        a[PK.value]++;
       }
     });
     effect(spy);
@@ -616,23 +616,23 @@ describe('effect()', () => {
     const spy = vi.fn();
 
     effect(() => {
-      b[K.value];
-      c[K.value];
-      spy(b[K.value] + c[K.value]);
+      b[PK.value];
+      c[PK.value];
+      spy(b[PK.value] + c[PK.value]);
     });
 
     effect(() => {
-      a[K.value];
+      a[PK.value];
       return () => {
-        b[K.value] = 'x';
-        c[K.value] = 'y';
+        b[PK.value] = 'x';
+        c[PK.value] = 'y';
       };
     });
 
     expect(spy).toHaveBeenCalledOnce();
     spy.mockClear();
 
-    a[K.value] = 1;
+    a[PK.value] = 1;
     expect(spy).toHaveBeenCalledOnce();
     expect(spy).toHaveBeenCalledWith('xy');
   });
@@ -642,15 +642,15 @@ describe('effect()', () => {
     const spy = vi.fn();
 
     effect(() => {
-      spy(a[K.value]);
+      spy(a[PK.value]);
       return () => {
-        a[K.value] = 2;
+        a[PK.value] = 2;
       };
     });
     expect(spy).toHaveBeenCalledOnce();
     spy.mockClear();
 
-    a[K.value] = 1;
+    a[PK.value] = 1;
     expect(spy).toHaveBeenCalledOnce();
     expect(spy).toHaveBeenCalledWith(2);
   });
@@ -660,16 +660,16 @@ describe('effect()', () => {
     const spy = vi.fn();
 
     const dispose = effect(() => {
-      if (a[K.value] > 0) {
+      if (a[PK.value] > 0) {
         dispose();
         return spy;
       }
       return undefined;
     });
     expect(spy).not.toHaveBeenCalled();
-    a[K.value] = 1;
+    a[PK.value] = 1;
     expect(spy).toHaveBeenCalledOnce();
-    a[K.value] = 2;
+    a[PK.value] = 2;
     expect(spy).toHaveBeenCalledOnce();
   });
 
@@ -678,27 +678,27 @@ describe('effect()', () => {
     const spy = vi.fn();
 
     const dispose = effect(() => {
-      a[K.value];
+      a[PK.value];
       spy();
       return () => {
         dispose();
       };
     });
     expect(spy).toHaveBeenCalledOnce();
-    a[K.value] = 1;
+    a[PK.value] = 1;
     expect(spy).toHaveBeenCalledOnce();
   });
 
   it('should not subscribe to anything if first run throws', () => {
     const s = signal(0);
     const spy = vi.fn(() => {
-      s[K.value];
+      s[PK.value];
       throw new Error('test');
     });
     expect(() => effect(spy)).to.throw('test');
     expect(spy).toHaveBeenCalledOnce();
 
-    s[K.value]++;
+    s[PK.value]++;
     expect(spy).toHaveBeenCalledOnce();
   });
 
@@ -707,16 +707,16 @@ describe('effect()', () => {
     const spy = vi.fn();
 
     effect(() => {
-      if (a[K.value] === 0) {
+      if (a[PK.value] === 0) {
         return spy;
       } else {
         throw new Error('hello');
       }
     });
     expect(spy).not.toHaveBeenCalled();
-    expect(() => (a[K.value] = 1)).to.throw('hello');
+    expect(() => (a[PK.value] = 1)).to.throw('hello');
     expect(spy).toHaveBeenCalledOnce();
-    a[K.value] = 0;
+    a[PK.value] = 0;
     expect(spy).toHaveBeenCalledOnce();
   });
 
@@ -725,7 +725,7 @@ describe('effect()', () => {
     const spy = vi.fn();
 
     effect(() => {
-      if (a[K.value] === 0) {
+      if (a[PK.value] === 0) {
         return () => {
           throw new Error('hello');
         };
@@ -735,9 +735,9 @@ describe('effect()', () => {
       }
     });
     expect(spy).not.toHaveBeenCalled();
-    expect(() => a[K.value]++).to.throw('hello');
+    expect(() => a[PK.value]++).to.throw('hello');
     expect(spy).not.toHaveBeenCalled();
-    a[K.value]++;
+    a[PK.value]++;
     expect(spy).not.toHaveBeenCalled();
   });
 
@@ -746,28 +746,28 @@ describe('effect()', () => {
     const a = signal(0);
     const b = signal(0);
     const c = computed(() => {
-      if (a[K.value] === 0) {
+      if (a[PK.value] === 0) {
         effect(() => {
           return () => {
-            b[K.value];
+            b[PK.value];
           };
         });
       }
-      return a[K.value];
+      return a[PK.value];
     });
 
     effect(() => {
       spy();
-      c[K.value];
+      c[PK.value];
     });
     expect(spy).toHaveBeenCalledOnce();
     spy.mockClear();
 
-    a[K.value] = 1;
+    a[PK.value] = 1;
     expect(spy).toHaveBeenCalledOnce();
     spy.mockClear();
 
-    b[K.value] = 1;
+    b[PK.value] = 1;
     expect(spy).not.toHaveBeenCalled();
   });
 
@@ -781,12 +781,12 @@ describe('effect()', () => {
         if (i++ > 200) {
           throw new Error('test failed');
         }
-        a[K.value];
-        a[K.value] = NaN;
+        a[PK.value];
+        a[PK.value] = NaN;
       });
 
     // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-    expect(fn).to.throw(new RegExp(K['Cycle detected']));
+    expect(fn).to.throw(new RegExp(PK['Cycle detected']));
   });
 
   it('should throw on indirect cycles', () => {
@@ -794,8 +794,8 @@ describe('effect()', () => {
     let i = 0;
 
     const c = computed(() => {
-      a[K.value];
-      a[K.value] = NaN;
+      a[PK.value];
+      a[PK.value] = NaN;
       return NaN;
     });
 
@@ -805,11 +805,11 @@ describe('effect()', () => {
         if (i++ > 200) {
           throw new Error('test failed');
         }
-        c[K.value];
+        c[PK.value];
       });
 
     // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-    expect(fn).to.throw(new RegExp(K['Cycle detected']));
+    expect(fn).to.throw(new RegExp(PK['Cycle detected']));
   });
 
   it('should allow disposing the effect multiple times', () => {
@@ -823,7 +823,7 @@ describe('effect()', () => {
     const spy = vi.fn();
     {
       using _dispose = effect(() => {
-        a[K.value];
+        a[PK.value];
         return spy;
       });
     }
@@ -834,28 +834,28 @@ describe('effect()', () => {
     const a = signal(0);
     const spy = vi.fn();
     const dispose = effect(() => {
-      if (a[K.value] === 1) {
+      if (a[PK.value] === 1) {
         dispose();
         spy();
       }
     });
     expect(spy).not.toHaveBeenCalled();
-    a[K.value] = 1;
+    a[PK.value] = 1;
     expect(spy).toHaveBeenCalledOnce();
-    a[K.value] = 2;
+    a[PK.value] = 2;
     expect(spy).toHaveBeenCalledOnce();
   });
 
   it("should not run if it's first been triggered and then disposed in a batch", () => {
     const a = signal(0);
     const spy = vi.fn(() => {
-      a[K.value];
+      a[PK.value];
     });
     const dispose = effect(spy);
     spy.mockClear();
 
     batch(() => {
-      a[K.value] = 1;
+      a[PK.value] = 1;
       dispose();
     });
 
@@ -865,15 +865,15 @@ describe('effect()', () => {
   it("should not run if it's been triggered, disposed and then triggered again in a batch", () => {
     const a = signal(0);
     const spy = vi.fn(() => {
-      a[K.value];
+      a[PK.value];
     });
     const dispose = effect(spy);
     spy.mockClear();
 
     batch(() => {
-      a[K.value] = 1;
+      a[PK.value] = 1;
       dispose();
-      a[K.value] = 2;
+      a[PK.value] = 2;
     });
 
     expect(spy).not.toHaveBeenCalled();
@@ -882,7 +882,7 @@ describe('effect()', () => {
   it('should not rerun an effect for a no-op batch assignment', () => {
     const foo = signal(42);
     const spy = vi.fn(() => {
-      foo[K.value];
+      foo[PK.value];
     });
 
     effect(spy);
@@ -890,8 +890,8 @@ describe('effect()', () => {
     spy.mockClear();
 
     batch(() => {
-      foo[K.value] = 0;
-      foo[K.value] = 42;
+      foo[PK.value] = 0;
+      foo[PK.value] = 42;
     });
 
     expect(spy).not.toHaveBeenCalled();
@@ -900,7 +900,7 @@ describe('effect()', () => {
   it('should not rerun an effect for repeated no-op top-level batches', () => {
     const foo = signal(42);
     const spy = vi.fn(() => {
-      foo[K.value];
+      foo[PK.value];
     });
 
     effect(spy);
@@ -908,14 +908,14 @@ describe('effect()', () => {
     spy.mockClear();
 
     batch(() => {
-      foo[K.value] = 0;
-      foo[K.value] = 42;
+      foo[PK.value] = 0;
+      foo[PK.value] = 42;
     });
     expect(spy).not.toHaveBeenCalled();
 
     batch(() => {
-      foo[K.value] = -1;
-      foo[K.value] = 42;
+      foo[PK.value] = -1;
+      foo[PK.value] = 42;
     });
     expect(spy).not.toHaveBeenCalled();
   });
@@ -925,10 +925,10 @@ describe('effect()', () => {
     const childSignal = signal(0);
 
     const parentEffect = vi.fn(() => {
-      parentSignal[K.value];
+      parentSignal[PK.value];
     });
     const childEffect = vi.fn(() => {
-      childSignal[K.value];
+      childSignal[PK.value];
     });
 
     effect(() => {
@@ -939,12 +939,12 @@ describe('effect()', () => {
     expect(parentEffect).toHaveBeenCalledOnce();
     expect(childEffect).toHaveBeenCalledOnce();
 
-    childSignal[K.value] = 1;
+    childSignal[PK.value] = 1;
 
     expect(parentEffect).toHaveBeenCalledOnce();
     expect(childEffect).toHaveBeenCalledTimes(2);
 
-    parentSignal[K.value] = 1;
+    parentSignal[PK.value] = 1;
 
     expect(parentEffect).toHaveBeenCalledTimes(2);
     expect(childEffect).toHaveBeenCalledTimes(3);
@@ -957,8 +957,8 @@ describe('effect()', () => {
       effect(function (this: EffectInternals) {
         e = this;
       });
-      expect(typeof e[L._start]).to.equal('function');
-      expect(typeof e[L._dispose]).to.equal('function');
+      expect(typeof e[K._start]).to.equal('function');
+      expect(typeof e[K._dispose]).to.equal('function');
     });
 
     it('should allow setting _callback that replaces the default functionality', () => {
@@ -969,13 +969,13 @@ describe('effect()', () => {
       let e = undefined as unknown as EffectInternals;
       effect(function (this: EffectInternals) {
         e = this;
-        a[K.value];
+        a[PK.value];
         oldSpy();
       });
       oldSpy.mockClear();
 
-      e[L._callback] = newSpy;
-      a[K.value] = 1;
+      e[K._callback] = newSpy;
+      a[PK.value] = 1;
 
       expect(oldSpy).not.toHaveBeenCalled();
       expect(newSpy).toHaveBeenCalled();
@@ -990,21 +990,21 @@ describe('effect()', () => {
       });
 
       const spy = vi.fn();
-      e[L._callback] = spy;
+      e[K._callback] = spy;
 
-      const done1 = e[L._start]();
-      s[K.value];
+      const done1 = e[K._start]();
+      s[PK.value];
       done1();
       expect(spy).not.toHaveBeenCalled();
 
-      s[K.value] = 2;
+      s[PK.value] = 2;
       expect(spy).toHaveBeenCalled();
       spy.mockClear();
 
-      const done2 = e[L._start]();
+      const done2 = e[K._start]();
       done2();
 
-      s[K.value] = 3;
+      s[PK.value] = 3;
       expect(spy).not.toHaveBeenCalled();
     });
 
@@ -1019,11 +1019,11 @@ describe('effect()', () => {
         e2 = this;
       });
 
-      const done1 = e1[L._start]();
-      const done2 = e2[L._start]();
+      const done1 = e1[K._start]();
+      const done2 = e2[K._start]();
       try {
         // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-        expect(() => done1()).to.throw(new RegExp(K['Out-of-order effect']));
+        expect(() => done1()).to.throw(new RegExp(PK['Out-of-order effect']));
       } finally {
         done2();
         done1();
@@ -1036,10 +1036,10 @@ describe('effect()', () => {
         e = this;
       });
 
-      const done = e[L._start]();
+      const done = e[K._start]();
       try {
         // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-        expect(() => e[L._start]()).to.throw(new RegExp(K['Cycle detected']));
+        expect(() => e[K._start]()).to.throw(new RegExp(PK['Cycle detected']));
       } finally {
         done();
       }
@@ -1054,22 +1054,22 @@ describe('effect()', () => {
       });
 
       const spy = vi.fn();
-      e[L._callback] = spy;
+      e[K._callback] = spy;
 
-      const done = e[L._start]();
+      const done = e[K._start]();
       try {
-        s[K.value];
+        s[PK.value];
       } finally {
         done();
       }
       expect(spy).not.toHaveBeenCalled();
 
-      s[K.value] = 2;
+      s[PK.value] = 2;
       expect(spy).toHaveBeenCalled();
       spy.mockClear();
 
-      e[L._dispose]();
-      s[K.value] = 3;
+      e[K._dispose]();
+      s[PK.value] = 3;
       expect(spy).not.toHaveBeenCalled();
     });
 
@@ -1082,16 +1082,16 @@ describe('effect()', () => {
       });
 
       const spy = vi.fn();
-      e[L._callback] = spy;
-      e[L._dispose]();
+      e[K._callback] = spy;
+      e[K._dispose]();
 
-      const done = e[L._start]();
+      const done = e[K._start]();
       try {
-        s[K.value];
+        s[PK.value];
       } finally {
         done();
       }
-      s[K.value] = 2;
+      s[PK.value] = 2;
       expect(spy).toHaveBeenCalled();
     });
 
@@ -1102,30 +1102,30 @@ describe('effect()', () => {
       effect(function (this: EffectInternals) {
         e = this;
       });
-      expect(e[L._sources]).to.be.undefined;
+      expect(e[K._sources]).to.be.undefined;
 
-      const done1 = e[L._start]();
+      const done1 = e[K._start]();
       try {
-        s[K.value];
+        s[PK.value];
       } finally {
         done1();
       }
-      expect(e[L._sources]).not.to.be.undefined;
+      expect(e[K._sources]).not.to.be.undefined;
 
-      const done2: () => void = e[L._start]();
+      const done2: () => void = e[K._start]();
       done2();
-      expect(e[L._sources]).to.be.undefined;
+      expect(e[K._sources]).to.be.undefined;
 
-      const done3: () => void = e[L._start]();
+      const done3: () => void = e[K._start]();
       try {
-        s[K.value];
+        s[PK.value];
       } finally {
         done3();
       }
-      expect(e[L._sources]).not.to.be.undefined;
+      expect(e[K._sources]).not.to.be.undefined;
 
-      e[L._dispose]();
-      expect(e[L._sources]).to.be.undefined;
+      e[K._dispose]();
+      expect(e[K._sources]).to.be.undefined;
     });
   });
 });
@@ -1135,8 +1135,8 @@ describe('computed()', () => {
     const a = signal('a');
     const b = signal('b');
 
-    const c = computed(() => a[K.value] + b[K.value]);
-    expect(c[K.value]).to.equal('ab');
+    const c = computed(() => a[PK.value] + b[PK.value]);
+    expect(c[PK.value]).to.equal('ab');
   });
 
   it('should inherit from Signal', () => {
@@ -1147,93 +1147,93 @@ describe('computed()', () => {
     const a = signal('a');
     const b = signal('b');
 
-    const c = computed(() => a[K.value] + b[K.value]);
-    expect(c[K.value]).to.equal('ab');
+    const c = computed(() => a[PK.value] + b[PK.value]);
+    expect(c[PK.value]).to.equal('ab');
 
-    a[K.value] = 'aa';
-    expect(c[K.value]).to.equal('aab');
+    a[PK.value] = 'aa';
+    expect(c[PK.value]).to.equal('aab');
   });
 
   it('should be lazily computed on demand', () => {
     const a = signal('a');
     const b = signal('b');
-    const spy = vi.fn(() => a[K.value] + b[K.value]);
+    const spy = vi.fn(() => a[PK.value] + b[PK.value]);
     const c = computed(spy);
     expect(spy).not.toHaveBeenCalled();
-    c[K.value];
+    c[PK.value];
     expect(spy).toHaveBeenCalledOnce();
-    a[K.value] = 'x';
-    b[K.value] = 'y';
+    a[PK.value] = 'x';
+    b[PK.value] = 'y';
     expect(spy).toHaveBeenCalledOnce();
-    c[K.value];
+    c[PK.value];
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
   it('should be computed only when a dependency has changed at some point', () => {
     const a = signal('a');
     const spy = vi.fn(() => {
-      return a[K.value];
+      return a[PK.value];
     });
     const c = computed(spy);
-    c[K.value];
+    c[PK.value];
     expect(spy).toHaveBeenCalledOnce();
-    a[K.value] = 'a';
-    c[K.value];
+    a[PK.value] = 'a';
+    c[PK.value];
     expect(spy).toHaveBeenCalledOnce();
   });
 
   it('should recompute if a dependency changes during computation after becoming a dependency', () => {
     const a = signal(0);
     const spy = vi.fn(() => {
-      a[K.value]++;
+      a[PK.value]++;
     });
     const c = computed(spy);
-    c[K.value];
+    c[PK.value];
     expect(spy).toHaveBeenCalledOnce();
-    c[K.value];
+    c[PK.value];
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
   it('should detect simple dependency cycles', () => {
-    const a: ReadonlySignal = computed(() => a[K.value]);
+    const a: ReadonlySignal = computed(() => a[PK.value]);
     // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-    expect(() => a[K.value]).to.throw(new RegExp(K['Cycle detected']));
+    expect(() => a[PK.value]).to.throw(new RegExp(PK['Cycle detected']));
   });
 
   it('should detect deep dependency cycles', () => {
-    const a: ReadonlySignal = computed(() => b[K.value]);
-    const b: ReadonlySignal = computed(() => c[K.value]);
-    const c: ReadonlySignal = computed(() => d[K.value]);
-    const d: ReadonlySignal = computed(() => a[K.value]);
+    const a: ReadonlySignal = computed(() => b[PK.value]);
+    const b: ReadonlySignal = computed(() => c[PK.value]);
+    const c: ReadonlySignal = computed(() => d[PK.value]);
+    const d: ReadonlySignal = computed(() => a[PK.value]);
     // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-    expect(() => a[K.value]).to.throw(new RegExp(K['Cycle detected']));
+    expect(() => a[PK.value]).to.throw(new RegExp(PK['Cycle detected']));
   });
 
   it('should not allow a computed signal to become a direct dependency of itself', () => {
     const spy = vi.fn(() => {
       try {
-        a[K.value];
+        a[PK.value];
       } catch {
         // pass
       }
     });
     const a = computed(spy);
-    a[K.value];
-    expect(() => effect(() => a[K.value])).to.not.throw();
+    a[PK.value];
+    expect(() => effect(() => a[PK.value])).to.not.throw();
   });
 
   it('should store thrown errors and recompute only after a dependency changes', () => {
     const a = signal(0);
     const spy = vi.fn(() => {
-      a[K.value];
+      a[PK.value];
       throw new Error();
     });
     const c = computed(spy);
-    expect(() => c[K.value]).to.throw();
-    expect(() => c[K.value]).to.throw();
+    expect(() => c[PK.value]).to.throw();
+    expect(() => c[PK.value]).to.throw();
     expect(spy).toHaveBeenCalledOnce();
-    a[K.value] = 1;
-    expect(() => c[K.value]).to.throw();
+    a[PK.value] = 1;
+    expect(() => c[PK.value]).to.throw();
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
@@ -1241,28 +1241,28 @@ describe('computed()', () => {
     const a = signal(0);
     const spy = vi.fn();
     const c = computed(() => {
-      a[K.value];
+      a[PK.value];
       spy();
       throw undefined;
     });
 
     try {
-      c[K.value];
+      c[PK.value];
       expect.fail();
     } catch (err) {
       expect(err).to.be.undefined;
     }
     try {
-      c[K.value];
+      c[PK.value];
       expect.fail();
     } catch (err) {
       expect(err).to.be.undefined;
     }
     expect(spy).toHaveBeenCalledOnce();
 
-    a[K.value] = 1;
+    a[PK.value] = 1;
     try {
-      c[K.value];
+      c[PK.value];
       expect.fail();
     } catch (err) {
       expect(err).to.be.undefined;
@@ -1276,25 +1276,25 @@ describe('computed()', () => {
     const cond = signal(true);
 
     const spy = vi.fn(() => {
-      return cond[K.value] ? a[K.value] : b[K.value];
+      return cond[PK.value] ? a[PK.value] : b[PK.value];
     });
 
     const c = computed(spy);
-    expect(c[K.value]).to.equal('a');
+    expect(c[PK.value]).to.equal('a');
     expect(spy).toHaveBeenCalledOnce();
 
-    b[K.value] = 'bb';
-    expect(c[K.value]).to.equal('a');
+    b[PK.value] = 'bb';
+    expect(c[PK.value]).to.equal('a');
     expect(spy).toHaveBeenCalledOnce();
 
-    cond[K.value] = false;
-    expect(c[K.value]).to.equal('bb');
+    cond[PK.value] = false;
+    expect(c[PK.value]).to.equal('bb');
     expect(spy).toHaveBeenCalledTimes(2);
 
     spy.mockClear();
 
-    a[K.value] = 'aaa';
-    expect(c[K.value]).to.equal('bb');
+    a[PK.value] = 'aaa';
+    expect(c[PK.value]).to.equal('bb');
     expect(spy).not.toHaveBeenCalled();
   });
 
@@ -1303,13 +1303,13 @@ describe('computed()', () => {
       const watched = vi.fn();
       const unwatched = vi.fn();
       const s = computed(() => 1, {
-        [K.watched]: watched,
-        [K.unwatched]: unwatched,
+        [PK.watched]: watched,
+        [PK.unwatched]: unwatched,
       });
       expect(watched).not.toHaveBeenCalled();
-      const unsubscribe = s[K.subscribe](() => {});
+      const unsubscribe = s[PK.subscribe](() => {});
       expect(watched).toHaveBeenCalledOnce();
-      const unsubscribe2 = s[K.subscribe](() => {});
+      const unsubscribe2 = s[PK.subscribe](() => {});
       expect(watched).toHaveBeenCalledOnce();
       unsubscribe();
       unsubscribe2();
@@ -1319,15 +1319,15 @@ describe('computed()', () => {
     it('should call watched when first subscription occurs w/ nested signal', () => {
       const watched = vi.fn();
       const unwatched = vi.fn();
-      const s = signal(1, { [K.watched]: watched, [K.unwatched]: unwatched });
-      const c = computed(() => s[K.value] + 1, {
-        [K.watched]: watched,
-        [K.unwatched]: unwatched,
+      const s = signal(1, { [PK.watched]: watched, [PK.unwatched]: unwatched });
+      const c = computed(() => s[PK.value] + 1, {
+        [PK.watched]: watched,
+        [PK.unwatched]: unwatched,
       });
       expect(watched).not.toHaveBeenCalled();
-      const unsubscribe = c[K.subscribe](() => {});
+      const unsubscribe = c[PK.subscribe](() => {});
       expect(watched).toHaveBeenCalledTimes(2);
-      const unsubscribe2 = s[K.subscribe](() => {});
+      const unsubscribe2 = s[PK.subscribe](() => {});
       expect(watched).toHaveBeenCalledTimes(2);
       unsubscribe2();
       unsubscribe();
@@ -1340,73 +1340,73 @@ describe('computed()', () => {
     const spy = vi.fn(() => undefined);
     const c = computed(spy);
 
-    expect(c[K.value]).to.be.undefined;
-    a[K.value] = 1;
-    expect(c[K.value]).to.be.undefined;
+    expect(c[PK.value]).to.be.undefined;
+    a[PK.value] = 1;
+    expect(c[PK.value]).to.be.undefined;
     expect(spy).toHaveBeenCalledOnce();
   });
 
   it('should not leak errors raised by dependencies', () => {
     const a = signal(0);
     const b = computed(() => {
-      a[K.value];
+      a[PK.value];
       throw new Error('error');
     });
     const c = computed(() => {
       try {
-        b[K.value];
+        b[PK.value];
       } catch {
         return 'ok';
       }
       return undefined;
     });
-    expect(c[K.value]).to.equal('ok');
-    a[K.value] = 1;
-    expect(c[K.value]).to.equal('ok');
+    expect(c[PK.value]).to.equal('ok');
+    a[PK.value] = 1;
+    expect(c[PK.value]).to.equal('ok');
   });
 
   it('should propagate notifications even right after first subscription', () => {
     const a = signal(0);
-    const b = computed(() => a[K.value]);
-    const c = computed(() => b[K.value]);
-    c[K.value];
+    const b = computed(() => a[PK.value]);
+    const c = computed(() => b[PK.value]);
+    c[PK.value];
 
     const spy = vi.fn(() => {
-      c[K.value];
+      c[PK.value];
     });
 
     effect(spy);
     expect(spy).toHaveBeenCalledOnce();
     spy.mockClear();
 
-    a[K.value] = 1;
+    a[PK.value] = 1;
     expect(spy).toHaveBeenCalledOnce();
   });
 
   it('should get marked as outdated right after first subscription', () => {
     const s = signal(0);
-    const c = computed(() => s[K.value]);
-    c[K.value];
+    const c = computed(() => s[PK.value]);
+    c[PK.value];
 
-    s[K.value] = 1;
+    s[PK.value] = 1;
     effect(() => {
-      c[K.value];
+      c[PK.value];
     });
-    expect(c[K.value]).to.equal(1);
+    expect(c[PK.value]).to.equal(1);
   });
 
   it('should propagate notification to other listeners after one listener is disposed', () => {
     const s = signal(0);
-    const c = computed(() => s[K.value]);
+    const c = computed(() => s[PK.value]);
 
     const spy1 = vi.fn(() => {
-      c[K.value];
+      c[PK.value];
     });
     const spy2 = vi.fn(() => {
-      c[K.value];
+      c[PK.value];
     });
     const spy3 = vi.fn(() => {
-      c[K.value];
+      c[PK.value];
     });
 
     effect(spy1);
@@ -1419,7 +1419,7 @@ describe('computed()', () => {
 
     dispose();
 
-    s[K.value] = 1;
+    s[PK.value] = 1;
     expect(spy1).toHaveBeenCalledTimes(2);
     expect(spy2).toHaveBeenCalledOnce();
     expect(spy3).toHaveBeenCalledTimes(2);
@@ -1430,32 +1430,32 @@ describe('computed()', () => {
     const b = signal(1);
     const c = signal(1);
 
-    const spy = vi.fn(() => c[K.value]);
+    const spy = vi.fn(() => c[PK.value]);
     const d = computed(spy);
 
     const e = computed(() => {
-      if (a[K.value] > 0) {
-        b[K.value];
-        d[K.value];
+      if (a[PK.value] > 0) {
+        b[PK.value];
+        d[PK.value];
       } else {
-        b[K.value];
+        b[PK.value];
       }
     });
 
-    e[K.value];
+    e[PK.value];
     spy.mockClear();
 
-    a[K.value] = 2;
-    b[K.value] = 2;
-    c[K.value] = 2;
-    e[K.value];
+    a[PK.value] = 2;
+    b[PK.value] = 2;
+    c[PK.value] = 2;
+    e[PK.value];
     expect(spy).toHaveBeenCalledOnce();
     spy.mockClear();
 
-    a[K.value] = -1;
-    b[K.value] = -1;
-    c[K.value] = -1;
-    e[K.value];
+    a[PK.value] = -1;
+    b[PK.value] = -1;
+    c[PK.value] = -1;
+    e[PK.value];
     expect(spy).not.toHaveBeenCalled();
     spy.mockClear();
   });
@@ -1465,131 +1465,131 @@ describe('computed()', () => {
     const a = signal(0);
     const b = signal(0);
     const c = computed(() => {
-      b[K.value];
+      b[PK.value];
       spy();
     });
     const d = computed(() => {
-      if (a[K.value] === 0) {
-        c[K.value];
+      if (a[PK.value] === 0) {
+        c[PK.value];
       }
     });
-    d[K.value];
+    d[PK.value];
     expect(spy).toHaveBeenCalledOnce();
 
     batch(() => {
-      b[K.value] = 1;
-      a[K.value] = 1;
+      b[PK.value] = 1;
+      a[PK.value] = 1;
     });
-    d[K.value];
+    d[PK.value];
     expect(spy).toHaveBeenCalledOnce();
   });
 
-  describe('[K.peek]()', () => {
+  describe('[PK.peek]()', () => {
     it('should get value', () => {
       const s = signal(1);
-      const c = computed(() => s[K.value]);
-      expect(c[K.peek]()).equal(1);
+      const c = computed(() => s[PK.value]);
+      expect(c[PK.peek]()).equal(1);
     });
 
     it('should throw when evaluation throws', () => {
       const c = computed(() => {
         throw Error('test');
       });
-      expect(() => c[K.peek]()).to.throw('test');
+      expect(() => c[PK.peek]()).to.throw('test');
     });
 
     it("should throw when previous evaluation threw and dependencies haven't changed", () => {
       const c = computed(() => {
         throw Error('test');
       });
-      expect(() => c[K.value]).to.throw('test');
-      expect(() => c[K.peek]()).to.throw('test');
+      expect(() => c[PK.value]).to.throw('test');
+      expect(() => c[PK.peek]()).to.throw('test');
     });
 
     it('should refresh value if stale', () => {
       const a = signal(1);
-      const b = computed(() => a[K.value]);
-      expect(b[K.peek]()).to.equal(1);
+      const b = computed(() => a[PK.value]);
+      expect(b[PK.peek]()).to.equal(1);
 
-      a[K.value] = 2;
-      expect(b[K.peek]()).to.equal(2);
+      a[PK.value] = 2;
+      expect(b[PK.peek]()).to.equal(2);
     });
 
     it('should detect simple dependency cycles', () => {
-      const a: ReadonlySignal = computed(() => a[K.peek]());
+      const a: ReadonlySignal = computed(() => a[PK.peek]());
       // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-      expect(() => a[K.peek]()).to.throw(new RegExp(K['Cycle detected']));
+      expect(() => a[PK.peek]()).to.throw(new RegExp(PK['Cycle detected']));
     });
 
     it('should detect deep dependency cycles', () => {
-      const a: ReadonlySignal = computed(() => b[K.value]);
-      const b: ReadonlySignal = computed(() => c[K.value]);
-      const c: ReadonlySignal = computed(() => d[K.value]);
-      const d: ReadonlySignal = computed(() => a[K.peek]());
+      const a: ReadonlySignal = computed(() => b[PK.value]);
+      const b: ReadonlySignal = computed(() => c[PK.value]);
+      const c: ReadonlySignal = computed(() => d[PK.value]);
+      const d: ReadonlySignal = computed(() => a[PK.peek]());
       // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-      expect(() => a[K.peek]()).to.throw(new RegExp(K['Cycle detected']));
+      expect(() => a[PK.peek]()).to.throw(new RegExp(PK['Cycle detected']));
     });
 
     it('should not make surrounding effect depend on the computed', () => {
       const s = signal(1);
-      const c = computed(() => s[K.value]);
+      const c = computed(() => s[PK.value]);
       const spy = vi.fn(() => {
-        c[K.peek]();
+        c[PK.peek]();
       });
 
       effect(spy);
       expect(spy).toHaveBeenCalledOnce();
 
-      s[K.value] = 2;
+      s[PK.value] = 2;
       expect(spy).toHaveBeenCalledOnce();
     });
 
     it('should not make surrounding computed depend on the computed', () => {
       const s = signal(1);
-      const c = computed(() => s[K.value]);
+      const c = computed(() => s[PK.value]);
 
       const spy = vi.fn(() => {
-        c[K.peek]();
+        c[PK.peek]();
       });
 
       const d = computed(spy);
-      d[K.value];
+      d[PK.value];
       expect(spy).toHaveBeenCalledOnce();
 
-      s[K.value] = 2;
-      d[K.value];
+      s[PK.value] = 2;
+      d[PK.value];
       expect(spy).toHaveBeenCalledOnce();
     });
 
     it("should not make surrounding effect depend on the peeked computed's dependencies", () => {
       const a = signal(1);
-      const b = computed(() => a[K.value]);
+      const b = computed(() => a[PK.value]);
       const spy = vi.fn();
       effect(() => {
         spy();
-        b[K.peek]();
+        b[PK.peek]();
       });
       expect(spy).toHaveBeenCalledOnce();
       spy.mockClear();
 
-      a[K.value] = 1;
+      a[PK.value] = 1;
       expect(spy).not.toHaveBeenCalled();
     });
 
     it("should not make surrounding computed depend on peeked computed's dependencies", () => {
       const a = signal(1);
-      const b = computed(() => a[K.value]);
+      const b = computed(() => a[PK.value]);
       const spy = vi.fn();
       const d = computed(() => {
         spy();
-        b[K.peek]();
+        b[PK.peek]();
       });
-      d[K.value];
+      d[PK.value];
       expect(spy).toHaveBeenCalledOnce();
       spy.mockClear();
 
-      a[K.value] = 1;
-      d[K.value];
+      a[PK.value] = 1;
+      d[PK.value];
       expect(spy).not.toHaveBeenCalled();
     });
   });
@@ -1597,7 +1597,7 @@ describe('computed()', () => {
   describe.runIf(typeof gc !== 'undefined')('garbage collection', () => {
     it('should be garbage collectable if nothing is listening to its changes', async () => {
       const s = signal(0);
-      const ref = new WeakRef(computed(() => s[K.value]));
+      const ref = new WeakRef(computed(() => s[PK.value]));
 
       (gc as () => void)();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1611,10 +1611,10 @@ describe('computed()', () => {
       let ref: WeakRef<ReadonlySignal>;
       let dispose: () => void;
       (() => {
-        const c = computed(() => s[K.value]);
+        const c = computed(() => s[PK.value]);
         ref = new WeakRef(c);
         dispose = effect(() => {
-          c[K.value];
+          c[PK.value];
         });
       })();
 
@@ -1633,17 +1633,17 @@ describe('computed()', () => {
 
       const compute = vi.fn(() => {
         // debugger;
-        return a[K.value] + b[K.value];
+        return a[PK.value] + b[PK.value];
       });
       const c = computed(compute);
 
-      expect(c[K.value]).to.equal('ab');
+      expect(c[PK.value]).to.equal('ab');
       expect(compute).toHaveBeenCalledOnce();
       compute.mockClear();
 
-      a[K.value] = 'aa';
-      b[K.value] = 'bb';
-      c[K.value];
+      a[PK.value] = 'aa';
+      b[PK.value] = 'bb';
+      c[PK.value];
       expect(compute).toHaveBeenCalledOnce();
     });
 
@@ -1657,19 +1657,19 @@ describe('computed()', () => {
       //     D
       const a = signal(2);
 
-      const b = computed(() => a[K.value] - 1);
-      const c = computed(() => a[K.value] + b[K.value]);
+      const b = computed(() => a[PK.value] - 1);
+      const c = computed(() => a[PK.value] + b[PK.value]);
 
-      const compute = vi.fn(() => `d: ${c[K.value]}`);
+      const compute = vi.fn(() => `d: ${c[PK.value]}`);
       const d = computed(compute);
 
       // Trigger read
-      expect(d[K.value]).to.equal('d: 3');
+      expect(d[PK.value]).to.equal('d: 3');
       expect(compute).toHaveBeenCalledOnce();
       compute.mockClear();
 
-      a[K.value] = 4;
-      d[K.value];
+      a[PK.value] = 4;
+      d[PK.value];
       expect(compute).toHaveBeenCalledOnce();
     });
 
@@ -1682,17 +1682,17 @@ describe('computed()', () => {
       //   \   /
       //     D
       const a = signal('a');
-      const b = computed(() => a[K.value]);
-      const c = computed(() => a[K.value]);
+      const b = computed(() => a[PK.value]);
+      const c = computed(() => a[PK.value]);
 
-      const spy = vi.fn(() => `${b[K.value]} ${c[K.value]}`);
+      const spy = vi.fn(() => `${b[PK.value]} ${c[PK.value]}`);
       const d = computed(spy);
 
-      expect(d[K.value]).to.equal('a a');
+      expect(d[PK.value]).to.equal('a a');
       expect(spy).toHaveBeenCalledOnce();
 
-      a[K.value] = 'aa';
-      expect(d[K.value]).to.equal('aa aa');
+      a[PK.value] = 'aa';
+      expect(d[PK.value]).to.equal('aa aa');
       expect(spy).toHaveBeenCalledTimes(2);
     });
 
@@ -1706,19 +1706,19 @@ describe('computed()', () => {
       //     |
       //     E
       const a = signal('a');
-      const b = computed(() => a[K.value]);
-      const c = computed(() => a[K.value]);
+      const b = computed(() => a[PK.value]);
+      const c = computed(() => a[PK.value]);
 
-      const d = computed(() => `${b[K.value]} ${c[K.value]}`);
+      const d = computed(() => `${b[PK.value]} ${c[PK.value]}`);
 
-      const spy = vi.fn(() => d[K.value]);
+      const spy = vi.fn(() => d[PK.value]);
       const e = computed(spy);
 
-      expect(e[K.value]).to.equal('a a');
+      expect(e[PK.value]).to.equal('a a');
       expect(spy).toHaveBeenCalledOnce();
 
-      a[K.value] = 'aa';
-      expect(e[K.value]).to.equal('aa aa');
+      a[PK.value] = 'aa';
+      expect(e[PK.value]).to.equal('aa aa');
       expect(spy).toHaveBeenCalledTimes(2);
     });
 
@@ -1727,18 +1727,18 @@ describe('computed()', () => {
       // A->B->C
       const a = signal('a');
       const b = computed(() => {
-        a[K.value];
+        a[PK.value];
         return 'foo';
       });
 
-      const spy = vi.fn(() => b[K.value]);
+      const spy = vi.fn(() => b[PK.value]);
       const c = computed(spy);
 
-      expect(c[K.value]).to.equal('foo');
+      expect(c[PK.value]).to.equal('foo');
       expect(spy).toHaveBeenCalledOnce();
 
-      a[K.value] = 'aa';
-      expect(c[K.value]).to.equal('foo');
+      a[PK.value] = 'aa';
+      expect(c[PK.value]).to.equal('foo');
       expect(spy).toHaveBeenCalledOnce();
     });
 
@@ -1755,53 +1755,53 @@ describe('computed()', () => {
       //  F     G
       const a = signal('a');
 
-      const b = computed(() => a[K.value]);
-      const c = computed(() => a[K.value]);
+      const b = computed(() => a[PK.value]);
+      const c = computed(() => a[PK.value]);
 
-      const d = computed(() => c[K.value]);
+      const d = computed(() => c[PK.value]);
 
-      const eSpy = vi.fn(() => `${b[K.value]} ${d[K.value]}`);
+      const eSpy = vi.fn(() => `${b[PK.value]} ${d[PK.value]}`);
       const e = computed(eSpy);
 
-      const fSpy = vi.fn(() => e[K.value]);
+      const fSpy = vi.fn(() => e[PK.value]);
       const f = computed(fSpy);
-      const gSpy = vi.fn(() => e[K.value]);
+      const gSpy = vi.fn(() => e[PK.value]);
       const g = computed(gSpy);
 
-      expect(f[K.value]).to.equal('a a');
+      expect(f[PK.value]).to.equal('a a');
       expect(fSpy).toHaveBeenCalledOnce();
 
-      expect(g[K.value]).to.equal('a a');
+      expect(g[PK.value]).to.equal('a a');
       expect(gSpy).toHaveBeenCalledOnce();
 
       eSpy.mockClear();
       fSpy.mockClear();
       gSpy.mockClear();
 
-      a[K.value] = 'b';
+      a[PK.value] = 'b';
 
-      expect(e[K.value]).to.equal('b b');
+      expect(e[PK.value]).to.equal('b b');
       expect(eSpy).toHaveBeenCalledOnce();
 
-      expect(f[K.value]).to.equal('b b');
+      expect(f[PK.value]).to.equal('b b');
       expect(fSpy).toHaveBeenCalledOnce();
 
-      expect(g[K.value]).to.equal('b b');
+      expect(g[PK.value]).to.equal('b b');
       expect(gSpy).toHaveBeenCalledOnce();
 
       eSpy.mockClear();
       fSpy.mockClear();
       gSpy.mockClear();
 
-      a[K.value] = 'c';
+      a[PK.value] = 'c';
 
-      expect(e[K.value]).to.equal('c c');
+      expect(e[PK.value]).to.equal('c c');
       expect(eSpy).toHaveBeenCalledOnce();
 
-      expect(f[K.value]).to.equal('c c');
+      expect(f[PK.value]).to.equal('c c');
       expect(fSpy).toHaveBeenCalledOnce();
 
-      expect(g[K.value]).to.equal('c c');
+      expect(g[PK.value]).to.equal('c c');
       expect(gSpy).toHaveBeenCalledOnce();
 
       // top to bottom
@@ -1816,15 +1816,15 @@ describe('computed()', () => {
       // *B     C <- we don't listen to C
       const a = signal('a');
 
-      const b = computed(() => a[K.value]);
-      const spy = vi.fn(() => a[K.value]);
+      const b = computed(() => a[PK.value]);
+      const spy = vi.fn(() => a[PK.value]);
       computed(spy);
 
-      expect(b[K.value]).to.equal('a');
+      expect(b[PK.value]).to.equal('a');
       expect(spy).not.toHaveBeenCalled();
 
-      a[K.value] = 'aa';
-      expect(b[K.value]).to.equal('aa');
+      a[PK.value] = 'aa';
+      expect(b[PK.value]).to.equal('aa');
       expect(spy).not.toHaveBeenCalled();
     });
 
@@ -1838,31 +1838,31 @@ describe('computed()', () => {
       //  |
       // *C
       const a = signal('a');
-      const spyB = vi.fn(() => a[K.value]);
+      const spyB = vi.fn(() => a[PK.value]);
       const b = computed(spyB);
 
-      const spyC = vi.fn(() => b[K.value]);
+      const spyC = vi.fn(() => b[PK.value]);
       const c = computed(spyC);
 
-      const d = computed(() => a[K.value]);
+      const d = computed(() => a[PK.value]);
 
       let result = '';
       const unsub = effect(() => {
-        result = c[K.value];
+        result = c[PK.value];
       });
 
       expect(result).to.equal('a');
-      expect(d[K.value]).to.equal('a');
+      expect(d[PK.value]).to.equal('a');
 
       spyB.mockClear();
       spyC.mockClear();
       unsub();
 
-      a[K.value] = 'aa';
+      a[PK.value] = 'aa';
 
       expect(spyB).not.toHaveBeenCalled();
       expect(spyC).not.toHaveBeenCalled();
-      expect(d[K.value]).to.equal('aa');
+      expect(d[PK.value]).to.equal('aa');
     });
 
     it('should ensure subs update even if one dep unmarks it', () => {
@@ -1876,18 +1876,18 @@ describe('computed()', () => {
       //   \   /
       //     D
       const a = signal('a');
-      const b = computed(() => a[K.value]);
+      const b = computed(() => a[PK.value]);
       const c = computed(() => {
-        a[K.value];
+        a[PK.value];
         return 'c';
       });
-      const spy = vi.fn(() => `${b[K.value]} ${c[K.value]}`);
+      const spy = vi.fn(() => `${b[PK.value]} ${c[PK.value]}`);
       const d = computed(spy);
-      expect(d[K.value]).to.equal('a c');
+      expect(d[PK.value]).to.equal('a c');
       spy.mockClear();
 
-      a[K.value] = 'aa';
-      d[K.value];
+      a[PK.value] = 'aa';
+      d[PK.value];
       expect(spy).toReturnWith('aa c');
     });
 
@@ -1901,22 +1901,22 @@ describe('computed()', () => {
       //   \ | /
       //     E
       const a = signal('a');
-      const b = computed(() => a[K.value]);
+      const b = computed(() => a[PK.value]);
       const c = computed(() => {
-        a[K.value];
+        a[PK.value];
         return 'c';
       });
       const d = computed(() => {
-        a[K.value];
+        a[PK.value];
         return 'd';
       });
-      const spy = vi.fn(() => `${b[K.value]} ${c[K.value]} ${d[K.value]}`);
+      const spy = vi.fn(() => `${b[PK.value]} ${c[PK.value]} ${d[PK.value]}`);
       const e = computed(spy);
-      expect(e[K.value]).to.equal('a c d');
+      expect(e[PK.value]).to.equal('a c d');
       spy.mockClear();
 
-      a[K.value] = 'aa';
-      e[K.value];
+      a[PK.value] = 'aa';
+      e[PK.value];
       expect(spy).toReturnWith('aa c d');
     });
   });
@@ -1924,8 +1924,8 @@ describe('computed()', () => {
   describe('error handling', () => {
     it('should throw when writing to computeds', () => {
       const a = signal('a');
-      const b = computed(() => a[K.value]);
-      const fn = () => ((b as Signal)[K.value] = 'aa');
+      const b = computed(() => a[PK.value]);
+      const fn = () => ((b as Signal)[PK.value] = 'aa');
       expect(fn).to.throw(/Cannot set property/);
     });
 
@@ -1934,40 +1934,40 @@ describe('computed()', () => {
       const b = computed(() => {
         throw new Error('fail');
       });
-      const c = computed(() => a[K.value]);
-      expect(() => b[K.value]).to.throw('fail');
+      const c = computed(() => a[PK.value]);
+      expect(() => b[PK.value]).to.throw('fail');
 
-      a[K.value] = 1;
-      expect(c[K.value]).to.equal(1);
+      a[PK.value] = 1;
+      expect(c[PK.value]).to.equal(1);
     });
 
     it('should keep graph consistent on errors in computeds', () => {
       const a = signal(0);
       const b = computed(() => {
-        if (a[K.value] === 1) throw new Error('fail');
-        return a[K.value];
+        if (a[PK.value] === 1) throw new Error('fail');
+        return a[PK.value];
       });
-      const c = computed(() => b[K.value]);
-      expect(c[K.value]).to.equal(0);
+      const c = computed(() => b[PK.value]);
+      expect(c[PK.value]).to.equal(0);
 
-      a[K.value] = 1;
-      expect(() => b[K.value]).to.throw('fail');
+      a[PK.value] = 1;
+      expect(() => b[PK.value]).to.throw('fail');
 
-      a[K.value] = 2;
-      expect(c[K.value]).to.equal(2);
+      a[PK.value] = 2;
+      expect(c[PK.value]).to.equal(2);
     });
 
     it('should support lazy branches', () => {
       const a = signal(0);
-      const b = computed(() => a[K.value]);
-      const c = computed(() => (a[K.value] > 0 ? a[K.value] : b[K.value]));
+      const b = computed(() => a[PK.value]);
+      const c = computed(() => (a[PK.value] > 0 ? a[PK.value] : b[PK.value]));
 
-      expect(c[K.value]).to.equal(0);
-      a[K.value] = 1;
-      expect(c[K.value]).to.equal(1);
+      expect(c[PK.value]).to.equal(0);
+      a[PK.value] = 1;
+      expect(c[PK.value]).to.equal(1);
 
-      a[K.value] = 0;
-      expect(c[K.value]).to.equal(0);
+      a[PK.value] = 0;
+      expect(c[PK.value]).to.equal(0);
     });
 
     it('should not update a sub if all deps unmark it', () => {
@@ -1980,19 +1980,19 @@ describe('computed()', () => {
       //     D
       const a = signal('a');
       const b = computed(() => {
-        a[K.value];
+        a[PK.value];
         return 'b';
       });
       const c = computed(() => {
-        a[K.value];
+        a[PK.value];
         return 'c';
       });
-      const spy = vi.fn(() => `${b[K.value]} ${c[K.value]}`);
+      const spy = vi.fn(() => `${b[PK.value]} ${c[PK.value]}`);
       const d = computed(spy);
-      expect(d[K.value]).to.equal('b c');
+      expect(d[PK.value]).to.equal('b c');
       spy.mockClear();
 
-      a[K.value] = 'aa';
+      a[PK.value] = 'aa';
       expect(spy).not.toHaveBeenCalled();
     });
   });
@@ -2026,14 +2026,14 @@ describe('batch/transaction', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      `${a[K.value]} ${b[K.value]}`;
+      `${a[PK.value]} ${b[PK.value]}`;
     });
     effect(spy);
     spy.mockClear();
 
     batch(() => {
-      a[K.value] = 'aa';
-      b[K.value] = 'bb';
+      a[PK.value] = 'aa';
+      b[PK.value] = 'bb';
     });
 
     expect(spy).toHaveBeenCalledOnce();
@@ -2043,18 +2043,18 @@ describe('batch/transaction', () => {
     const a = signal('a');
     const b = signal('b');
     const spy = vi.fn(() => {
-      `${a[K.value]}, ${b[K.value]}`;
+      `${a[PK.value]}, ${b[PK.value]}`;
     });
     effect(spy);
     spy.mockClear();
 
     batch(() => {
       batch(() => {
-        a[K.value] += ' inner';
-        b[K.value] += ' inner';
+        a[PK.value] += ' inner';
+        b[PK.value] += ' inner';
       });
-      a[K.value] += ' outer';
-      b[K.value] += ' outer';
+      a[PK.value] += ' outer';
+      b[PK.value] += ' outer';
     });
 
     // If the inner batch() would have flushed the update
@@ -2067,8 +2067,8 @@ describe('batch/transaction', () => {
 
     let result = '';
     batch(() => {
-      a[K.value] = 'aa';
-      result = a[K.value];
+      a[PK.value] = 'aa';
+      result = a[PK.value];
     });
 
     expect(result).to.equal('aa');
@@ -2077,15 +2077,15 @@ describe('batch/transaction', () => {
   it('should read computed signals with updated source signals', () => {
     // A->B->C->D->E
     const a = signal('a');
-    const b = computed(() => a[K.value]);
+    const b = computed(() => a[PK.value]);
 
-    const spyC = vi.fn(() => b[K.value]);
+    const spyC = vi.fn(() => b[PK.value]);
     const c = computed(spyC);
 
-    const spyD = vi.fn(() => c[K.value]);
+    const spyD = vi.fn(() => c[PK.value]);
     const d = computed(spyD);
 
-    const spyE = vi.fn(() => d[K.value]);
+    const spyE = vi.fn(() => d[PK.value]);
     const e = computed(spyE);
 
     spyC.mockClear();
@@ -2094,8 +2094,8 @@ describe('batch/transaction', () => {
 
     let result = '';
     batch(() => {
-      a[K.value] = 'aa';
-      result = c[K.value];
+      a[PK.value] = 'aa';
+      result = c[PK.value];
 
       // Since "D" isn't accessed during batching, we should not
       // update it, only after batching has completed
@@ -2103,8 +2103,8 @@ describe('batch/transaction', () => {
     });
 
     expect(result).to.equal('aa');
-    expect(d[K.value]).to.equal('aa');
-    expect(e[K.value]).to.equal('aa');
+    expect(d[PK.value]).to.equal('aa');
+    expect(e[PK.value]).to.equal('aa');
     expect(spyC).toHaveBeenCalledOnce();
     expect(spyD).toHaveBeenCalledOnce();
     expect(spyE).toHaveBeenCalledOnce();
@@ -2117,56 +2117,56 @@ describe('batch/transaction', () => {
     const a = signal('a');
     const b = signal('b');
     const c = signal('c');
-    const d = computed(() => `${a[K.value]} ${b[K.value]} ${c[K.value]}`);
+    const d = computed(() => `${a[PK.value]} ${b[PK.value]} ${c[PK.value]}`);
 
     let result: unknown;
     effect(() => {
-      result = d[K.value];
+      result = d[PK.value];
     });
 
     batch(() => {
-      a[K.value] = 'aa';
-      b[K.value] = 'bb';
+      a[PK.value] = 'aa';
+      b[PK.value] = 'bb';
     });
-    c[K.value] = 'cc';
+    c[PK.value] = 'cc';
     expect(result).to.equal('aa bb cc');
   });
 
-  it('should not lead to stale signals with [K.value] in batch', () => {
+  it('should not lead to stale signals with [PK.value] in batch', () => {
     const invokes: number[][] = [];
     const counter = signal(0);
-    const double = computed(() => counter[K.value] * 2);
-    const triple = computed(() => counter[K.value] * 3);
+    const double = computed(() => counter[PK.value] * 2);
+    const triple = computed(() => counter[PK.value] * 3);
 
     effect(() => {
-      invokes.push([double[K.value], triple[K.value]]);
+      invokes.push([double[PK.value], triple[PK.value]]);
     });
 
     expect(invokes).to.deep.equal([[0, 0]]);
 
     batch(() => {
-      counter[K.value] = 1;
-      expect(double[K.value]).to.equal(2);
+      counter[PK.value] = 1;
+      expect(double[PK.value]).to.equal(2);
     });
 
     expect(invokes[1]).to.deep.equal([2, 3]);
   });
 
-  it('should not lead to stale signals with [K.peek]() in batch', () => {
+  it('should not lead to stale signals with [PK.peek]() in batch', () => {
     const invokes: number[][] = [];
     const counter = signal(0);
-    const double = computed(() => counter[K.value] * 2);
-    const triple = computed(() => counter[K.value] * 3);
+    const double = computed(() => counter[PK.value] * 2);
+    const triple = computed(() => counter[PK.value] * 3);
 
     effect(() => {
-      invokes.push([double[K.value], triple[K.value]]);
+      invokes.push([double[PK.value], triple[PK.value]]);
     });
 
     expect(invokes).to.deep.equal([[0, 0]]);
 
     batch(() => {
-      counter[K.value] = 1;
-      expect(double[K.peek]()).to.equal(2);
+      counter[PK.value] = 1;
+      expect(double[PK.peek]()).to.equal(2);
     });
 
     expect(invokes[1]).to.deep.equal([2, 3]);
@@ -2176,10 +2176,10 @@ describe('batch/transaction', () => {
     const a = signal(0);
     const b = signal(1);
     const spy1 = vi.fn(() => {
-      a[K.value];
+      a[PK.value];
     });
     const spy2 = vi.fn(() => {
-      b[K.value];
+      b[PK.value];
     });
     effect(spy1);
     effect(spy2);
@@ -2188,8 +2188,8 @@ describe('batch/transaction', () => {
 
     expect(() =>
       batch(() => {
-        a[K.value]++;
-        b[K.value]++;
+        a[PK.value]++;
+        b[PK.value]++;
         throw Error('hello');
       }),
     ).to.throw('hello');
@@ -2201,25 +2201,25 @@ describe('batch/transaction', () => {
   it('should run pending effects even if some effects throw', () => {
     const a = signal(0);
     const spy1 = vi.fn(() => {
-      a[K.value];
+      a[PK.value];
     });
     const spy2 = vi.fn(() => {
-      a[K.value];
+      a[PK.value];
     });
     effect(() => {
-      if (a[K.value] === 1) {
+      if (a[PK.value] === 1) {
         throw new Error('hello');
       }
     });
     effect(spy1);
     effect(() => {
-      if (a[K.value] === 1) {
+      if (a[PK.value] === 1) {
         throw new Error('hello');
       }
     });
     effect(spy2);
     effect(() => {
-      if (a[K.value] === 1) {
+      if (a[PK.value] === 1) {
         throw new Error('hello');
       }
     });
@@ -2228,7 +2228,7 @@ describe('batch/transaction', () => {
 
     expect(() =>
       batch(() => {
-        a[K.value]++;
+        a[PK.value]++;
       }),
     ).to.throw('hello');
 
@@ -2252,19 +2252,19 @@ describe('untracked', () => {
     const a = signal(1);
     const b = signal(2);
     const spy = vi.fn(() => {
-      a[K.value] + b[K.value];
+      a[PK.value] + b[PK.value];
     });
     effect(() => untracked(spy));
     expect(spy).toHaveBeenCalledOnce();
 
-    a[K.value] = 10;
-    b[K.value] = 20;
+    a[PK.value] = 10;
+    b[PK.value] = 20;
     expect(spy).toHaveBeenCalledOnce();
   });
 
   it('should block tracking even when run inside effect run inside untracked', () => {
     const s = signal(1);
-    const spy = vi.fn(() => s[K.value]);
+    const spy = vi.fn(() => s[PK.value]);
 
     untracked(() =>
       effect(() => {
@@ -2273,7 +2273,7 @@ describe('untracked', () => {
     );
     expect(spy).toHaveBeenCalledOnce();
 
-    s[K.value] = 2;
+    s[PK.value] = 2;
     expect(spy).toHaveBeenCalledOnce();
   });
 
@@ -2282,16 +2282,16 @@ describe('untracked', () => {
     const aChangedTime = signal(0);
 
     const dispose = effect(() => {
-      a[K.value];
+      a[PK.value];
       untracked(() => {
-        aChangedTime[K.value] = aChangedTime[K.value] + 1;
+        aChangedTime[PK.value] = aChangedTime[PK.value] + 1;
       });
     });
 
-    expect(() => (a[K.value] = 2)).not.to.throw();
-    expect(aChangedTime[K.value]).to.equal(2);
-    a[K.value] = 3;
-    expect(aChangedTime[K.value]).to.equal(3);
+    expect(() => (a[PK.value] = 2)).not.to.throw();
+    expect(aChangedTime[PK.value]).to.equal(2);
+    a[PK.value] = 3;
+    expect(aChangedTime[PK.value]).to.equal(3);
 
     dispose();
   });
@@ -2299,17 +2299,17 @@ describe('untracked', () => {
   it('should block tracking inside computed signals', () => {
     const a = signal(1);
     const b = signal(2);
-    const spy = vi.fn(() => a[K.value] + b[K.value]);
+    const spy = vi.fn(() => a[PK.value] + b[PK.value]);
     const c = computed(() => untracked(spy));
 
     expect(spy).not.toHaveBeenCalled();
-    expect(c[K.value]).to.equal(3);
-    a[K.value] = 10;
-    c[K.value];
-    b[K.value] = 20;
-    c[K.value];
+    expect(c[PK.value]).to.equal(3);
+    a[PK.value] = 10;
+    c[PK.value];
+    b[PK.value] = 20;
+    c[PK.value];
     expect(spy).toHaveBeenCalledOnce();
-    expect(c[K.value]).to.equal(3);
+    expect(c[PK.value]).to.equal(3);
   });
 });
 
@@ -2318,114 +2318,114 @@ describe('createModel', () => {
     const CounterModel = createModel(() => ({
       count: signal(0),
       increment() {
-        this.count[K.value] += 1;
+        this.count[PK.value] += 1;
       },
     }));
 
     const counter = new CounterModel();
-    expect(counter.count[K.value]).to.equal(0);
+    expect(counter.count[PK.value]).to.equal(0);
 
     counter.increment();
-    expect(counter.count[K.value]).to.equal(1);
+    expect(counter.count[PK.value]).to.equal(1);
   });
 
   it('should create a model with computed properties', () => {
     const CounterModel = createModel(() => {
       const count = signal(0);
-      const double = computed(() => count[K.value] * 2);
-      const quadruple = computed(() => double[K.value] * 2);
+      const double = computed(() => count[PK.value] * 2);
+      const quadruple = computed(() => double[PK.value] * 2);
       return {
         count,
         double,
         quadruple,
         increment() {
-          count[K.value] += 1;
+          count[PK.value] += 1;
         },
       };
     });
 
     const counter = new CounterModel();
-    expect(counter.count[K.value]).to.equal(0);
-    expect(counter.double[K.value]).to.equal(0);
-    expect(counter.quadruple[K.value]).to.equal(0);
+    expect(counter.count[PK.value]).to.equal(0);
+    expect(counter.double[PK.value]).to.equal(0);
+    expect(counter.quadruple[PK.value]).to.equal(0);
 
     counter.increment();
-    expect(counter.count[K.value]).to.equal(1);
-    expect(counter.double[K.value]).to.equal(2);
-    expect(counter.quadruple[K.value]).to.equal(4);
+    expect(counter.count[PK.value]).to.equal(1);
+    expect(counter.double[PK.value]).to.equal(2);
+    expect(counter.quadruple[PK.value]).to.equal(4);
   });
 
   it('should accept factory arguments', () => {
     const CounterModel = createModel((initialCount: number) => {
       const count = signal(initialCount);
-      const increment = () => ++count[K.value];
+      const increment = () => ++count[PK.value];
       return { count, increment };
     });
 
     const model = new CounterModel(5);
-    expect(model.count[K.value]).to.equal(5);
+    expect(model.count[PK.value]).to.equal(5);
 
     model.increment();
-    expect(model.count[K.value]).to.equal(6);
+    expect(model.count[PK.value]).to.equal(6);
   });
 
   it('should accept multiple factory arguments', () => {
     const CounterModel = createModel((initialCount: number, step: number) => {
       const count = signal(initialCount);
-      const increment = () => (count[K.value] += step);
+      const increment = () => (count[PK.value] += step);
       return { count, increment };
     });
 
     const model = new CounterModel(5, 2);
-    expect(model.count[K.value]).to.equal(5);
+    expect(model.count[PK.value]).to.equal(5);
 
     model.increment();
-    expect(model.count[K.value]).to.equal(7);
+    expect(model.count[PK.value]).to.equal(7);
   });
 
   it('should allow actions to receive parameters', () => {
     const CounterModel = createModel(() => {
       const count = signal(0);
       const add = (value: number) => {
-        count[K.value] += value;
+        count[PK.value] += value;
       };
       return { count, add };
     });
 
     const model = new CounterModel();
-    expect(model.count[K.value]).to.equal(0);
+    expect(model.count[PK.value]).to.equal(0);
 
     model.add(5);
-    expect(model.count[K.value]).to.equal(5);
+    expect(model.count[PK.value]).to.equal(5);
   });
 
   it('should allow actions to return values', async () => {
     const CounterModel = createModel(() => {
       const count = signal(0);
-      const incrementAsync = async () => count[K.value]++;
+      const incrementAsync = async () => count[PK.value]++;
       return { count, incrementAsync };
     });
 
     const model = new CounterModel();
-    expect(model.count[K.value]).to.equal(0);
+    expect(model.count[PK.value]).to.equal(0);
 
     await model.incrementAsync();
-    expect(model.count[K.value]).to.equal(1);
+    expect(model.count[PK.value]).to.equal(1);
   });
 
   it("should bind 'this' correctly in actions", () => {
     const CounterModel = createModel(() => ({
       count: signal(0),
       increment() {
-        this.count[K.value]++;
+        this.count[PK.value]++;
       },
     }));
 
     const counter = new CounterModel();
-    expect(counter.count[K.value]).to.equal(0);
+    expect(counter.count[PK.value]).to.equal(0);
 
     counter.increment();
-    expect(counter.count[K.value]).to.equal(1);
+    expect(counter.count[PK.value]).to.equal(1);
   });
 
   it('should wrap nested object methods as actions', () => {
@@ -2433,16 +2433,16 @@ describe('createModel', () => {
       counter: {
         count: signal(0),
         increment() {
-          this.count[K.value]++;
+          this.count[PK.value]++;
         },
       },
     }));
 
     const model = new CounterModel();
-    expect(model.counter.count[K.value]).to.equal(0);
+    expect(model.counter.count[PK.value]).to.equal(0);
 
     model.counter.increment();
-    expect(model.counter.count[K.value]).to.equal(1);
+    expect(model.counter.count[PK.value]).to.equal(1);
   });
 
   it('should batch updates from deeply nested object methods', () => {
@@ -2453,8 +2453,8 @@ describe('createModel', () => {
           primary: signal(0),
           secondary: signal(0),
           incrementBoth() {
-            this.primary[K.value] += 1;
-            this.secondary[K.value] += 1;
+            this.primary[PK.value] += 1;
+            this.secondary[PK.value] += 1;
           },
         },
       },
@@ -2462,8 +2462,8 @@ describe('createModel', () => {
 
     const model = new TestModel();
     effect(() => {
-      model.stats.counts.primary[K.value];
-      model.stats.counts.secondary[K.value];
+      model.stats.counts.primary[PK.value];
+      model.stats.counts.secondary[PK.value];
       effectRunCount++;
     });
 
@@ -2471,8 +2471,8 @@ describe('createModel', () => {
 
     model.stats.counts.incrementBoth();
     expect(effectRunCount).to.equal(2);
-    expect(model.stats.counts.primary[K.value]).to.equal(1);
-    expect(model.stats.counts.secondary[K.value]).to.equal(1);
+    expect(model.stats.counts.primary[PK.value]).to.equal(1);
+    expect(model.stats.counts.secondary[PK.value]).to.equal(1);
   });
 
   it('should automatically batch signal updates within actions', () => {
@@ -2482,8 +2482,8 @@ describe('createModel', () => {
       const count2 = signal(0);
 
       effect(() => {
-        count1[K.value];
-        count2[K.value];
+        count1[PK.value];
+        count2[PK.value];
         effectRunCount++;
       });
 
@@ -2491,8 +2491,8 @@ describe('createModel', () => {
         count1,
         count2,
         incrementBoth() {
-          count1[K.value] += 1;
-          count2[K.value] += 1;
+          count1[PK.value] += 1;
+          count2[PK.value] += 1;
         },
       };
     });
@@ -2503,8 +2503,8 @@ describe('createModel', () => {
     // Without batching, this would trigger the effect twice
     model.incrementBoth();
     expect(effectRunCount).to.equal(2); // Should only run once due to batching
-    expect(model.count1[K.value]).to.equal(1);
-    expect(model.count2[K.value]).to.equal(1);
+    expect(model.count1[PK.value]).to.equal(1);
+    expect(model.count2[PK.value]).to.equal(1);
   });
 
   it('should run effects defined in the model', () => {
@@ -2513,11 +2513,11 @@ describe('createModel', () => {
     const ModelWithEffect = createModel(() => {
       const count = signal(0);
       effect(() => {
-        count[K.value];
+        count[PK.value];
         effect1RunCount++;
       });
       effect(() => {
-        count[K.value];
+        count[PK.value];
         effect2RunCount++;
       });
 
@@ -2528,7 +2528,7 @@ describe('createModel', () => {
     expect(effect1RunCount).to.equal(1);
     expect(effect2RunCount).to.equal(1);
 
-    model.count[K.value] = 1;
+    model.count[PK.value] = 1;
     expect(effect1RunCount).to.equal(2);
     expect(effect2RunCount).to.equal(2);
   });
@@ -2543,12 +2543,12 @@ describe('createModel', () => {
     const ModelWithEffect = createModel(() => {
       const count = signal(0);
       effect(() => {
-        count[K.value];
+        count[PK.value];
         effect1RunCount++;
         return effect1Cleanup;
       });
       effect(() => {
-        count[K.value];
+        count[PK.value];
         effect2RunCount++;
         return effect2Cleanup;
       });
@@ -2562,7 +2562,7 @@ describe('createModel', () => {
     expect(effect1Cleanup).not.toHaveBeenCalled();
     expect(effect2Cleanup).not.toHaveBeenCalled();
 
-    model.count[K.value] = 1;
+    model.count[PK.value] = 1;
     expect(effect1RunCount).to.equal(2);
     expect(effect2RunCount).to.equal(2);
     expect(effect1Cleanup).toHaveBeenCalledTimes(1);
@@ -2572,7 +2572,7 @@ describe('createModel', () => {
     expect(effect1Cleanup).toHaveBeenCalledTimes(2);
     expect(effect2Cleanup).toHaveBeenCalledTimes(2);
 
-    model.count[K.value] = 2;
+    model.count[PK.value] = 2;
     expect(effect1RunCount).to.equal(2);
     expect(effect2RunCount).to.equal(2);
     expect(effect1Cleanup).toHaveBeenCalledTimes(2);
@@ -2589,7 +2589,7 @@ describe('createModel', () => {
     const CountModel = createModel(() => {
       const count = signal(0);
       effect(() => {
-        count[K.value];
+        count[PK.value];
         effectWithSignalRunCount++;
         return effectWithSignalCleanup;
       });
@@ -2609,7 +2609,7 @@ describe('createModel', () => {
     expect(noSignalEffectRunCount).to.equal(1);
     expect(noSignalEffectCleanup).not.toHaveBeenCalled();
 
-    model.count[K.value]++;
+    model.count[PK.value]++;
     expect(effectWithSignalRunCount).to.equal(2);
     expect(effectWithSignalCleanup).toHaveBeenCalledTimes(1);
     expect(noSignalEffectRunCount).to.equal(1);
@@ -2627,7 +2627,7 @@ describe('createModel', () => {
     const TestModel = createModel(() => {
       const count = signal(0);
       effect(() => {
-        count[K.value];
+        count[PK.value];
         effectRunCount++;
         return cleanup;
       });
@@ -2649,58 +2649,58 @@ describe('createModel', () => {
     const CounterModel = createModel(() => ({
       count: signal(0),
       increment() {
-        this.count[K.value] += 1;
+        this.count[PK.value] += 1;
       },
     }));
 
     const counter1 = new CounterModel();
     const counter2 = new CounterModel();
 
-    expect(counter1.count[K.value]).to.equal(0);
-    expect(counter2.count[K.value]).to.equal(0);
+    expect(counter1.count[PK.value]).to.equal(0);
+    expect(counter2.count[PK.value]).to.equal(0);
 
     counter1.increment();
-    expect(counter1.count[K.value]).to.equal(1);
-    expect(counter2.count[K.value]).to.equal(0);
+    expect(counter1.count[PK.value]).to.equal(1);
+    expect(counter2.count[PK.value]).to.equal(0);
 
     counter2.increment();
     counter2.increment();
-    expect(counter1.count[K.value]).to.equal(1);
-    expect(counter2.count[K.value]).to.equal(2);
+    expect(counter1.count[PK.value]).to.equal(1);
+    expect(counter2.count[PK.value]).to.equal(2);
   });
 
   it('should allow multiple types of actions on a single model', async () => {
     const MultiActionModel = createModel(() => ({
       count: signal(0),
       increment(): void {
-        this.count[K.value] += 1;
+        this.count[PK.value] += 1;
       },
       add(value: number): void {
-        this.count[K.value] += value;
+        this.count[PK.value] += value;
       },
       addThenMultiply(add: number, multiple: number): void {
-        this.count[K.value] = (this.count[K.value] + add) * multiple;
+        this.count[PK.value] = (this.count[PK.value] + add) * multiple;
       },
       async incrementAsync(): Promise<void> {
-        this.count[K.value] += 1;
+        this.count[PK.value] += 1;
       },
       log(_message: string): void {},
     }));
 
     const model = new MultiActionModel();
-    expect(model.count[K.value]).to.equal(0);
+    expect(model.count[PK.value]).to.equal(0);
 
     model.increment();
-    expect(model.count[K.value]).to.equal(1);
+    expect(model.count[PK.value]).to.equal(1);
 
     model.add(5);
-    expect(model.count[K.value]).to.equal(6);
+    expect(model.count[PK.value]).to.equal(6);
 
     model.addThenMultiply(4, 2);
-    expect(model.count[K.value]).to.equal(20);
+    expect(model.count[PK.value]).to.equal(20);
 
     await model.incrementAsync();
-    expect(model.count[K.value]).to.equal(21);
+    expect(model.count[PK.value]).to.equal(21);
 
     expect(() => model.log('Hello')).not.to.throw();
   });
@@ -2710,7 +2710,7 @@ describe('createModel', () => {
     const ErrorModel = createModel(() => {
       const count = signal(0);
       effect(() => {
-        count[K.value];
+        count[PK.value];
         effectRan = true;
       });
 
@@ -2726,7 +2726,7 @@ describe('createModel', () => {
       const InnerModel = createModel(() => ({
         count: signal(10),
         double() {
-          this.count[K.value] *= 2;
+          this.count[PK.value] *= 2;
         },
       }));
 
@@ -2735,24 +2735,24 @@ describe('createModel', () => {
         return {
           inner,
           incrementInner() {
-            this.inner.count[K.value] += 1;
+            this.inner.count[PK.value] += 1;
           },
         };
       });
 
       const outer = new OuterModel();
-      expect(outer.inner.count[K.value]).to.equal(10);
+      expect(outer.inner.count[PK.value]).to.equal(10);
 
       outer.incrementInner();
-      expect(outer.inner.count[K.value]).to.equal(11);
+      expect(outer.inner.count[PK.value]).to.equal(11);
 
       outer.inner.double();
-      expect(outer.inner.count[K.value]).to.equal(22);
+      expect(outer.inner.count[PK.value]).to.equal(22);
     });
 
     it('supports deep nesting (3+ levels)', () => {
       const Level3Model = createModel(() => ({
-        [K.value]: signal(1),
+        [PK.value]: signal(1),
       }));
 
       const Level2Model = createModel(() => ({
@@ -2766,12 +2766,12 @@ describe('createModel', () => {
       }));
 
       const model = new Level1Model();
-      expect(model.level2.level3[K.value][K.value]).to.equal(1);
-      expect(model.level2.multiplier[K.value]).to.equal(2);
-      expect(model.offset[K.value]).to.equal(10);
+      expect(model.level2.level3[PK.value][PK.value]).to.equal(1);
+      expect(model.level2.multiplier[PK.value]).to.equal(2);
+      expect(model.offset[PK.value]).to.equal(10);
 
-      model.level2.level3[K.value][K.value] = 5;
-      expect(model.level2.level3[K.value][K.value]).to.equal(5);
+      model.level2.level3[PK.value][PK.value] = 5;
+      expect(model.level2.level3[PK.value][PK.value]).to.equal(5);
     });
 
     it('captures and disposes effects at all nesting levels', () => {
@@ -2786,7 +2786,7 @@ describe('createModel', () => {
       const Level3Model = createModel(() => {
         const count = signal(0);
         effect(() => {
-          count[K.value];
+          count[PK.value];
           level3EffectRunCount++;
           return level3Cleanup;
         });
@@ -2796,7 +2796,7 @@ describe('createModel', () => {
       const Level2Model = createModel(() => {
         const level3 = new Level3Model();
         effect(() => {
-          level3.count[K.value];
+          level3.count[PK.value];
           level2EffectRunCount++;
           return level2Cleanup;
         });
@@ -2806,7 +2806,7 @@ describe('createModel', () => {
       const Level1Model = createModel(() => {
         const level2 = new Level2Model();
         effect(() => {
-          level2.level3.count[K.value];
+          level2.level3.count[PK.value];
           level1EffectRunCount++;
           return level1Cleanup;
         });
@@ -2818,7 +2818,7 @@ describe('createModel', () => {
       expect(level2EffectRunCount).to.equal(1);
       expect(level3EffectRunCount).to.equal(1);
 
-      model.level2.level3.count[K.value] = 1;
+      model.level2.level3.count[PK.value] = 1;
       expect(level1EffectRunCount).to.equal(2);
       expect(level2EffectRunCount).to.equal(2);
       expect(level3EffectRunCount).to.equal(2);
@@ -2829,7 +2829,7 @@ describe('createModel', () => {
       expect(level3Cleanup).toHaveBeenCalledTimes(2);
 
       // Effects should not run after disposal
-      model.level2.level3.count[K.value] = 2;
+      model.level2.level3.count[PK.value] = 2;
       expect(level1EffectRunCount).to.equal(2);
       expect(level2EffectRunCount).to.equal(2);
       expect(level3EffectRunCount).to.equal(2);
@@ -2853,7 +2853,7 @@ describe('createModel', () => {
         return {
           ...inner,
           increment() {
-            inner.count[K.value] += 1;
+            inner.count[PK.value] += 1;
           },
         };
       });
@@ -2863,12 +2863,12 @@ describe('createModel', () => {
       expect(innerEffectCleanup).not.toHaveBeenCalled();
 
       outer.increment();
-      expect(outer.count[K.value]).to.equal(1);
+      expect(outer.count[PK.value]).to.equal(1);
 
       outer[Symbol.dispose]();
       expect(innerEffectCleanup).toHaveBeenCalledTimes(1);
 
-      outer.count[K.value] = 2;
+      outer.count[PK.value] = 2;
       expect(innerEffectRunCount).to.equal(1);
       expect(innerEffectCleanup).toHaveBeenCalledTimes(1);
     });
@@ -2902,13 +2902,13 @@ describe('createModel', () => {
       const CounterModel = createModel(() => ({
         count: signal(0),
         increment() {
-          this.count[K.value]++;
+          this.count[PK.value]++;
         },
       }));
 
       const counter = new CounterModel();
       // @ts-expect-error Should fail cuz decrement does not exist in model interface
-      expect(() => (counter.does_not_exit[K.value] += 1)).to.throw();
+      expect(() => (counter.does_not_exit[PK.value] += 1)).to.throw();
       // @ts-expect-error Should fail cuz decrement does not exist in model interface
       expect(() => counter.decrement()).to.throw();
     });
@@ -2941,13 +2941,13 @@ describe('createModel', () => {
         return {
           count,
           increment() {
-            count[K.value]++;
+            count[PK.value]++;
           },
         };
       });
 
       let model = new EmptyArgModel();
-      expect(model.count[K.value]).to.equal(0);
+      expect(model.count[PK.value]).to.equal(0);
 
       // Single argument in an array
       const SingleArgModel = createModel<CounterModel, [number]>((initial) => {
@@ -2955,13 +2955,13 @@ describe('createModel', () => {
         return {
           count,
           increment() {
-            count[K.value]++;
+            count[PK.value]++;
           },
         };
       });
 
       model = new SingleArgModel(1);
-      expect(model.count[K.value]).to.equal(1);
+      expect(model.count[PK.value]).to.equal(1);
 
       // Multiple arguments in an array
       const MultiArgModel = createModel<CounterModel, [number, number]>(
@@ -2970,14 +2970,14 @@ describe('createModel', () => {
           return {
             count,
             increment() {
-              count[K.value] += step;
+              count[PK.value] += step;
             },
           };
         },
       );
 
       model = new MultiArgModel(5, 2);
-      expect(model.count[K.value]).to.equal(5);
+      expect(model.count[PK.value]).to.equal(5);
 
       // Named optional arguments
       // [number, number?] also allowed
@@ -2989,20 +2989,20 @@ describe('createModel', () => {
         return {
           count,
           increment() {
-            count[K.value] += step;
+            count[PK.value] += step;
           },
         };
       });
 
       model = new NamedMultiArgModel(10);
-      expect(model.count[K.value]).to.equal(10);
+      expect(model.count[PK.value]).to.equal(10);
       model.increment();
-      expect(model.count[K.value]).to.equal(11);
+      expect(model.count[PK.value]).to.equal(11);
 
       model = new NamedMultiArgModel(10, 5);
-      expect(model.count[K.value]).to.equal(10);
+      expect(model.count[PK.value]).to.equal(10);
       model.increment();
-      expect(model.count[K.value]).to.equal(15);
+      expect(model.count[PK.value]).to.equal(15);
     });
 
     it('ModelConstructor type params should validate various TFactoryArgs values', () => {
@@ -3017,13 +3017,13 @@ describe('createModel', () => {
         return {
           count,
           increment() {
-            count[K.value]++;
+            count[PK.value]++;
           },
         };
       });
 
       let model = new EmptyArgModel();
-      expect(model.count[K.value]).to.equal(0);
+      expect(model.count[PK.value]).to.equal(0);
 
       // Single argument in an array
       const SingleArgModel: ModelConstructor<CounterModel, [number]> =
@@ -3032,13 +3032,13 @@ describe('createModel', () => {
           return {
             count,
             increment() {
-              count[K.value]++;
+              count[PK.value]++;
             },
           };
         });
 
       model = new SingleArgModel(1);
-      expect(model.count[K.value]).to.equal(1);
+      expect(model.count[PK.value]).to.equal(1);
 
       // Multiple arguments in an array
       const MultiArgModel: ModelConstructor<CounterModel, [number, number]> =
@@ -3047,13 +3047,13 @@ describe('createModel', () => {
           return {
             count,
             increment() {
-              count[K.value] += step;
+              count[PK.value] += step;
             },
           };
         });
 
       model = new MultiArgModel(5, 2);
-      expect(model.count[K.value]).to.equal(5);
+      expect(model.count[PK.value]).to.equal(5);
 
       // Named optional arguments
       // [number, number?] also allowed
@@ -3065,20 +3065,20 @@ describe('createModel', () => {
         return {
           count,
           increment() {
-            count[K.value] += step;
+            count[PK.value] += step;
           },
         };
       });
 
       model = new NamedMultiArgModel(10);
-      expect(model.count[K.value]).to.equal(10);
+      expect(model.count[PK.value]).to.equal(10);
       model.increment();
-      expect(model.count[K.value]).to.equal(11);
+      expect(model.count[PK.value]).to.equal(11);
 
       model = new NamedMultiArgModel(10, 5);
-      expect(model.count[K.value]).to.equal(10);
+      expect(model.count[PK.value]).to.equal(10);
       model.increment();
-      expect(model.count[K.value]).to.equal(15);
+      expect(model.count[PK.value]).to.equal(15);
     });
 
     it('allows building custom createModel functions that enforces specific arguments', () => {
@@ -3116,16 +3116,16 @@ describe('createModel', () => {
           return {
             userId,
             setUserId(id: string) {
-              userId[K.value] = id;
+              userId[PK.value] = id;
             },
           };
         });
 
       const userModel = new UserModel({ userId: 'user_1' });
-      expect(userModel.userId[K.value]).to.equal('user_1');
+      expect(userModel.userId[PK.value]).to.equal('user_1');
 
       userModel.setUserId('user_2');
-      expect(userModel.userId[K.value]).to.equal('user_2');
+      expect(userModel.userId[PK.value]).to.equal('user_2');
     });
   });
 });

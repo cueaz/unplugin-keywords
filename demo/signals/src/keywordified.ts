@@ -8,12 +8,12 @@
  */
 
 import * as K from '~keywords';
-import * as L from '~keywords/local';
+import * as PK from '~keywords/public';
 
 // An named symbol/brand for detecting Signal instances even when they weren't
 // created using the same signals library version.
 // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-const BRAND_SYMBOL = Symbol.for(K['preact-signals']);
+const BRAND_SYMBOL = Symbol.for(PK['preact-signals']);
 
 // Flags for Computed and Effect.
 const RUNNING = 1 << 0;
@@ -27,24 +27,24 @@ const TRACKING = 1 << 5;
 // Also used to remember the source's last version number that the target saw.
 type Node = {
   // A source whose value the target depends on.
-  [L._source]: Signal;
-  [L._prevSource]?: Node | undefined;
-  [L._nextSource]?: Node | undefined;
+  [K._source]: Signal;
+  [K._prevSource]?: Node | undefined;
+  [K._nextSource]?: Node | undefined;
 
   // A target that depends on the source and should be notified when the source changes.
-  [L._target]: Computed | Effect;
-  [L._prevTarget]?: Node | undefined;
-  [L._nextTarget]?: Node | undefined;
+  [K._target]: Computed | Effect;
+  [K._prevTarget]?: Node | undefined;
+  [K._nextTarget]?: Node | undefined;
 
   // The version number of the source that target has last seen. We use version numbers
   // instead of storing the source value, because source values can take arbitrary amount
   // of memory, and computeds could hang on to them forever because they're lazily evaluated.
   // Use the special value -1 to mark potentially unused but recyclable nodes.
-  [L._version]: number;
+  [K._version]: number;
 
-  // Used to remember & roll back the source's previous `[L._node]` value when entering &
+  // Used to remember & roll back the source's previous `[K._node]` value when entering &
   // exiting a new evaluation context.
-  [L._rollbackNode]?: Node | undefined;
+  [K._rollbackNode]?: Node | undefined;
 };
 
 function startBatch() {
@@ -68,13 +68,13 @@ function endBatch() {
     batchIteration++;
 
     while (effect !== undefined) {
-      const next: Effect | undefined = effect[L._nextBatchedEffect];
-      effect[L._nextBatchedEffect] = undefined;
-      effect[L._flags] &= ~NOTIFIED;
+      const next: Effect | undefined = effect[K._nextBatchedEffect];
+      effect[K._nextBatchedEffect] = undefined;
+      effect[K._flags] &= ~NOTIFIED;
 
-      if (!(effect[L._flags] & DISPOSED) && needsToRecompute(effect)) {
+      if (!(effect[K._flags] & DISPOSED) && needsToRecompute(effect)) {
         try {
-          effect[L._callback]();
+          effect[K._callback]();
         } catch (err) {
           if (!hasError) {
             error = err;
@@ -144,10 +144,10 @@ let batchDepth = 0;
 let batchIteration = 0;
 
 type BatchSnapshot = {
-  [L._source]: Signal;
-  [L._value]: unknown;
-  [L._version]: number;
-  [L._next]?: BatchSnapshot | undefined;
+  [K._source]: Signal;
+  [K._value]: unknown;
+  [K._version]: number;
+  [K._next]?: BatchSnapshot | undefined;
 };
 
 let batchSnapshotVersion = 0;
@@ -155,7 +155,7 @@ let currentBatchSnapshotVersion = 0;
 let batchSnapshots: BatchSnapshot | undefined;
 
 // A global version number for signals, used for fast-pathing repeated
-// computed[K.peek]()/computed[K.value] calls when nothing has changed globally.
+// computed[PK.peek]()/computed[PK.value] calls when nothing has changed globally.
 let globalVersion = 0;
 
 function recordBatchSnapshot(source: Signal) {
@@ -164,13 +164,13 @@ function recordBatchSnapshot(source: Signal) {
     return;
   }
 
-  if (source[L._batchSnapshotVersion] !== currentBatchSnapshotVersion) {
-    source[L._batchSnapshotVersion] = currentBatchSnapshotVersion;
+  if (source[K._batchSnapshotVersion] !== currentBatchSnapshotVersion) {
+    source[K._batchSnapshotVersion] = currentBatchSnapshotVersion;
     batchSnapshots = {
-      [L._source]: source,
-      [L._value]: source[L._value],
-      [L._version]: source[L._version],
-      [L._next]: batchSnapshots,
+      [K._source]: source,
+      [K._value]: source[K._value],
+      [K._version]: source[K._version],
+      [K._next]: batchSnapshots,
     };
   }
 }
@@ -180,10 +180,10 @@ function reconcileBatchSnapshots() {
   batchSnapshots = undefined;
 
   while (snapshots !== undefined) {
-    if (snapshots[L._source][L._value] === snapshots[L._value]) {
-      snapshots[L._source][L._version] = snapshots[L._version];
+    if (snapshots[K._source][K._value] === snapshots[K._value]) {
+      snapshots[K._source][K._version] = snapshots[K._version];
     }
-    snapshots = snapshots[L._next];
+    snapshots = snapshots[K._next];
   }
 }
 
@@ -192,8 +192,8 @@ function addDependency(signal: Signal): Node | undefined {
     return undefined;
   }
 
-  let node = signal[L._node];
-  if (node === undefined || node[L._target] !== evalContext) {
+  let node = signal[K._node];
+  if (node === undefined || node[K._target] !== evalContext) {
     /**
      * `signal` is a new dependency. Create a new dependency node, and set it
      * as the tail of the current context's dependency list. e.g:
@@ -204,34 +204,34 @@ function addDependency(signal: Signal): Node | undefined {
      *               ↓
      * { A <-> B <-> C }
      *               ↑
-     *              tail (evalContext[L._sources])
+     *              tail (evalContext[K._sources])
      */
     node = {
-      [L._version]: 0,
-      [L._source]: signal,
-      [L._prevSource]: evalContext[L._sources],
-      [L._nextSource]: undefined,
-      [L._target]: evalContext,
-      [L._prevTarget]: undefined,
-      [L._nextTarget]: undefined,
-      [L._rollbackNode]: node,
+      [K._version]: 0,
+      [K._source]: signal,
+      [K._prevSource]: evalContext[K._sources],
+      [K._nextSource]: undefined,
+      [K._target]: evalContext,
+      [K._prevTarget]: undefined,
+      [K._nextTarget]: undefined,
+      [K._rollbackNode]: node,
     };
 
-    if (evalContext[L._sources] !== undefined) {
-      evalContext[L._sources][L._nextSource] = node;
+    if (evalContext[K._sources] !== undefined) {
+      evalContext[K._sources][K._nextSource] = node;
     }
-    evalContext[L._sources] = node;
-    signal[L._node] = node;
+    evalContext[K._sources] = node;
+    signal[K._node] = node;
 
     // Subscribe to change notifications from this dependency if we're in an effect
     // OR evaluating a computed signal that in turn has subscribers.
-    if (evalContext[L._flags] & TRACKING) {
-      signal[L._subscribe](node);
+    if (evalContext[K._flags] & TRACKING) {
+      signal[K._subscribe](node);
     }
     return node;
-  } else if (node[L._version] === -1) {
+  } else if (node[K._version] === -1) {
     // `signal` is an existing dependency from a previous evaluation. Reuse it.
-    node[L._version] = 0;
+    node[K._version] = 0;
 
     /**
      * If `node` is not already the current tail of the dependency list (i.e.
@@ -239,26 +239,26 @@ function addDependency(signal: Signal): Node | undefined {
      *
      * { A <-> B <-> C <-> D }
      *         ↑           ↑
-     *        node   ┌─── tail (evalContext[L._sources])
+     *        node   ┌─── tail (evalContext[K._sources])
      *         └─────│─────┐
      *               ↓     ↓
      * { A <-> C <-> D <-> B }
      *                     ↑
-     *                    tail (evalContext[L._sources])
+     *                    tail (evalContext[K._sources])
      */
-    if (node[L._nextSource] !== undefined) {
-      node[L._nextSource][L._prevSource] = node[L._prevSource];
+    if (node[K._nextSource] !== undefined) {
+      node[K._nextSource][K._prevSource] = node[K._prevSource];
 
-      if (node[L._prevSource] !== undefined) {
-        node[L._prevSource][L._nextSource] = node[L._nextSource];
+      if (node[K._prevSource] !== undefined) {
+        node[K._prevSource][K._nextSource] = node[K._nextSource];
       }
 
-      node[L._prevSource] = evalContext[L._sources];
-      node[L._nextSource] = undefined;
+      node[K._prevSource] = evalContext[K._sources];
+      node[K._nextSource] = undefined;
 
-      if (evalContext[L._sources])
-        evalContext[L._sources][L._nextSource] = node;
-      evalContext[L._sources] = node;
+      if (evalContext[K._sources])
+        evalContext[K._sources][K._nextSource] = node;
+      evalContext[K._sources] = node;
     }
 
     // We can assume that the currently evaluated effect / computed signal is already
@@ -275,59 +275,59 @@ function addDependency(signal: Signal): Node | undefined {
  */
 interface Signal<T = unknown> {
   /** @internal */
-  [L._value]: unknown;
+  [K._value]: unknown;
 
   /**
    * @internal
    * Version numbers should always be >= 0, because the special value -1 is used
    * by Nodes to signify potentially unused but recyclable nodes.
    */
-  [L._version]: number;
+  [K._version]: number;
 
   /** @internal */
-  [L._node]?: Node | undefined;
+  [K._node]?: Node | undefined;
 
   /** @internal */
-  [L._targets]?: Node | undefined;
+  [K._targets]?: Node | undefined;
 
   /** @internal */
-  [L._batchSnapshotVersion]: number;
+  [K._batchSnapshotVersion]: number;
 
   /** @internal */
-  [L._refresh](): boolean;
+  [K._refresh](): boolean;
 
   /** @internal */
-  [L._subscribe](node: Node): void;
+  [K._subscribe](node: Node): void;
 
   /** @internal */
-  [L._unsubscribe](node: Node): void;
+  [K._unsubscribe](node: Node): void;
 
   /** @internal */
-  [L._watched]?: ((this: Signal<T>) => void) | undefined;
+  [K._watched]?: ((this: Signal<T>) => void) | undefined;
 
   /** @internal */
-  [L._unwatched]?: ((this: Signal<T>) => void) | undefined;
+  [K._unwatched]?: ((this: Signal<T>) => void) | undefined;
 
-  [K.subscribe](fn: (value: T) => void): () => void;
+  [PK.subscribe](fn: (value: T) => void): () => void;
 
-  [K.name]?: string | undefined;
+  [PK.name]?: string | undefined;
 
-  [K.peek](): T;
+  [PK.peek](): T;
 
-  [K.brand]: typeof BRAND_SYMBOL;
+  [PK.brand]: typeof BRAND_SYMBOL;
 
   valueOf(): T;
   toString(): string;
   toJSON(): T;
 
-  get [K.value](): T;
-  set [K.value](value: T);
+  get [PK.value](): T;
+  set [PK.value](value: T);
 }
 
 export interface SignalOptions<T = unknown> {
-  [K.watched]?: (this: Signal<T>) => void;
-  [K.unwatched]?: (this: Signal<T>) => void;
-  [K.name]?: string | undefined;
+  [PK.watched]?: (this: Signal<T>) => void;
+  [PK.unwatched]?: (this: Signal<T>) => void;
+  [PK.name]?: string | undefined;
 }
 
 export interface SignalConstructor {
@@ -342,66 +342,66 @@ const Signal = function (
   value?: unknown,
   options?: SignalOptions,
 ) {
-  this[L._value] = value;
-  this[L._version] = 0;
-  this[L._node] = undefined;
-  this[L._targets] = undefined;
-  this[L._batchSnapshotVersion] = 0;
-  this[L._watched] = options?.[K.watched];
-  this[L._unwatched] = options?.[K.unwatched];
-  this[K.name] = options?.[K.name];
+  this[K._value] = value;
+  this[K._version] = 0;
+  this[K._node] = undefined;
+  this[K._targets] = undefined;
+  this[K._batchSnapshotVersion] = 0;
+  this[K._watched] = options?.[PK.watched];
+  this[K._unwatched] = options?.[PK.unwatched];
+  this[PK.name] = options?.[PK.name];
 } as unknown as SignalConstructor;
 
-Signal.prototype[K.brand] = BRAND_SYMBOL;
+Signal.prototype[PK.brand] = BRAND_SYMBOL;
 
-Signal.prototype[L._refresh] = () => true;
+Signal.prototype[K._refresh] = () => true;
 
-Signal.prototype[L._subscribe] = function (node) {
-  const targets = this[L._targets];
-  if (targets !== node && node[L._prevTarget] === undefined) {
-    node[L._nextTarget] = targets;
-    this[L._targets] = node;
+Signal.prototype[K._subscribe] = function (node) {
+  const targets = this[K._targets];
+  if (targets !== node && node[K._prevTarget] === undefined) {
+    node[K._nextTarget] = targets;
+    this[K._targets] = node;
 
     if (targets !== undefined) {
-      targets[L._prevTarget] = node;
+      targets[K._prevTarget] = node;
     } else {
       untracked(() => {
-        this[L._watched]?.call(this);
+        this[K._watched]?.call(this);
       });
     }
   }
 };
 
-Signal.prototype[L._unsubscribe] = function (node) {
+Signal.prototype[K._unsubscribe] = function (node) {
   // Only run the unsubscribe step if the signal has any subscribers to begin with.
-  if (this[L._targets] !== undefined) {
-    const prev = node[L._prevTarget];
-    const next = node[L._nextTarget];
+  if (this[K._targets] !== undefined) {
+    const prev = node[K._prevTarget];
+    const next = node[K._nextTarget];
     if (prev !== undefined) {
-      prev[L._nextTarget] = next;
-      node[L._prevTarget] = undefined;
+      prev[K._nextTarget] = next;
+      node[K._prevTarget] = undefined;
     }
 
     if (next !== undefined) {
-      next[L._prevTarget] = prev;
-      node[L._nextTarget] = undefined;
+      next[K._prevTarget] = prev;
+      node[K._nextTarget] = undefined;
     }
 
-    if (node === this[L._targets]) {
-      this[L._targets] = next;
+    if (node === this[K._targets]) {
+      this[K._targets] = next;
       if (next === undefined) {
         untracked(() => {
-          this[L._unwatched]?.call(this);
+          this[K._unwatched]?.call(this);
         });
       }
     }
   }
 };
 
-Signal.prototype[K.subscribe] = function (fn) {
+Signal.prototype[PK.subscribe] = function (fn) {
   return effect(
     () => {
-      const value = this[K.value];
+      const value = this[PK.value];
       const prevContext = evalContext;
       evalContext = undefined;
       try {
@@ -411,55 +411,55 @@ Signal.prototype[K.subscribe] = function (fn) {
       }
       return undefined;
     },
-    { [K.name]: K.sub },
+    { [PK.name]: PK.sub },
   );
 };
 
-Signal.prototype[K.peek] = function () {
-  return untracked(() => this[K.value]);
+Signal.prototype[PK.peek] = function () {
+  return untracked(() => this[PK.value]);
 };
 
 Signal.prototype.valueOf = function () {
-  return this[K.value];
+  return this[PK.value];
 };
 
 Signal.prototype.toString = function () {
   // biome-ignore lint/style/useTemplate: compatibility with original signals-core (+ '' uses valueOf, template literal uses toString)
-  return this[K.value] + '';
+  return this[PK.value] + '';
 };
 
 Signal.prototype.toJSON = function () {
-  return this[K.value];
+  return this[PK.value];
 };
 
-Object.defineProperty(Signal.prototype, K.value, {
+Object.defineProperty(Signal.prototype, PK.value, {
   get(this: Signal) {
     const node = addDependency(this);
     if (node !== undefined) {
-      node[L._version] = this[L._version];
+      node[K._version] = this[K._version];
     }
-    return this[L._value];
+    return this[K._value];
   },
   set(this: Signal, value) {
-    if (value !== this[L._value]) {
+    if (value !== this[K._value]) {
       if (batchIteration > 100) {
         // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-        throw new Error(K['Cycle detected']);
+        throw new Error(PK['Cycle detected']);
       }
 
       recordBatchSnapshot(this);
-      this[L._value] = value;
-      this[L._version]++;
+      this[K._value] = value;
+      this[K._version]++;
       globalVersion++;
 
       /*@__INLINE__*/ startBatch();
       try {
         for (
-          let node = this[L._targets];
+          let node = this[K._targets];
           node !== undefined;
-          node = node[L._nextTarget]
+          node = node[K._nextTarget]
         ) {
-          node[L._target][L._notify]();
+          node[K._target][K._notify]();
         }
       } finally {
         endBatch();
@@ -489,21 +489,21 @@ function needsToRecompute(target: Computed | Effect): boolean {
   // in order of use. Therefore if multiple dependencies have changed values, only
   // the first used dependency is re-evaluated at this point.
   for (
-    let node = target[L._sources];
+    let node = target[K._sources];
     node !== undefined;
-    node = node[L._nextSource]
+    node = node[K._nextSource]
   ) {
     if (
       // If the dependency has definitely been updated since its version number
       // was observed, then we need to recompute. This first check is not strictly
       // necessary for correctness, but allows us to skip the refresh call if the
       // dependency has already been updated.
-      node[L._source][L._version] !== node[L._version] ||
+      node[K._source][K._version] !== node[K._version] ||
       // Refresh the dependency. If there's something blocking the refresh (e.g. a
       // dependency cycle), then we need to recompute.
-      !node[L._source][L._refresh]() ||
+      !node[K._source][K._refresh]() ||
       // If the dependency got a new version after the refresh, then we need to recompute.
-      node[L._source][L._version] !== node[L._version]
+      node[K._source][K._version] !== node[K._version]
     ) {
       return true;
     }
@@ -517,45 +517,45 @@ function prepareSources(target: Computed | Effect) {
   /**
    * 1. Mark all current sources as re-usable nodes (version: -1)
    * 2. Set a rollback node if the current node is being used in a different context
-   * 3. Point 'target[L._sources]' to the tail of the doubly-linked list, e.g:
+   * 3. Point 'target[K._sources]' to the tail of the doubly-linked list, e.g:
    *
    *    { undefined <- A <-> B <-> C -> undefined }
    *                   ↑           ↑
    *                   │           └──────────┐
-   * target[L._sources] = A; (node is head)   │
+   * target[K._sources] = A; (node is head)   │
    *                   ↓                      │
-   * target[L._sources] = C; (node is tail) ──┘
+   * target[K._sources] = C; (node is tail) ──┘
    */
   for (
-    let node = target[L._sources];
+    let node = target[K._sources];
     node !== undefined;
-    node = node[L._nextSource]
+    node = node[K._nextSource]
   ) {
-    const rollbackNode = node[L._source][L._node];
+    const rollbackNode = node[K._source][K._node];
     if (rollbackNode !== undefined) {
-      node[L._rollbackNode] = rollbackNode;
+      node[K._rollbackNode] = rollbackNode;
     }
-    node[L._source][L._node] = node;
-    node[L._version] = -1;
+    node[K._source][K._node] = node;
+    node[K._version] = -1;
 
-    if (node[L._nextSource] === undefined) {
-      target[L._sources] = node;
+    if (node[K._nextSource] === undefined) {
+      target[K._sources] = node;
       break;
     }
   }
 }
 
 function cleanupSources(target: Computed | Effect) {
-  let node = target[L._sources];
+  let node = target[K._sources];
   let head: Node | undefined;
 
   /**
-   * At this point 'target[L._sources]' points to the tail of the doubly-linked list.
+   * At this point 'target[K._sources]' points to the tail of the doubly-linked list.
    * It contains all existing sources + new sources in order of use.
    * Iterate backwards until we find the head node while dropping old dependencies.
    */
   while (node !== undefined) {
-    const prev = node[L._prevSource];
+    const prev = node[K._prevSource];
 
     /**
      * The node was not re-used, unsubscribe from its change notifications and remove itself
@@ -565,14 +565,14 @@ function cleanupSources(target: Computed | Effect) {
      *         ↓
      *    { A <-> C }
      */
-    if (node[L._version] === -1) {
-      node[L._source][L._unsubscribe](node);
+    if (node[K._version] === -1) {
+      node[K._source][K._unsubscribe](node);
 
       if (prev !== undefined) {
-        prev[L._nextSource] = node[L._nextSource];
+        prev[K._nextSource] = node[K._nextSource];
       }
-      if (node[L._nextSource] !== undefined) {
-        node[L._nextSource][L._prevSource] = prev;
+      if (node[K._nextSource] !== undefined) {
+        node[K._nextSource][K._prevSource] = prev;
       }
     } else {
       /**
@@ -588,28 +588,28 @@ function cleanupSources(target: Computed | Effect) {
       head = node;
     }
 
-    node[L._source][L._node] = node[L._rollbackNode];
-    if (node[L._rollbackNode] !== undefined) {
-      node[L._rollbackNode] = undefined;
+    node[K._source][K._node] = node[K._rollbackNode];
+    if (node[K._rollbackNode] !== undefined) {
+      node[K._rollbackNode] = undefined;
     }
 
     node = prev;
   }
 
-  target[L._sources] = head;
+  target[K._sources] = head;
 }
 
 /**
  * The base class for computed signals.
  */
 interface Computed<T = unknown> extends Signal<T> {
-  [L._fn]: () => T;
-  [L._sources]?: Node | undefined;
-  [L._globalVersion]: number;
-  [L._flags]: number;
+  [K._fn]: () => T;
+  [K._sources]?: Node | undefined;
+  [K._globalVersion]: number;
+  [K._flags]: number;
 
-  [L._notify](): void;
-  get [K.value](): T;
+  [K._notify](): void;
+  get [PK.value](): T;
 }
 
 export interface ComputedConstructor {
@@ -625,43 +625,43 @@ const Computed = function (
   options?: SignalOptions,
 ) {
   Signal.call(this, undefined);
-  this[L._fn] = fn;
-  this[L._sources] = undefined;
-  this[L._globalVersion] = globalVersion - 1;
-  this[L._flags] = OUTDATED;
-  this[L._watched] = options?.[K.watched];
-  this[L._unwatched] = options?.[K.unwatched];
-  this[K.name] = options?.[K.name];
+  this[K._fn] = fn;
+  this[K._sources] = undefined;
+  this[K._globalVersion] = globalVersion - 1;
+  this[K._flags] = OUTDATED;
+  this[K._watched] = options?.[PK.watched];
+  this[K._unwatched] = options?.[PK.unwatched];
+  this[PK.name] = options?.[PK.name];
 } as unknown as ComputedConstructor;
 
 (Computed as unknown as { prototype: Computed }).prototype =
   new Signal() as Computed;
 
-Computed.prototype[L._refresh] = function () {
-  this[L._flags] &= ~NOTIFIED;
+Computed.prototype[K._refresh] = function () {
+  this[K._flags] &= ~NOTIFIED;
 
-  if (this[L._flags] & RUNNING) {
+  if (this[K._flags] & RUNNING) {
     return false;
   }
 
   // If this computed signal has subscribed to updates from its dependencies
   // (TRACKING flag set) and none of them have notified about changes (OUTDATED
   // flag not set), then the computed value can't have changed.
-  if ((this[L._flags] & (OUTDATED | TRACKING)) === TRACKING) {
+  if ((this[K._flags] & (OUTDATED | TRACKING)) === TRACKING) {
     return true;
   }
-  this[L._flags] &= ~OUTDATED;
+  this[K._flags] &= ~OUTDATED;
 
-  if (this[L._globalVersion] === globalVersion) {
+  if (this[K._globalVersion] === globalVersion) {
     return true;
   }
-  this[L._globalVersion] = globalVersion;
+  this[K._globalVersion] = globalVersion;
 
   // Mark this computed signal running before checking the dependencies for value
   // changes, so that the RUNNING flag can be used to notice cyclical dependencies.
-  this[L._flags] |= RUNNING;
-  if (this[L._version] > 0 && !needsToRecompute(this)) {
-    this[L._flags] &= ~RUNNING;
+  this[K._flags] |= RUNNING;
+  if (this[K._version] > 0 && !needsToRecompute(this)) {
+    this[K._flags] &= ~RUNNING;
     return true;
   }
 
@@ -669,94 +669,94 @@ Computed.prototype[L._refresh] = function () {
   try {
     prepareSources(this);
     evalContext = this;
-    const value = this[L._fn]();
+    const value = this[K._fn]();
     if (
-      this[L._flags] & HAS_ERROR ||
-      this[L._value] !== value ||
-      this[L._version] === 0
+      this[K._flags] & HAS_ERROR ||
+      this[K._value] !== value ||
+      this[K._version] === 0
     ) {
-      this[L._value] = value;
-      this[L._flags] &= ~HAS_ERROR;
-      this[L._version]++;
+      this[K._value] = value;
+      this[K._flags] &= ~HAS_ERROR;
+      this[K._version]++;
     }
   } catch (err) {
-    this[L._value] = err;
-    this[L._flags] |= HAS_ERROR;
-    this[L._version]++;
+    this[K._value] = err;
+    this[K._flags] |= HAS_ERROR;
+    this[K._version]++;
   }
   evalContext = prevContext;
   cleanupSources(this);
-  this[L._flags] &= ~RUNNING;
+  this[K._flags] &= ~RUNNING;
   return true;
 };
 
-Computed.prototype[L._subscribe] = function (node) {
-  if (this[L._targets] === undefined) {
-    this[L._flags] |= OUTDATED | TRACKING;
+Computed.prototype[K._subscribe] = function (node) {
+  if (this[K._targets] === undefined) {
+    this[K._flags] |= OUTDATED | TRACKING;
 
     // A computed signal subscribes lazily to its dependencies when it
     // gets its first subscriber.
     for (
-      let node = this[L._sources];
+      let node = this[K._sources];
       node !== undefined;
-      node = node[L._nextSource]
+      node = node[K._nextSource]
     ) {
-      node[L._source][L._subscribe](node);
+      node[K._source][K._subscribe](node);
     }
   }
-  Signal.prototype[L._subscribe].call(this, node);
+  Signal.prototype[K._subscribe].call(this, node);
 };
 
-Computed.prototype[L._unsubscribe] = function (node) {
+Computed.prototype[K._unsubscribe] = function (node) {
   // Only run the unsubscribe step if the computed signal has any subscribers.
-  if (this[L._targets] !== undefined) {
-    Signal.prototype[L._unsubscribe].call(this, node);
+  if (this[K._targets] !== undefined) {
+    Signal.prototype[K._unsubscribe].call(this, node);
 
     // Computed signal unsubscribes from its dependencies when it loses its last subscriber.
     // This makes it possible for unreferences subgraphs of computed signals to get garbage collected.
-    if (this[L._targets] === undefined) {
-      this[L._flags] &= ~TRACKING;
+    if (this[K._targets] === undefined) {
+      this[K._flags] &= ~TRACKING;
 
       for (
-        let node = this[L._sources];
+        let node = this[K._sources];
         node !== undefined;
-        node = node[L._nextSource]
+        node = node[K._nextSource]
       ) {
-        node[L._source][L._unsubscribe](node);
+        node[K._source][K._unsubscribe](node);
       }
     }
   }
 };
 
-Computed.prototype[L._notify] = function () {
-  if (!(this[L._flags] & NOTIFIED)) {
-    this[L._flags] |= OUTDATED | NOTIFIED;
+Computed.prototype[K._notify] = function () {
+  if (!(this[K._flags] & NOTIFIED)) {
+    this[K._flags] |= OUTDATED | NOTIFIED;
 
     for (
-      let node = this[L._targets];
+      let node = this[K._targets];
       node !== undefined;
-      node = node[L._nextTarget]
+      node = node[K._nextTarget]
     ) {
-      node[L._target][L._notify]();
+      node[K._target][K._notify]();
     }
   }
 };
 
-Object.defineProperty(Computed.prototype, K.value, {
+Object.defineProperty(Computed.prototype, PK.value, {
   get(this: Computed) {
-    if (this[L._flags] & RUNNING) {
+    if (this[K._flags] & RUNNING) {
       // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-      throw new Error(K['Cycle detected']);
+      throw new Error(PK['Cycle detected']);
     }
     const node = addDependency(this);
-    this[L._refresh]();
+    this[K._refresh]();
     if (node !== undefined) {
-      node[L._version] = this[L._version];
+      node[K._version] = this[K._version];
     }
-    if (this[L._flags] & HAS_ERROR) {
-      throw this[L._value];
+    if (this[K._flags] & HAS_ERROR) {
+      throw this[K._value];
     }
-    return this[L._value];
+    return this[K._value];
   },
 });
 
@@ -764,14 +764,14 @@ Object.defineProperty(Computed.prototype, K.value, {
  * An interface for read-only signals.
  */
 interface ReadonlySignal<T = unknown> {
-  readonly [K.value]: T;
-  [K.peek](): T;
+  readonly [PK.value]: T;
+  [PK.peek](): T;
 
-  [K.subscribe](fn: (value: T) => void): () => void;
+  [PK.subscribe](fn: (value: T) => void): () => void;
   valueOf(): T;
   toString(): string;
   toJSON(): T;
-  [K.brand]: typeof BRAND_SYMBOL;
+  [PK.brand]: typeof BRAND_SYMBOL;
 }
 
 /**
@@ -795,8 +795,8 @@ function computed<T>(
 //#region Effect
 
 function cleanupEffect(effect: Effect) {
-  const cleanup = effect[L._cleanup];
-  effect[L._cleanup] = undefined;
+  const cleanup = effect[K._cleanup];
+  effect[K._cleanup] = undefined;
 
   if (typeof cleanup === 'function') {
     /*@__INLINE__*/ startBatch();
@@ -807,8 +807,8 @@ function cleanupEffect(effect: Effect) {
     try {
       cleanup();
     } catch (err) {
-      effect[L._flags] &= ~RUNNING;
-      effect[L._flags] |= DISPOSED;
+      effect[K._flags] &= ~RUNNING;
+      effect[K._flags] |= DISPOSED;
       disposeEffect(effect);
       throw err;
     } finally {
@@ -820,14 +820,14 @@ function cleanupEffect(effect: Effect) {
 
 function disposeEffect(effect: Effect) {
   for (
-    let node = effect[L._sources];
+    let node = effect[K._sources];
     node !== undefined;
-    node = node[L._nextSource]
+    node = node[K._nextSource]
   ) {
-    node[L._source][L._unsubscribe](node);
+    node[K._source][K._unsubscribe](node);
   }
-  effect[L._fn] = undefined;
-  effect[L._sources] = undefined;
+  effect[K._fn] = undefined;
+  effect[K._sources] = undefined;
 
   cleanupEffect(effect);
 }
@@ -835,13 +835,13 @@ function disposeEffect(effect: Effect) {
 function endEffect(this: Effect, prevContext?: Computed | Effect) {
   if (evalContext !== this) {
     // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-    throw new Error(K['Out-of-order effect']);
+    throw new Error(PK['Out-of-order effect']);
   }
   cleanupSources(this);
   evalContext = prevContext;
 
-  this[L._flags] &= ~RUNNING;
-  if (this[L._flags] & DISPOSED) {
+  this[K._flags] &= ~RUNNING;
+  if (this[K._flags] & DISPOSED) {
     disposeEffect(this);
   }
   endBatch();
@@ -849,7 +849,7 @@ function endEffect(this: Effect, prevContext?: Computed | Effect) {
 
 export type EffectFn =
   // biome-ignore lint/suspicious/noConfusingVoidType: compatibility with original signals-core
-  | ((this: { [K.dispose]: () => void }) => void | (() => void))
+  | ((this: { [PK.dispose]: () => void }) => void | (() => void))
   // biome-ignore lint/suspicious/noConfusingVoidType: compatibility with original signals-core
   | (() => void | (() => void));
 
@@ -867,19 +867,19 @@ type DisposeFn = (() => void) & DisposableLike;
  * The base class for reactive effects.
  */
 interface Effect {
-  [L._fn]?: EffectFn | undefined;
-  [L._cleanup]?: (() => void) | undefined;
-  [L._sources]?: Node | undefined;
-  [L._nextBatchedEffect]?: Effect | undefined;
-  [L._flags]: number;
-  [L._debugCallback]?: (() => void) | undefined;
-  [K.name]?: string | undefined;
+  [K._fn]?: EffectFn | undefined;
+  [K._cleanup]?: (() => void) | undefined;
+  [K._sources]?: Node | undefined;
+  [K._nextBatchedEffect]?: Effect | undefined;
+  [K._flags]: number;
+  [K._debugCallback]?: (() => void) | undefined;
+  [PK.name]?: string | undefined;
 
-  [L._callback](): void;
-  [L._start](): () => void;
-  [L._notify](): void;
-  [L._dispose](): void;
-  [K.dispose](): void;
+  [K._callback](): void;
+  [K._start](): () => void;
+  [K._notify](): void;
+  [K._dispose](): void;
+  [PK.dispose](): void;
 }
 
 export interface EffectConstructor {
@@ -889,46 +889,46 @@ export interface EffectConstructor {
 }
 
 export interface EffectOptions {
-  [K.name]?: string | undefined;
+  [PK.name]?: string | undefined;
 }
 
 let capturedEffects: Effect[] | undefined;
 
 /** @internal */
 const Effect = function (this: Effect, fn: EffectFn, options?: EffectOptions) {
-  this[L._fn] = fn;
-  this[L._cleanup] = undefined;
-  this[L._sources] = undefined;
-  this[L._nextBatchedEffect] = undefined;
-  this[L._flags] = TRACKING;
-  this[K.name] = options?.[K.name];
+  this[K._fn] = fn;
+  this[K._cleanup] = undefined;
+  this[K._sources] = undefined;
+  this[K._nextBatchedEffect] = undefined;
+  this[K._flags] = TRACKING;
+  this[PK.name] = options?.[PK.name];
   if (capturedEffects) {
     capturedEffects.push(this);
   }
 } as unknown as EffectConstructor;
 
-Effect.prototype[L._callback] = function () {
-  const finish = this[L._start]();
+Effect.prototype[K._callback] = function () {
+  const finish = this[K._start]();
   try {
-    if (this[L._flags] & DISPOSED) return;
-    if (this[L._fn] === undefined) return;
+    if (this[K._flags] & DISPOSED) return;
+    if (this[K._fn] === undefined) return;
 
-    const cleanup = this[L._fn]();
+    const cleanup = this[K._fn]();
     if (typeof cleanup === 'function') {
-      this[L._cleanup] = cleanup;
+      this[K._cleanup] = cleanup;
     }
   } finally {
     finish();
   }
 };
 
-Effect.prototype[L._start] = function () {
-  if (this[L._flags] & RUNNING) {
+Effect.prototype[K._start] = function () {
+  if (this[K._flags] & RUNNING) {
     // biome-ignore lint/performance/noDynamicNamespaceImportAccess: tree-shakable
-    throw new Error(K['Cycle detected']);
+    throw new Error(PK['Cycle detected']);
   }
-  this[L._flags] |= RUNNING;
-  this[L._flags] &= ~DISPOSED;
+  this[K._flags] |= RUNNING;
+  this[K._flags] &= ~DISPOSED;
   cleanupEffect(this);
   prepareSources(this);
 
@@ -938,24 +938,24 @@ Effect.prototype[L._start] = function () {
   return endEffect.bind(this, prevContext);
 };
 
-Effect.prototype[L._notify] = function () {
-  if (!(this[L._flags] & NOTIFIED)) {
-    this[L._flags] |= NOTIFIED;
-    this[L._nextBatchedEffect] = batchedEffect;
+Effect.prototype[K._notify] = function () {
+  if (!(this[K._flags] & NOTIFIED)) {
+    this[K._flags] |= NOTIFIED;
+    this[K._nextBatchedEffect] = batchedEffect;
     batchedEffect = this;
   }
 };
 
-Effect.prototype[L._dispose] = function () {
-  this[L._flags] |= DISPOSED;
+Effect.prototype[K._dispose] = function () {
+  this[K._flags] |= DISPOSED;
 
-  if (!(this[L._flags] & RUNNING)) {
+  if (!(this[K._flags] & RUNNING)) {
     disposeEffect(this);
   }
 };
 
-Effect.prototype[K.dispose] = function () {
-  this[L._dispose]();
+Effect.prototype[PK.dispose] = function () {
+  this[K._dispose]();
 };
 /**
  * Create an effect to run arbitrary code in response to signal changes.
@@ -973,14 +973,14 @@ Effect.prototype[K.dispose] = function () {
 function effect(fn: EffectFn, options?: EffectOptions): DisposeFn {
   const effect = new Effect(fn, options);
   try {
-    effect[L._callback]();
+    effect[K._callback]();
   } catch (err) {
-    effect[L._dispose]();
+    effect[K._dispose]();
     throw err;
   }
-  // Return a bound function instead of a wrapper like `() => effect[L._dispose]()`,
+  // Return a bound function instead of a wrapper like `() => effect[K._dispose]()`,
   // because bound functions seem to be just as fast and take up a lot less memory.
-  const dispose = effect[L._dispose].bind(effect);
+  const dispose = effect[K._dispose].bind(effect);
   Object.assign(dispose, { [Symbol.dispose]: dispose });
   return dispose as DisposeFn;
 }
@@ -1083,7 +1083,7 @@ const wrapInAction = (value: Record<string | symbol, unknown>) => {
     } else if (
       typeof val === 'object' &&
       val !== null &&
-      !(K.brand in (val as Record<PropertyKey, unknown>))
+      !(PK.brand in (val as Record<PropertyKey, unknown>))
     ) {
       // Recursively wrap nested object properties in actions. This allows users to write
       // nested models without worrying about wrapping their functions in `action`.
@@ -1118,7 +1118,7 @@ function createModel<TModel, TFactoryArgs extends unknown[] = []>(
       const effects = modelEffects;
       if (effects) {
         for (let i = 0; i < effects.length; i++) {
-          effects[i]?.[K.dispose]();
+          effects[i]?.[PK.dispose]();
         }
       }
 

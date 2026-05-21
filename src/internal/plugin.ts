@@ -11,8 +11,8 @@ import {
   DEBUG_SEPARATOR,
   KEYWORD_ROUTE_SEGMENT,
   PLUGIN_NAME,
-  VIRTUAL_LOCAL_MODULE_ID,
   VIRTUAL_MODULE_ID,
+  VIRTUAL_PUBLIC_MODULE_ID,
 } from './constants.js';
 import { encodeIdentifier } from './encode.js';
 import { createCounter, createHasher, type Hasher } from './hash.js';
@@ -58,24 +58,24 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
 }) => {
   const runner = createRunner({ silent: true });
   const runnerLimit = pLimit({ concurrency: 1 });
-  const typegenKeywords: KeywordSet = { main: new Set(), local: new Set() };
+  const typegenKeywords: KeywordSet = { local: new Set(), public: new Set() };
 
   let isInitialized = false;
   const runInit = async () => {
     try {
       const keywords = await runner.collect();
-      for (const keyword of keywords.main) {
-        typegenKeywords.main.add(keyword);
-      }
       for (const keyword of keywords.local) {
         typegenKeywords.local.add(keyword);
+      }
+      for (const keyword of keywords.public) {
+        typegenKeywords.public.add(keyword);
       }
       await runner.save(typegenKeywords);
       isInitialized = true;
     } catch {}
   };
 
-  let hasherMain: Hasher;
+  let hasherPublic: Hasher;
   let hasherLocal: Hasher;
   let resolvedMap: Map<string, string>;
 
@@ -83,7 +83,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
     name: PLUGIN_NAME,
 
     buildStart() {
-      hasherMain = createHasher(secret);
+      hasherPublic = createHasher(secret);
       hasherLocal = createCounter(secret);
       resolvedMap = new Map();
       runnerLimit(async () => {
@@ -103,7 +103,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         id: {
           include: [
             ...toIncludes(VIRTUAL_MODULE_ID),
-            ...toIncludes(VIRTUAL_LOCAL_MODULE_ID),
+            ...toIncludes(VIRTUAL_PUBLIC_MODULE_ID),
           ],
           exclude: COMMON_EXCLUDES,
         },
@@ -118,7 +118,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         id: {
           include: [
             ...toIncludes(resolveId(VIRTUAL_MODULE_ID)),
-            ...toIncludes(resolveId(VIRTUAL_LOCAL_MODULE_ID)),
+            ...toIncludes(resolveId(VIRTUAL_PUBLIC_MODULE_ID)),
           ],
           exclude: COMMON_EXCLUDES,
         },
@@ -139,7 +139,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           exclude: COMMON_EXCLUDES,
         },
         code: {
-          include: [VIRTUAL_MODULE_ID, VIRTUAL_LOCAL_MODULE_ID],
+          include: [VIRTUAL_MODULE_ID, VIRTUAL_PUBLIC_MODULE_ID],
         },
       },
       handler(code, id) {
@@ -148,7 +148,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           return null;
         }
         const { code: transformed, map, keywords } = result;
-        for (const keyword of keywords.main) {
+        for (const keyword of keywords.local) {
           const encoded = encodeIdentifier(keyword);
           const resolvedId = resolveId(
             `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
@@ -156,22 +156,22 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           if (resolvedMap.has(resolvedId)) {
             continue;
           }
-          const hash = hasherMain(keyword);
+          const hash = hasherLocal(keyword);
           const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
           resolvedMap.set(
             resolvedId,
             `export default ${JSON.stringify(value)};\n`,
           );
         }
-        for (const keyword of keywords.local) {
+        for (const keyword of keywords.public) {
           const encoded = encodeIdentifier(keyword);
           const resolvedId = resolveId(
-            `${VIRTUAL_LOCAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+            `${VIRTUAL_PUBLIC_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
           );
           if (resolvedMap.has(resolvedId)) {
             continue;
           }
-          const hash = hasherLocal(keyword);
+          const hash = hasherPublic(keyword);
           const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
           resolvedMap.set(
             resolvedId,
@@ -201,15 +201,15 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         return;
       }
       let isAdded = false;
-      for (const keyword of keywords.main) {
-        if (!typegenKeywords.main.has(keyword)) {
-          typegenKeywords.main.add(keyword);
-          isAdded = true;
-        }
-      }
       for (const keyword of keywords.local) {
         if (!typegenKeywords.local.has(keyword)) {
           typegenKeywords.local.add(keyword);
+          isAdded = true;
+        }
+      }
+      for (const keyword of keywords.public) {
+        if (!typegenKeywords.public.has(keyword)) {
+          typegenKeywords.public.add(keyword);
           isAdded = true;
         }
       }

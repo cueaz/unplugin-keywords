@@ -15,14 +15,14 @@ import {
 import {
   KEYWORD_ROUTE_SEGMENT,
   PLUGIN_NAME,
-  VIRTUAL_LOCAL_MODULE_ID,
   VIRTUAL_MODULE_ID,
+  VIRTUAL_PUBLIC_MODULE_ID,
 } from './constants.js';
 import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 export interface KeywordSet {
-  main: Set<string>;
   local: Set<string>;
+  public: Set<string>;
 }
 
 const isPureTypeSpace = (path: NodePath): boolean => {
@@ -80,13 +80,13 @@ const isPureTypeSpace = (path: NodePath): boolean => {
 interface TransformState extends PluginPass {
   keywords: KeywordSet;
   keywordUids: {
-    main: Map<string, t.Identifier>;
     local: Map<string, t.Identifier>;
+    public: Map<string, t.Identifier>;
   };
 }
 
 interface TransformMetadata {
-  keywords?: { main: string[]; local: string[] };
+  keywords?: { local: string[]; public: string[] };
 }
 
 const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
@@ -96,20 +96,20 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
     visitor: {
       Program: {
         enter(_, state) {
-          state.keywords = { main: new Set(), local: new Set() };
-          state.keywordUids = { main: new Map(), local: new Map() };
+          state.keywords = { local: new Set(), public: new Set() };
+          state.keywordUids = { local: new Map(), public: new Map() };
         },
 
         exit(path, state) {
           const metadata = state.file.metadata as TransformMetadata;
           metadata.keywords = {
-            main: Array.from(state.keywords.main),
             local: Array.from(state.keywords.local),
+            public: Array.from(state.keywords.public),
           };
 
           if (mode === 'transform') {
             const newImports = [];
-            for (const [keyword, safeId] of state.keywordUids.main.entries()) {
+            for (const [keyword, safeId] of state.keywordUids.local.entries()) {
               const encoded = encodeIdentifier(keyword);
               newImports.push(
                 t.importDeclaration(
@@ -120,13 +120,16 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
                 ),
               );
             }
-            for (const [keyword, safeId] of state.keywordUids.local.entries()) {
+            for (const [
+              keyword,
+              safeId,
+            ] of state.keywordUids.public.entries()) {
               const encoded = encodeIdentifier(keyword);
               newImports.push(
                 t.importDeclaration(
                   [t.importDefaultSpecifier(safeId)],
                   t.stringLiteral(
-                    `${VIRTUAL_LOCAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                    `${VIRTUAL_PUBLIC_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
                   ),
                 ),
               );
@@ -142,15 +145,17 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
         const sourceValue = path.node.source.value;
         if (
           sourceValue !== VIRTUAL_MODULE_ID &&
-          sourceValue !== VIRTUAL_LOCAL_MODULE_ID
+          sourceValue !== VIRTUAL_PUBLIC_MODULE_ID
         ) {
           return;
         }
-        const isLocal = sourceValue === VIRTUAL_LOCAL_MODULE_ID;
-        const targetSet = isLocal ? state.keywords.local : state.keywords.main;
-        const targetMap = isLocal
-          ? state.keywordUids.local
-          : state.keywordUids.main;
+        const isPublic = sourceValue === VIRTUAL_PUBLIC_MODULE_ID;
+        const targetSet = isPublic
+          ? state.keywords.public
+          : state.keywords.local;
+        const targetMap = isPublic
+          ? state.keywordUids.public
+          : state.keywordUids.local;
 
         const programScope = path.scope.getProgramParent();
         const processKeyword = (keyword: string): t.Identifier | null => {
@@ -319,12 +324,14 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
         const sourceValue = path.node.source?.value;
         if (
           sourceValue !== VIRTUAL_MODULE_ID &&
-          sourceValue !== VIRTUAL_LOCAL_MODULE_ID
+          sourceValue !== VIRTUAL_PUBLIC_MODULE_ID
         ) {
           return;
         }
-        const isLocal = sourceValue === VIRTUAL_LOCAL_MODULE_ID;
-        const targetSet = isLocal ? state.keywords.local : state.keywords.main;
+        const isPublic = sourceValue === VIRTUAL_PUBLIC_MODULE_ID;
+        const targetSet = isPublic
+          ? state.keywords.public
+          : state.keywords.local;
 
         if (mode === 'extract') {
           for (const specifierPath of path.get('specifiers')) {
@@ -388,7 +395,7 @@ export const transformCode = (
 } | null => {
   if (
     !code.includes(VIRTUAL_MODULE_ID) &&
-    !code.includes(VIRTUAL_LOCAL_MODULE_ID)
+    !code.includes(VIRTUAL_PUBLIC_MODULE_ID)
   ) {
     return null;
   }
@@ -408,8 +415,8 @@ export const transformCode = (
   }
   const metadata = result.metadata as TransformMetadata | undefined;
   const keywords: KeywordSet = {
-    main: new Set(metadata?.keywords?.main ?? []),
     local: new Set(metadata?.keywords?.local ?? []),
+    public: new Set(metadata?.keywords?.public ?? []),
   };
   return {
     code: result.code ?? '',
@@ -421,7 +428,7 @@ export const transformCode = (
 export const extractKeywords = (code: string): KeywordSet | null => {
   if (
     !code.includes(VIRTUAL_MODULE_ID) &&
-    !code.includes(VIRTUAL_LOCAL_MODULE_ID)
+    !code.includes(VIRTUAL_PUBLIC_MODULE_ID)
   ) {
     return null;
   }
@@ -447,7 +454,7 @@ export const extractKeywords = (code: string): KeywordSet | null => {
   }
   const metadata = result.metadata as TransformMetadata | undefined;
   return {
-    main: new Set(metadata?.keywords?.main ?? []),
     local: new Set(metadata?.keywords?.local ?? []),
+    public: new Set(metadata?.keywords?.public ?? []),
   };
 };

@@ -6,8 +6,8 @@
 import { createHmac, hkdfSync } from 'node:crypto';
 import {
   HASH_LENGTH,
-  VIRTUAL_LOCAL_MODULE_ID,
   VIRTUAL_MODULE_ID,
+  VIRTUAL_PUBLIC_MODULE_ID,
 } from './constants.js';
 
 const ALPHA_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -35,7 +35,7 @@ export const createHasher = (secret: string): Hasher => {
       return cache.get(input) as string;
     }
 
-    const info = VIRTUAL_MODULE_ID;
+    const info = VIRTUAL_PUBLIC_MODULE_ID;
     const payload = `${info.length}:${info}|${input.length}:${input}`;
     const hasher = createHmac('sha256', secret);
     const buffer = hasher.update(payload).digest('hex');
@@ -62,7 +62,7 @@ const shuffle = (str: string, secret: string, salt: string): string => {
   const arr = Array.from(str);
   const requiredBytes = (arr.length - 1) * 4;
 
-  const info = VIRTUAL_LOCAL_MODULE_ID;
+  const info = VIRTUAL_MODULE_ID;
   const keyingMaterial = hkdfSync('sha256', secret, salt, info, requiredBytes);
   const prngBuffer = Buffer.from(keyingMaterial);
 

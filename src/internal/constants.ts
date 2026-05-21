@@ -4,7 +4,7 @@
  */
 
 export const VIRTUAL_MODULE_ID = '~keywords';
-export const VIRTUAL_LOCAL_MODULE_ID = '~keywords/local';
+export const VIRTUAL_PUBLIC_MODULE_ID = '~keywords/public';
 
 export const PLUGIN_NAME = 'unplugin-keywords';
 

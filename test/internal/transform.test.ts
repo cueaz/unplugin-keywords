@@ -18,8 +18,8 @@ describe('internal/transform', () => {
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
-        main: new Set(['abc', 'kebab-case']),
-        local: new Set(),
+        local: new Set(['abc', 'kebab-case']),
+        public: new Set(),
       });
       expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
       expect(result?.code).toContain(
@@ -35,8 +35,8 @@ describe('internal/transform', () => {
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
-        main: new Set(['default']),
-        local: new Set(),
+        local: new Set(['default']),
+        public: new Set(),
       });
       expect(result?.code).toContain(
         'import _$default from "~keywords/_/default";',
@@ -52,8 +52,8 @@ describe('internal/transform', () => {
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
-        main: new Set(['abc', 'sec-wer']),
-        local: new Set(),
+        local: new Set(['abc', 'sec-wer']),
+        public: new Set(),
       });
       expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
       expect(result?.code).toContain(
@@ -72,8 +72,8 @@ describe('internal/transform', () => {
       `;
       const result = transformCode(code, 'test.tsx');
       expect(result?.keywords).toEqual({
-        main: new Set(['Component', 'Abc', 'div']),
-        local: new Set(),
+        local: new Set(['Component', 'Abc', 'div']),
+        public: new Set(),
       });
       expect(result?.code).toContain(
         '<_$Component><_$Abc /><div /></_$Component>',
@@ -99,8 +99,8 @@ describe('internal/transform', () => {
       `;
       const result = transformCode(code, 'test.ts');
       expect(result?.keywords).toEqual({
-        main: new Set(['myType', 'my-indexed-type', 'Abc']),
-        local: new Set(),
+        local: new Set(['myType', 'my-indexed-type', 'Abc']),
+        public: new Set(),
       });
       expect(result?.code).toContain('interface Abc {}');
       expect(result?.code).toContain('let x: typeof _$myType;');
@@ -124,8 +124,8 @@ describe('internal/transform', () => {
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
-        main: new Set(['edf', 'hyphen-export']),
-        local: new Set(),
+        local: new Set(['edf', 'hyphen-export']),
+        public: new Set(),
       });
       expect(result?.code).toContain(
         'export { default as edf } from "~keywords/_/edf";',
@@ -174,8 +174,8 @@ describe('internal/transform', () => {
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
-        main: new Set(['abc', 'kebab-case']),
-        local: new Set(),
+        local: new Set(['abc', 'kebab-case']),
+        public: new Set(),
       });
       expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
       expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
@@ -195,18 +195,18 @@ describe('internal/transform', () => {
       expect(result?.code).toContain('console.log(obj.abc);');
     });
 
-    it('transforms local imports', () => {
+    it('transforms public imports', () => {
       const code = `
-        import * as L from '~keywords/local';
+        import * as L from '~keywords/public';
         console.log(L._source);
       `;
       const result = transformCode(code, 'test.js');
       expect(result?.keywords).toEqual({
-        main: new Set(),
-        local: new Set(['_source']),
+        local: new Set(),
+        public: new Set(['_source']),
       });
       expect(result?.code).toContain(
-        'import _$_source from "~keywords/local/_/_source";',
+        'import _$_source from "~keywords/public/_/_source";',
       );
       expect(result?.code).toContain('console.log(_$_source);');
     });
@@ -217,8 +217,8 @@ describe('internal/transform', () => {
       const code = `import { abc, 'kebab-case' as kebab } from '~keywords';`;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
-        main: new Set(['abc', 'kebab-case']),
-        local: new Set(),
+        local: new Set(['abc', 'kebab-case']),
+        public: new Set(),
       });
     });
 
@@ -226,8 +226,8 @@ describe('internal/transform', () => {
       const code = `import myDefault from '~keywords';`;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
-        main: new Set(['default']),
-        local: new Set(),
+        local: new Set(['default']),
+        public: new Set(),
       });
     });
 
@@ -239,8 +239,8 @@ describe('internal/transform', () => {
       `;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
-        main: new Set(['abc', 'sec-wer']),
-        local: new Set(),
+        local: new Set(['abc', 'sec-wer']),
+        public: new Set(),
       });
     });
 
@@ -251,8 +251,8 @@ describe('internal/transform', () => {
       `;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
-        main: new Set(['Component']),
-        local: new Set(),
+        local: new Set(['Component']),
+        public: new Set(),
       });
     });
 
@@ -264,8 +264,8 @@ describe('internal/transform', () => {
       `;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
-        main: new Set(['myType2']),
-        local: new Set(),
+        local: new Set(['myType2']),
+        public: new Set(),
       });
     });
 
@@ -279,12 +279,12 @@ describe('internal/transform', () => {
       `;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
-        main: new Set([
+        local: new Set([
           'my-indexed-type',
           'my-indexed-type1',
           'my-indexed-type3',
         ]),
-        local: new Set(),
+        public: new Set(),
       });
     });
 
@@ -294,8 +294,8 @@ describe('internal/transform', () => {
       `;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
-        main: new Set(['edf', 'hyphen-export']),
-        local: new Set(),
+        local: new Set(['edf', 'hyphen-export']),
+        public: new Set(),
       });
     });
 
@@ -308,7 +308,7 @@ describe('internal/transform', () => {
         }
       `;
       const keywords = extractKeywords(code);
-      expect(keywords).toEqual({ main: new Set([]), local: new Set() });
+      expect(keywords).toEqual({ local: new Set([]), public: new Set() });
     });
 
     it('handles hoisted imports (usage before declaration)', () => {
@@ -317,7 +317,7 @@ describe('internal/transform', () => {
         import * as A from '~keywords';
       `;
       const keywords = extractKeywords(code);
-      expect(keywords).toEqual({ main: new Set(['abc']), local: new Set() });
+      expect(keywords).toEqual({ local: new Set(['abc']), public: new Set() });
     });
 
     it('does not extract unrelated object properties', () => {
@@ -333,15 +333,15 @@ describe('internal/transform', () => {
         console.log(obj.A);
       `;
       const keywords2 = extractKeywords(code2);
-      expect(keywords2).toEqual({ main: new Set([]), local: new Set() });
+      expect(keywords2).toEqual({ local: new Set([]), public: new Set() });
     });
 
-    it('extracts local imports', () => {
-      const code = `import * as L from '~keywords/local'; console.log(L._source);`;
+    it('extracts public imports', () => {
+      const code = `import * as L from '~keywords/public'; console.log(L._source);`;
       const keywords = extractKeywords(code);
       expect(keywords).toEqual({
-        main: new Set(),
-        local: new Set(['_source']),
+        local: new Set(),
+        public: new Set(['_source']),
       });
     });
   });

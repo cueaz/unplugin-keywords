@@ -17,7 +17,7 @@ const collectKeywordsFromRoot = async (
   ignoredDirs: string[] = [],
   concurrency: number = 100,
 ): Promise<KeywordSet> => {
-  const collectedKeywords: KeywordSet = { main: new Set(), local: new Set() };
+  const collectedKeywords: KeywordSet = { local: new Set(), public: new Set() };
 
   const start = performance.now();
   if (!silent) {
@@ -40,11 +40,11 @@ const collectKeywordsFromRoot = async (
       if (!keywords) {
         return;
       }
-      for (const keyword of keywords.main) {
-        collectedKeywords.main.add(keyword);
-      }
       for (const keyword of keywords.local) {
         collectedKeywords.local.add(keyword);
+      }
+      for (const keyword of keywords.public) {
+        collectedKeywords.public.add(keyword);
       }
       processed++;
     } catch (error) {
@@ -57,7 +57,7 @@ const collectKeywordsFromRoot = async (
   const elapsed = performance.now() - start;
   if (!silent) {
     console.error(
-      `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.main.size} main, ${collectedKeywords.local.size} local keywords (${elapsed.toFixed(2)}ms).`,
+      `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.local.size} local, ${collectedKeywords.public.size} public keywords (${elapsed.toFixed(2)}ms).`,
     );
   }
 
@@ -72,11 +72,11 @@ const pkgJson = {
     '.': {
       types: './index.d.ts',
     },
-    './local': {
-      types: './local.d.ts',
+    './public': {
+      types: './public.d.ts',
     },
     [`./${KEYWORD_ROUTE_SEGMENT}/*`]: `./${KEYWORD_ROUTE_SEGMENT}/*`,
-    [`./local/${KEYWORD_ROUTE_SEGMENT}/*`]: `./local/${KEYWORD_ROUTE_SEGMENT}/*`,
+    [`./public/${KEYWORD_ROUTE_SEGMENT}/*`]: `./public/${KEYWORD_ROUTE_SEGMENT}/*`,
   },
 };
 
@@ -98,14 +98,14 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
     },
 
     async save(keywords: KeywordSet): Promise<void> {
-      const content = generateTypeDeclaration(keywords.main);
-      const localContent = generateTypeDeclaration(keywords.local, true);
+      const content = generateTypeDeclaration(keywords.local);
+      const publicContent = generateTypeDeclaration(keywords.public, true);
       const outPath = path.join(root, outDir);
       await mkdir(outPath, { recursive: true });
       await writeFile(path.join(outPath, 'index.d.ts'), `${content.trim()}\n`);
       await writeFile(
-        path.join(outPath, 'local.d.ts'),
-        `${localContent.trim()}\n`,
+        path.join(outPath, 'public.d.ts'),
+        `${publicContent.trim()}\n`,
       );
       await writeFile(
         path.join(outPath, 'package.json'),
