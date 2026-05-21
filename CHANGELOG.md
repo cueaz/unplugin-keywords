@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.1](https://github.com/cueaz/unplugin-keywords/compare/v2.9.0...v2.9.1) (2026-05-21)
+
+
+### Bug Fixes
+
+* flush background typegen when build ends ([437cf05](https://github.com/cueaz/unplugin-keywords/commit/437cf05ee775cfd761054f4d4f9e1dc9cd8c29f1))
+
 ## [2.9.0](https://github.com/cueaz/unplugin-keywords/compare/v2.8.0...v2.9.0) (2026-05-19)
 
 
