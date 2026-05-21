@@ -93,6 +93,11 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       });
     },
 
+    async buildEnd() {
+      // Flush the background queue
+      await runnerLimit(() => Promise.resolve());
+    },
+
     resolveId: {
       filter: {
         id: {
