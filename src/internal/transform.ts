@@ -382,7 +382,7 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
     },
   };
 
-  return (() => plugin as PluginObject) as PluginItem;
+  return () => plugin as PluginObject;
 };
 
 export const transformCode = (

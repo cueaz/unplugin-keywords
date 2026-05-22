@@ -77,7 +77,7 @@ const _="b0";const a={a0:_,c0:data};
 ```
 <!-- prettier-ignore-end -->
 
-## Dual-Module Architecture
+## Dual-Module System
 
 `unplugin-keywords` provides two distinct virtual modules. By default, the shortest possible compression is used, but the dual-module system allows for stable cross-boundary contracts when necessary.
 
