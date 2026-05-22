@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.11.0](https://github.com/cueaz/unplugin-keywords/compare/v2.10.1...v2.11.0) (2026-05-22)
+
+
+### Features
+
+* use shorter identifier names with blacklist ([45595aa](https://github.com/cueaz/unplugin-keywords/commit/45595aa4a7af07660b96beaccb3784c2fb7b0ff7))
+
 ## [2.10.1](https://github.com/cueaz/unplugin-keywords/compare/v2.10.0...v2.10.1) (2026-05-22)
 
 
