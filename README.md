@@ -13,18 +13,18 @@
 
 A build plugin for structural string literal minification and obfuscation.
 
-`unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, custom event types, or structural constants. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism empowers bundlers to inline and obfuscate application internals without breaking semantic contracts.
+`unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, custom event types, or structural constants. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism allows bundlers to inline and obfuscate application internals without breaking semantic contracts.
 
 ## Motivation vs. Property Mangling
 
 Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
 
 - **Explicit Opt-In:**
-  Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from '~keywords'`). Developers unambiguously declare which identifiers are safe to obfuscate directly in the source code.
+  Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from '~keywords'`). Developers clearly state which identifiers are safe to obfuscate directly in the source code.
 - **Gradual Adoption:**
   Unlike global mangling flags that affect the entire codebase simultaneously, installing this plugin alters nothing by default. It allows incremental adoption on a per-file or per-module basis.
 - **Cross-Boundary Consistency:**
-  Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `~keywords/public` relies on deterministic hashing, identical keys inherently produce identical hashes across independent builds, preserving structural contracts.
+  Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `~keywords/public` relies on deterministic hashing, identical keys always produce the same hashes across independent builds, preserving structural contracts.
 - **Universal Application:**
   Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
 - **Trade-offs:**
@@ -53,7 +53,7 @@ Standard minifiers operate exclusively on variable bindings and function names, 
 `unplugin-keywords` solves this by treating structural strings as imported module bindings.
 
 **1. Source Code (Development):**
-Developers reference strings via a virtual module. The strongly recommended pattern is to use a namespace import (`import * as K`), which clearly demarcates keyword usage throughout the file.
+Developers reference strings via a virtual module. The strongly recommended pattern is to use a namespace import (`import * as K`), which clearly marks keyword usage throughout the file.
 
 ```ts
 import * as K from '~keywords';

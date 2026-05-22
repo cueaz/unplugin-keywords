@@ -13,7 +13,7 @@ By comparing the minified outputs in `dist_sample/` (see [`original.min.js`](./d
 
 ## Verification
 
-The obfuscation process is validated across two constraints: Size Reduction and Behavioral Equivalence.
+The obfuscation process is validated across two constraints: Size Reduction and Logical Correctness.
 
 ### 1. Bundle Size Output
 
@@ -28,7 +28,7 @@ $ NO_IMAGE=1 pnpm build --no-color
   ✔ Build complete in 324ms
 ```
 
-### 2. Behavioral Equivalence
+### 2. Logical Correctness
 
 To ensure logical correctness, the original `@preact/signals-core` test suite (commit [`054afc1`](https://github.com/preactjs/signals/blob/054afc1c7deef23b48df74941c9ab57235dc894e/packages/core/test/signal.test.tsx), 158 tests) was fully ported. These tests are executed against a 2×2 matrix: `[Original, Keywordified] × [isDev: true, false]`.
 
