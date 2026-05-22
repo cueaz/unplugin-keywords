@@ -57,7 +57,10 @@ const collectKeywordsFromRoot = async (
   const elapsed = performance.now() - start;
   if (!silent) {
     console.error(
-      `Scan complete: ${processed}/${files.length} files, ${collectedKeywords.local.size} local, ${collectedKeywords.public.size} public keywords (${elapsed.toFixed(2)}ms).`,
+      `Scan complete: ${processed}/${files.length} files, ` +
+        `${collectedKeywords.local.size} local, ` +
+        `${collectedKeywords.public.size} public keywords ` +
+        `(${elapsed.toFixed(2)}ms).`,
     );
   }
 
