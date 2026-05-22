@@ -4,6 +4,7 @@
  */
 
 import { createHmac, hkdfSync } from 'node:crypto';
+import blacklist from 'virtual:blacklist';
 import {
   HASH_LENGTH,
   VIRTUAL_MODULE_ID,
@@ -11,21 +12,18 @@ import {
 } from './constants.js';
 
 const ALPHA_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const DIGIT_CHARS = '0123456789';
-const BASE62_CHARS = ALPHA_CHARS + DIGIT_CHARS;
+const BASE62_CHARS = `${ALPHA_CHARS}0123456789`;
 
 const ALPHA_LEN = BigInt(ALPHA_CHARS.length); // 52n
-const DIGIT_LEN = BigInt(DIGIT_CHARS.length); // 10n
 const BASE62_LEN = BigInt(BASE62_CHARS.length); // 62n
 
 export type Hasher = (input: string) => string;
 
-// Format: [1 Alpha] + [1 Digit] + [N Base62]
-// Avoids any collisions with standard JS API identifiers
+// Format: [1 Alpha] + [N Base62]
 export const createHasher = (secret: string): Hasher => {
-  const base62TailLength = HASH_LENGTH - 2;
+  const base62TailLength = HASH_LENGTH - 1;
   if (base62TailLength < 0 || base62TailLength > 9) {
-    // 520 * 62^9 < 2^64 < 520 * 62^10
+    // 52 * 62^9 < 2^64 < 52 * 62^10
     throw new Error('Invalid MAX_HASH_LENGTH');
   }
 
@@ -36,21 +34,27 @@ export const createHasher = (secret: string): Hasher => {
     }
 
     const info = VIRTUAL_PUBLIC_MODULE_ID;
-    const payload = `${info.length}:${info}|${input.length}:${input}`;
-    const hasher = createHmac('sha256', secret);
-    const buffer = hasher.update(payload).digest('hex');
+    let retry = 0;
+    let result: string;
 
-    let entropy = BigInt(`0x${buffer}`);
-    let result = '';
+    do {
+      const r = retry.toString();
+      const payload = `${info.length}:${info}|${input.length}:${input}|${r.length}:${r}`;
+      const hasher = createHmac('sha256', secret);
+      const buffer = hasher.update(payload).digest('hex');
 
-    result += ALPHA_CHARS[Number(entropy % ALPHA_LEN)];
-    entropy /= ALPHA_LEN;
-    result += DIGIT_CHARS[Number(entropy % DIGIT_LEN)];
-    entropy /= DIGIT_LEN;
-    for (let i = 0; i < base62TailLength; i++) {
-      result += BASE62_CHARS[Number(entropy % BASE62_LEN)];
-      entropy /= BASE62_LEN;
-    }
+      let entropy = BigInt(`0x${buffer}`);
+      result = '';
+
+      result += ALPHA_CHARS[Number(entropy % ALPHA_LEN)];
+      entropy /= ALPHA_LEN;
+      for (let i = 0; i < base62TailLength; i++) {
+        result += BASE62_CHARS[Number(entropy % BASE62_LEN)];
+        entropy /= BASE62_LEN;
+      }
+
+      retry++;
+    } while (blacklist.has(result));
 
     cache.set(input, result);
     return result;
@@ -81,7 +85,6 @@ const shuffle = (str: string, secret: string, salt: string): string => {
 
 export const createCounter = (secret: string): Hasher => {
   const shuffledAlpha = shuffle(ALPHA_CHARS, secret, 'alpha');
-  const shuffledDigit = shuffle(DIGIT_CHARS, secret, 'digit');
   const shuffledBase62 = shuffle(BASE62_CHARS, secret, 'base62');
 
   let index = 0;
@@ -91,19 +94,20 @@ export const createCounter = (secret: string): Hasher => {
       return cache.get(input) as string;
     }
 
-    let result = '';
-    let current = index;
-    index++;
+    let result: string;
+    do {
+      result = '';
+      let current = index;
+      index++;
 
-    result += shuffledAlpha[current % shuffledAlpha.length];
-    current = Math.floor(current / shuffledAlpha.length);
-    result += shuffledDigit[current % shuffledDigit.length];
-    current = Math.floor(current / shuffledDigit.length);
-    while (current > 0) {
-      current--;
-      result += shuffledBase62[current % shuffledBase62.length];
-      current = Math.floor(current / shuffledBase62.length);
-    }
+      result += shuffledAlpha[current % shuffledAlpha.length];
+      current = Math.floor(current / shuffledAlpha.length);
+      while (current > 0) {
+        current--;
+        result += shuffledBase62[current % shuffledBase62.length];
+        current = Math.floor(current / shuffledBase62.length);
+      }
+    } while (blacklist.has(result));
 
     cache.set(input, result);
     return result;

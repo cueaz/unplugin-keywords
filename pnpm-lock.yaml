@@ -12,18 +12,39 @@ catalogs:
     '@biomejs/biome':
       specifier: ^2.4.14
       version: 2.4.14
+    '@expo-google-fonts/jetbrains-mono':
+      specifier: ^0.4.1
+      version: 0.4.1
+    '@mdn/browser-compat-data':
+      specifier: ^7.3.16
+      version: 7.3.16
+    '@resvg/resvg-js':
+      specifier: ^2.6.2
+      version: 2.6.2
+    '@rollup/plugin-virtual':
+      specifier: ^3.0.2
+      version: 3.0.2
     '@tsconfig/bases':
       specifier: ^1.0.23
       version: 1.0.23
     '@types/node':
       specifier: ^25.6.0
       version: 25.6.0
+    globals:
+      specifier: ^17.6.0
+      version: 17.6.0
     globby:
       specifier: ^16.2.0
       version: 16.2.0
     p-limit:
       specifier: ^7.3.0
       version: 7.3.0
+    satori:
+      specifier: ^0.26.0
+      version: 0.26.0
+    shiki:
+      specifier: ^4.0.2
+      version: 4.0.2
     tsdown:
       specifier: ^0.22.0
       version: 0.22.0
@@ -57,12 +78,21 @@ importers:
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.4.14
+      '@mdn/browser-compat-data':
+        specifier: 'catalog:'
+        version: 7.3.16
+      '@rollup/plugin-virtual':
+        specifier: 'catalog:'
+        version: 3.0.2
       '@tsconfig/bases':
         specifier: 'catalog:'
         version: 1.0.23
       '@types/node':
         specifier: 'catalog:'
         version: 25.6.0
+      globals:
+        specifier: 'catalog:'
+        version: 17.6.0
       tsdown:
         specifier: 'catalog:'
         version: 0.22.0(typescript@6.0.3)
@@ -279,6 +309,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@mdn/browser-compat-data@7.3.16':
+    resolution: {integrity: sha512-JQ6SGcHeyqSYGVwWe7NzOeXfp/vZgo2yz+fsEbMOyWLyNRVP4RoG8+dqaF/VTx1zPtF4J8XvxiWXH1l2cMZTwQ==}
 
   '@napi-rs/wasm-runtime@1.1.4':
     resolution: {integrity: sha512-3NQNNgA1YSlJb/kMH1ildASP9HW7/7kYnRI2szWJaofaS1hWmbGI4H+d3+22aGzXXN9IJ+n+GiFVcGipJP18ow==}
@@ -583,6 +616,15 @@ packages:
   '@rolldown/pluginutils@1.0.0-rc.17':
     resolution: {integrity: sha512-n8iosDOt6Ig1UhJ2AYqoIhHWh/isz0xpicHTzpKBeotdVsTEcxsSA/i3EVM7gQAj0rU27OLAxCjzlj15IWY7bg==}
 
+  '@rollup/plugin-virtual@3.0.2':
+    resolution: {integrity: sha512-10monEYsBp3scM4/ND4LNH5Rxvh3e/cVeL3jWTgZ2SrQ+BmUoQcopVQvnaMcOnykb1VkxUFuDAN+0FnpTFRy2A==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+
   '@shikijs/core@4.0.2':
     resolution: {integrity: sha512-hxT0YF4ExEqB8G/qFdtJvpmHXBYJ2lWW7qTHDarVkIudPFE6iCIrqdgWxGn5s+ppkGXI0aEGlibI0PAyzP3zlw==}
     engines: {node: '>=20'}
@@ -864,6 +906,10 @@ packages:
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
+
+  globals@17.6.0:
+    resolution: {integrity: sha512-sepffkT8stwnIYbsMBpoCHJuJM5l98FUF2AnE07hfvE0m/qp3R586hw4jF4uadbhvg1ooIdzuu7CsfD2jzCaNA==}
+    engines: {node: '>=18'}
 
   globby@16.2.0:
     resolution: {integrity: sha512-QrJia2qDf5BB/V6HYlDTs0I0lBahyjLzpGQg3KT7FnCdTonAyPy2RtY802m2k4ALx6Dp752f82WsOczEVr3l6Q==}
@@ -1583,6 +1629,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@mdn/browser-compat-data@7.3.16': {}
+
   '@napi-rs/wasm-runtime@1.1.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:
       '@emnapi/core': 1.10.0
@@ -1762,6 +1810,8 @@ snapshots:
   '@rolldown/pluginutils@1.0.0': {}
 
   '@rolldown/pluginutils@1.0.0-rc.17': {}
+
+  '@rollup/plugin-virtual@3.0.2': {}
 
   '@shikijs/core@4.0.2':
     dependencies:
@@ -2015,6 +2065,8 @@ snapshots:
   glob-parent@5.1.2:
     dependencies:
       is-glob: 4.0.3
+
+  globals@17.6.0: {}
 
   globby@16.2.0:
     dependencies:

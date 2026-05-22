@@ -3,10 +3,42 @@
  * SPDX-License-Identifier: MIT
  */
 
+import blacklist from 'virtual:blacklist';
 import { describe, expect, it } from 'vitest';
 import { createCounter, createHasher } from '../../src/internal/hash.js';
 
 describe('internal/hash', () => {
+  describe('blacklist coverage', () => {
+    it('contains dangerous Promise and Object serialization hooks', () => {
+      const dangerousKeys = [
+        // Promise / Thenable hazards
+        'then',
+        'catch',
+        'finally',
+        // Serialization / Coercion
+        'toString',
+        'valueOf',
+        'toJSON',
+        'toLocaleString',
+        // Object properties
+        'hasOwnProperty',
+        'isPrototypeOf',
+        'propertyIsEnumerable',
+        'constructor',
+        // Prototype pollution vectors (manual additions)
+        '__proto__',
+        'prototype',
+        '__defineGetter__',
+        '__defineSetter__',
+        '__lookupGetter__',
+        '__lookupSetter__',
+      ];
+
+      const missing = dangerousKeys.filter((key) => !blacklist.has(key));
+      expect(missing).toEqual([]);
+    });
+  });
+
   describe('createHasher', () => {
     it('generates a stable deterministic hash for the same input and key', () => {
       const hasher1 = createHasher('my-secret-key');
@@ -37,6 +69,14 @@ describe('internal/hash', () => {
       expect(hash).toMatch(/^[a-zA-Z0-9]+$/);
     });
 
+    it('generates hashes starting with [Alpha]', () => {
+      const hasher = createHasher('format-key');
+      for (let i = 0; i < 100; i++) {
+        const hash = hasher(`kw_${i}`);
+        expect(hash).toMatch(/^[a-zA-Z]/);
+      }
+    });
+
     it('handles boundary value edge cases correctly', () => {
       const hasher = createHasher('boundary-key');
 
@@ -51,6 +91,14 @@ describe('internal/hash', () => {
 
       // 3. Force a hash collision check with different parameters
       expect(emptyHash).not.toBe(longHash);
+    });
+
+    it('never generates a blacklisted identifier', () => {
+      const hasher = createHasher('blacklist-key');
+      for (let i = 0; i < 1000; i++) {
+        const hash = hasher(`bl_${i}`);
+        expect(blacklist.has(hash)).toBe(false);
+      }
     });
   });
 
@@ -85,12 +133,12 @@ describe('internal/hash', () => {
       expect(first).toBe(second);
     });
 
-    it('generates outputs starting with [Alpha][Digit]', () => {
+    it('generates outputs starting with [Alpha]', () => {
       const counter = createCounter('format-key');
 
       for (let i = 0; i < 100; i++) {
         const result = counter(`kw_${i}`);
-        expect(result).toMatch(/^[a-zA-Z][0-9]/);
+        expect(result).toMatch(/^[a-zA-Z]/);
       }
     });
 
@@ -105,40 +153,48 @@ describe('internal/hash', () => {
         results2.push(counter2(`input_${i}`));
       }
 
-      // Individual collisions are possible (1/520 per slot),
+      // Individual collisions are possible (1/52 per slot),
       // but the full sequence must differ.
       expect(results1).not.toEqual(results2);
     });
 
-    it('produces minimum length of 2 characters', () => {
+    it('produces 1-character identifiers', () => {
+      const counter = createCounter('one-char-key');
+      const result = counter('first');
+      expect(result.length).toBe(1);
+      expect(result).toMatch(/^[a-zA-Z]$/);
+    });
+
+    it('produces minimum length of 1 character', () => {
       const counter = createCounter('min-length-key');
 
       for (let i = 0; i < 50; i++) {
         const result = counter(`k${i}`);
-        expect(result.length).toBeGreaterThanOrEqual(2);
+        expect(result.length).toBeGreaterThanOrEqual(1);
       }
     });
 
-    it('transitions to 3+ character output after exhausting 2-char space (52×10=520)', () => {
+    it('transitions to 2+ character output after exhausting 1-char space', () => {
       const counter = createCounter('boundary-key');
 
       const results: string[] = [];
-      for (let i = 0; i < 600; i++) {
+      // Generate enough to exhaust 1-char space (52 alpha - blacklisted)
+      for (let i = 0; i < 100; i++) {
         results.push(counter(`kw_${i}`));
       }
 
-      // First 520 should be 2 characters: [Alpha(52)] × [Digit(10)]
-      for (let i = 0; i < 520; i++) {
-        expect(results[i]?.length).toBe(2);
-      }
+      const oneChar = results.filter((r) => r.length === 1);
+      const twoChar = results.filter((r) => r.length === 2);
 
-      // After 520, should grow to 3+ characters
-      for (let i = 520; i < 600; i++) {
-        expect(results[i]?.length ?? 0).toBeGreaterThanOrEqual(3);
-      }
+      // Most 1-char slots should be used (52 - small blacklist ~= 51)
+      expect(oneChar.length).toBeGreaterThanOrEqual(40);
+      expect(oneChar.length).toBeLessThanOrEqual(52);
+
+      // Remaining should be 2+ chars
+      expect(twoChar.length).toBeGreaterThan(0);
     });
 
-    it('guarantees uniqueness across the full 2-char + 3-char boundary', () => {
+    it('guarantees uniqueness across character length boundaries', () => {
       const counter = createCounter('uniqueness-key');
       const seen = new Set<string>();
 
@@ -155,6 +211,15 @@ describe('internal/hash', () => {
       for (let i = 0; i < 600; i++) {
         const result = counter(`ch_${i}`);
         expect(result).toMatch(/^[a-zA-Z0-9]+$/);
+      }
+    });
+
+    it('never generates a blacklisted identifier', () => {
+      const counter = createCounter('blacklist-key');
+
+      for (let i = 0; i < 5000; i++) {
+        const result = counter(`bl_${i}`);
+        expect(blacklist.has(result)).toBe(false);
       }
     });
   });

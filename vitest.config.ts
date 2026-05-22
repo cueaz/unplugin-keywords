@@ -4,8 +4,10 @@
  */
 
 import { defineConfig } from 'vitest/config';
+import { commonPlugins } from './tsdown.config.js';
 
 export default defineConfig({
+  plugins: [...commonPlugins()],
   test: {
     include: ['test/**/*.test.ts'],
   },

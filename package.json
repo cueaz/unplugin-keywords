@@ -90,8 +90,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
+    "@mdn/browser-compat-data": "catalog:",
+    "@rollup/plugin-virtual": "catalog:",
     "@tsconfig/bases": "catalog:",
     "@types/node": "catalog:",
+    "globals": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
