@@ -8,6 +8,7 @@ indent_style = space
 indent_size = 2
 trim_trailing_whitespace = true
 tab_width = 8
+quote_type = single
 
 [Makefile]
 indent_style = tab
