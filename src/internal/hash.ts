@@ -22,10 +22,6 @@ export type Hasher = (input: string) => string;
 // Format: [1 Alpha] + [N Base62]
 export const createHasher = (secret: string): Hasher => {
   const base62TailLength = HASH_LENGTH - 1;
-  if (base62TailLength < 0 || base62TailLength > 9) {
-    // 52 * 62^9 < 2^64 < 52 * 62^10
-    throw new Error('Invalid MAX_HASH_LENGTH');
-  }
 
   const cache = new Map<string, string>();
   return (input) => {
@@ -39,6 +35,7 @@ export const createHasher = (secret: string): Hasher => {
 
     do {
       const r = retry.toString();
+      retry++;
       const payload = `${info.length}:${info}|${input.length}:${input}|${r.length}:${r}`;
       const hasher = createHmac('sha256', secret);
       const buffer = hasher.update(payload).digest('hex');
@@ -52,8 +49,6 @@ export const createHasher = (secret: string): Hasher => {
         result += BASE62_CHARS[Number(entropy % BASE62_LEN)];
         entropy /= BASE62_LEN;
       }
-
-      retry++;
     } while (blacklist.has(result));
 
     cache.set(input, result);
