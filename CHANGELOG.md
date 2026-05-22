@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.11.2](https://github.com/cueaz/unplugin-keywords/compare/v2.11.1...v2.11.2) (2026-05-22)
+
+
+### Documentation
+
+* update readmes ([d8b464a](https://github.com/cueaz/unplugin-keywords/commit/d8b464ad12c688b2df9558bbd377eaabb812af90))
+
 ## [2.11.1](https://github.com/cueaz/unplugin-keywords/compare/v2.11.0...v2.11.1) (2026-05-22)
 
 
