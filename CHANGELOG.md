@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.1](https://github.com/cueaz/unplugin-keywords/compare/v2.10.0...v2.10.1) (2026-05-22)
+
+
+### Miscellaneous Chores
+
+* minor update ([f1e61e6](https://github.com/cueaz/unplugin-keywords/commit/f1e61e6e053ed59d825288b153aabb1926553316))
+
 ## [2.10.0](https://github.com/cueaz/unplugin-keywords/compare/v2.9.1...v2.10.0) (2026-05-21)
 
 
