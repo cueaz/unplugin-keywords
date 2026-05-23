@@ -48,27 +48,27 @@ const buildBlacklist = (): Set<string> => {
 };
 
 const blacklistPlugin = (): Plugin => {
-  const blacklistId = 'virtual:blacklist';
-  const blacklistResolvedId = `\0${blacklistId}`;
+  const resolveId = (id: string): string => `\0${id}`;
   const toIncludes = (id: string): RegExp[] => [new RegExp(`^${id}($|\\?)`)];
+  const blacklistId = 'virtual:blacklist';
   const blacklist = buildBlacklist();
 
   return {
-    name: 'plugin-blacklist',
+    name: 'rollup-plugin-virtual-blacklist',
     resolveId: {
       filter: {
         id: {
           include: toIncludes(blacklistId),
         },
       },
-      handler() {
-        return blacklistResolvedId;
+      handler(id) {
+        return resolveId(id);
       },
     },
     load: {
       filter: {
         id: {
-          include: toIncludes(blacklistResolvedId),
+          include: toIncludes(resolveId(blacklistId)),
         },
       },
       handler() {

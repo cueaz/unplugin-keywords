@@ -7,7 +7,6 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { globby } from 'globby';
 import pLimit from 'p-limit';
-import { KEYWORD_ROUTE_SEGMENT } from './constants.js';
 import { extractKeywords, type KeywordSet } from './transform.js';
 import { generateTypeDeclaration } from './typegen.js';
 
@@ -78,8 +77,6 @@ const pkgJson = {
     './public': {
       types: './public.d.ts',
     },
-    [`./${KEYWORD_ROUTE_SEGMENT}/*`]: `./${KEYWORD_ROUTE_SEGMENT}/*`,
-    [`./public/${KEYWORD_ROUTE_SEGMENT}/*`]: `./public/${KEYWORD_ROUTE_SEGMENT}/*`,
   },
 };
 

@@ -9,8 +9,10 @@ import type { UnpluginFactory } from 'unplugin';
 import { createRunner } from './cli.js';
 import {
   DEBUG_SEPARATOR,
-  KEYWORD_ROUTE_SEGMENT,
+  KEYWORD_ROUTE,
   PLUGIN_NAME,
+  VIRTUAL_INTERNAL_MODULE_ID,
+  VIRTUAL_INTERNAL_PUBLIC_MODULE_ID,
   VIRTUAL_MODULE_ID,
   VIRTUAL_PUBLIC_MODULE_ID,
 } from './constants.js';
@@ -102,8 +104,8 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       filter: {
         id: {
           include: [
-            ...toIncludes(VIRTUAL_MODULE_ID),
-            ...toIncludes(VIRTUAL_PUBLIC_MODULE_ID),
+            ...toIncludes(VIRTUAL_INTERNAL_MODULE_ID),
+            ...toIncludes(VIRTUAL_INTERNAL_PUBLIC_MODULE_ID),
           ],
           exclude: COMMON_EXCLUDES,
         },
@@ -117,8 +119,8 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       filter: {
         id: {
           include: [
-            ...toIncludes(resolveId(VIRTUAL_MODULE_ID)),
-            ...toIncludes(resolveId(VIRTUAL_PUBLIC_MODULE_ID)),
+            ...toIncludes(resolveId(VIRTUAL_INTERNAL_MODULE_ID)),
+            ...toIncludes(resolveId(VIRTUAL_INTERNAL_PUBLIC_MODULE_ID)),
           ],
           exclude: COMMON_EXCLUDES,
         },
@@ -151,7 +153,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         for (const keyword of keywords.local) {
           const encoded = encodeIdentifier(keyword);
           const resolvedId = resolveId(
-            `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+            `${VIRTUAL_INTERNAL_MODULE_ID}/${KEYWORD_ROUTE}/${encoded}`,
           );
           if (resolvedMap.has(resolvedId)) {
             continue;
@@ -166,7 +168,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         for (const keyword of keywords.public) {
           const encoded = encodeIdentifier(keyword);
           const resolvedId = resolveId(
-            `${VIRTUAL_PUBLIC_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+            `${VIRTUAL_INTERNAL_PUBLIC_MODULE_ID}/${KEYWORD_ROUTE}/${encoded}`,
           );
           if (resolvedMap.has(resolvedId)) {
             continue;

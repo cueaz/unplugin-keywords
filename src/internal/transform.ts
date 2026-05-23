@@ -13,8 +13,10 @@ import {
   transformSync,
 } from '@babel/core';
 import {
-  KEYWORD_ROUTE_SEGMENT,
+  KEYWORD_ROUTE,
   PLUGIN_NAME,
+  VIRTUAL_INTERNAL_MODULE_ID,
+  VIRTUAL_INTERNAL_PUBLIC_MODULE_ID,
   VIRTUAL_MODULE_ID,
   VIRTUAL_PUBLIC_MODULE_ID,
 } from './constants.js';
@@ -115,7 +117,7 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
                 t.importDeclaration(
                   [t.importDefaultSpecifier(safeId)],
                   t.stringLiteral(
-                    `${VIRTUAL_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                    `${VIRTUAL_INTERNAL_MODULE_ID}/${KEYWORD_ROUTE}/${encoded}`,
                   ),
                 ),
               );
@@ -129,7 +131,7 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
                 t.importDeclaration(
                   [t.importDefaultSpecifier(safeId)],
                   t.stringLiteral(
-                    `${VIRTUAL_PUBLIC_MODULE_ID}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                    `${VIRTUAL_INTERNAL_PUBLIC_MODULE_ID}/${KEYWORD_ROUTE}/${encoded}`,
                   ),
                 ),
               );
@@ -356,6 +358,9 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
               const keyword = t.isIdentifier(local) ? local.name : local.value;
               targetSet.add(keyword);
               const encoded = encodeIdentifier(keyword);
+              const targetModuleId = isPublic
+                ? VIRTUAL_INTERNAL_PUBLIC_MODULE_ID
+                : VIRTUAL_INTERNAL_MODULE_ID;
               return t.exportNamedDeclaration(
                 null,
                 [
@@ -365,7 +370,7 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
                   ),
                 ],
                 t.stringLiteral(
-                  `${sourceValue}/${KEYWORD_ROUTE_SEGMENT}/${encoded}`,
+                  `${targetModuleId}/${KEYWORD_ROUTE}/${encoded}`,
                 ),
               );
             }

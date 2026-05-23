@@ -21,9 +21,11 @@ describe('internal/transform', () => {
         local: new Set(['abc', 'kebab-case']),
         public: new Set(),
       });
-      expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
       expect(result?.code).toContain(
-        'import _$kebab$002dcase from "~keywords/_/kebab$002dcase";',
+        'import _$abc from "~keywords-internal/_/abc";',
+      );
+      expect(result?.code).toContain(
+        'import _$kebab$002dcase from "~keywords-internal/_/kebab$002dcase";',
       );
       expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
     });
@@ -39,7 +41,7 @@ describe('internal/transform', () => {
         public: new Set(),
       });
       expect(result?.code).toContain(
-        'import _$default from "~keywords/_/default";',
+        'import _$default from "~keywords-internal/_/default";',
       );
       expect(result?.code).toContain('console.log(_$default);');
     });
@@ -55,9 +57,11 @@ describe('internal/transform', () => {
         local: new Set(['abc', 'sec-wer']),
         public: new Set(),
       });
-      expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
       expect(result?.code).toContain(
-        'import _$sec$002dwer from "~keywords/_/sec$002dwer";',
+        'import _$abc from "~keywords-internal/_/abc";',
+      );
+      expect(result?.code).toContain(
+        'import _$sec$002dwer from "~keywords-internal/_/sec$002dwer";',
       );
       expect(result?.code).toContain('console.log(_$abc);');
       expect(result?.code).toContain('console.log(_$sec$002dwer);');
@@ -128,10 +132,10 @@ describe('internal/transform', () => {
         public: new Set(),
       });
       expect(result?.code).toContain(
-        'export { default as edf } from "~keywords/_/edf";',
+        'export { default as edf } from "~keywords-internal/_/edf";',
       );
       expect(result?.code).toContain(
-        'export { default as myHyphen } from "~keywords/_/hyphen$002dexport";',
+        'export { default as myHyphen } from "~keywords-internal/_/hyphen$002dexport";',
       );
     });
 
@@ -178,9 +182,11 @@ describe('internal/transform', () => {
         public: new Set(),
       });
       expect(result?.code).toContain('console.log(_$abc, _$kebab$002dcase);');
-      expect(result?.code).toContain('import _$abc from "~keywords/_/abc";');
       expect(result?.code).toContain(
-        'import _$kebab$002dcase from "~keywords/_/kebab$002dcase";',
+        'import _$abc from "~keywords-internal/_/abc";',
+      );
+      expect(result?.code).toContain(
+        'import _$kebab$002dcase from "~keywords-internal/_/kebab$002dcase";',
       );
     });
     it('does not transform unrelated object properties or keys', () => {
@@ -206,7 +212,7 @@ describe('internal/transform', () => {
         public: new Set(['_source']),
       });
       expect(result?.code).toContain(
-        'import _$_source from "~keywords/public/_/_source";',
+        'import _$_source from "~keywords-internal/public/_/_source";',
       );
       expect(result?.code).toContain('console.log(_$_source);');
     });
