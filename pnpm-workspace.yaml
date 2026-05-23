@@ -5,7 +5,7 @@ catalog:
   '@babel/core': ^8.0.0-rc.5
   '@biomejs/biome': ^2.4.14
   '@expo-google-fonts/jetbrains-mono': ^0.4.1
-  '@mdn/browser-compat-data': ^7.3.16
+  '@mdn/browser-compat-data': ^8.0.0
   '@resvg/resvg-js': ^2.6.2
   '@tsconfig/bases': ^1.0.23
   '@types/node': ^25.6.0
