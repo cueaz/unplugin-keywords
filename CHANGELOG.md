@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.0](https://github.com/cueaz/unplugin-keywords/compare/v2.11.2...v2.12.0) (2026-05-23)
+
+
+### Features
+
+* route to internal module ([34de21a](https://github.com/cueaz/unplugin-keywords/commit/34de21adeff6d53d14395cdfb71f18e8b39e5fa4))
+
 ## [2.11.2](https://github.com/cueaz/unplugin-keywords/compare/v2.11.1...v2.11.2) (2026-05-22)
 
 
