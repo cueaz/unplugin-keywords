@@ -21,9 +21,6 @@ catalogs:
     '@resvg/resvg-js':
       specifier: ^2.6.2
       version: 2.6.2
-    '@rollup/plugin-virtual':
-      specifier: ^3.0.2
-      version: 3.0.2
     '@tsconfig/bases':
       specifier: ^1.0.23
       version: 1.0.23
@@ -81,9 +78,6 @@ importers:
       '@mdn/browser-compat-data':
         specifier: 'catalog:'
         version: 7.3.16
-      '@rollup/plugin-virtual':
-        specifier: 'catalog:'
-        version: 3.0.2
       '@tsconfig/bases':
         specifier: 'catalog:'
         version: 1.0.23
@@ -615,15 +609,6 @@ packages:
 
   '@rolldown/pluginutils@1.0.0-rc.17':
     resolution: {integrity: sha512-n8iosDOt6Ig1UhJ2AYqoIhHWh/isz0xpicHTzpKBeotdVsTEcxsSA/i3EVM7gQAj0rU27OLAxCjzlj15IWY7bg==}
-
-  '@rollup/plugin-virtual@3.0.2':
-    resolution: {integrity: sha512-10monEYsBp3scM4/ND4LNH5Rxvh3e/cVeL3jWTgZ2SrQ+BmUoQcopVQvnaMcOnykb1VkxUFuDAN+0FnpTFRy2A==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
-    peerDependenciesMeta:
-      rollup:
-        optional: true
 
   '@shikijs/core@4.0.2':
     resolution: {integrity: sha512-hxT0YF4ExEqB8G/qFdtJvpmHXBYJ2lWW7qTHDarVkIudPFE6iCIrqdgWxGn5s+ppkGXI0aEGlibI0PAyzP3zlw==}
@@ -1810,8 +1795,6 @@ snapshots:
   '@rolldown/pluginutils@1.0.0': {}
 
   '@rolldown/pluginutils@1.0.0-rc.17': {}
-
-  '@rollup/plugin-virtual@3.0.2': {}
 
   '@shikijs/core@4.0.2':
     dependencies:

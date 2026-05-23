@@ -7,7 +7,6 @@ catalog:
   '@expo-google-fonts/jetbrains-mono': ^0.4.1
   '@mdn/browser-compat-data': ^7.3.16
   '@resvg/resvg-js': ^2.6.2
-  '@rollup/plugin-virtual': ^3.0.2
   '@tsconfig/bases': ^1.0.23
   '@types/node': ^25.6.0
   globals: ^17.6.0

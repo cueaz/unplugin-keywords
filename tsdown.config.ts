@@ -5,11 +5,8 @@
 
 import bcd from '@mdn/browser-compat-data' with { type: 'json' };
 import type { Identifier } from '@mdn/browser-compat-data';
-import _virtual from '@rollup/plugin-virtual';
 import globals from 'globals';
 import { defineConfig, type TsdownPlugin as Plugin } from 'tsdown';
-
-const virtual = _virtual as unknown as typeof _virtual.default;
 
 const buildBlacklist = (): Set<string> => {
   const blacklist = new Set<string>();
@@ -50,13 +47,39 @@ const buildBlacklist = (): Set<string> => {
   return blacklist;
 };
 
-export const commonPlugins = (): Plugin[] => {
+const blacklistPlugin = (): Plugin => {
+  const blacklistId = 'virtual:blacklist';
+  const blacklistResolvedId = `\0${blacklistId}`;
+  const toIncludes = (id: string): RegExp[] => [new RegExp(`^${id}($|\\?)`)];
   const blacklist = buildBlacklist();
-  return [
-    virtual({
-      'virtual:blacklist': `export default new Set(${JSON.stringify([...blacklist].sort())});`,
-    }),
-  ];
+
+  return {
+    name: 'plugin-blacklist',
+    resolveId: {
+      filter: {
+        id: {
+          include: toIncludes(blacklistId),
+        },
+      },
+      handler() {
+        return blacklistResolvedId;
+      },
+    },
+    load: {
+      filter: {
+        id: {
+          include: toIncludes(blacklistResolvedId),
+        },
+      },
+      handler() {
+        return `export default new Set(${JSON.stringify([...blacklist].sort())});\n`;
+      },
+    },
+  };
+};
+
+export const commonPlugins = (): Plugin[] => {
+  return [blacklistPlugin()];
 };
 
 export default defineConfig([
