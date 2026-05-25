@@ -7,7 +7,11 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { globby } from 'globby';
 import pLimit from 'p-limit';
-import { extractKeywords, type KeywordSet } from './transform.js';
+import {
+  extractKeywords,
+  type KeywordSet,
+  preprocessForExtract,
+} from './transform.js';
 import { generateTypeDeclaration } from './typegen.js';
 
 const collectKeywordsFromRoot = async (
@@ -27,7 +31,7 @@ const collectKeywordsFromRoot = async (
     console.error('Scanning project files for keywords...');
   }
 
-  const files = await globby('**/*.{js,ts,mjs,mts,jsx,tsx,mjsx,mtsx}', {
+  const files = await globby('**/*.{js,ts,mjs,mts,jsx,tsx,mjsx,mtsx,svelte}', {
     cwd: root,
     absolute: false,
     ignore: ['**/node_modules/**', ...ignoredDirs.map((dir) => `${dir}/**`)],
@@ -37,27 +41,30 @@ const collectKeywordsFromRoot = async (
   let processed = 0;
   const limit = pLimit({ concurrency });
   await limit.map(files, async (file) => {
+    let code: string | null;
     try {
-      const code = await readFile(file, 'utf-8');
-      const keywords = extractKeywords(code, file);
-      if (!keywords) {
-        return;
-      }
-      for (const keyword of keywords.local) {
-        collectedKeywords.local.add(keyword);
-      }
-      for (const keyword of keywords.public) {
-        collectedKeywords.public.add(keyword);
-      }
-      for (const keyword of keywords.raw) {
-        collectedKeywords.raw.add(keyword);
-      }
-      processed++;
-    } catch (error) {
-      if (!silent) {
-        console.error(`Failed to process ${file}: ${error}`);
-      }
+      code = await readFile(file, 'utf-8');
+    } catch {
+      return;
     }
+    code = await preprocessForExtract(code, file);
+    if (!code) {
+      return;
+    }
+    const keywords = extractKeywords(code, file);
+    if (!keywords) {
+      return;
+    }
+    for (const keyword of keywords.local) {
+      collectedKeywords.local.add(keyword);
+    }
+    for (const keyword of keywords.public) {
+      collectedKeywords.public.add(keyword);
+    }
+    for (const keyword of keywords.raw) {
+      collectedKeywords.raw.add(keyword);
+    }
+    processed++;
   });
 
   const elapsed = performance.now() - start;

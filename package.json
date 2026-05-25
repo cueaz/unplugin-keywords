@@ -84,12 +84,21 @@
     "p-limit": "catalog:",
     "unplugin": "catalog:"
   },
+  "peerDependencies": {
+    "svelte": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "svelte": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "@mdn/browser-compat-data": "catalog:",
     "@tsconfig/bases": "catalog:",
     "@types/node": "catalog:",
     "globals": "catalog:",
+    "svelte": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

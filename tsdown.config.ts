@@ -49,7 +49,7 @@ const buildBlacklist = (): Set<string> => {
 
 const blacklistPlugin = (): Plugin => {
   const resolveId = (id: string): string => `\0${id}`;
-  const toIncludes = (id: string): RegExp[] => [new RegExp(`^${id}($|\\?)`)];
+  const toIncludes = (id: string): RegExp[] => [new RegExp(`^${id}(?:$|\\?)`)];
   const blacklistId = 'virtual:blacklist';
   const blacklist = buildBlacklist();
 

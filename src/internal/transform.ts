@@ -508,3 +508,27 @@ export const extractKeywords = (
     raw: new Set(metadata?.keywords?.raw ?? []),
   };
 };
+
+export const preprocessForExtract = async (
+  code: string,
+  id: string,
+): Promise<string | null> => {
+  let finalCode = code;
+  if (
+    !code.includes(VIRTUAL_MODULE_ID) &&
+    !code.includes(VIRTUAL_PUBLIC_MODULE_ID) &&
+    !code.includes(VIRTUAL_RAW_MODULE_ID)
+  ) {
+    return null;
+  }
+  if (/\.svelte$/.test(id)) {
+    try {
+      const compiler = await import('svelte/compiler');
+      const result = compiler.compile(finalCode, { filename: id });
+      finalCode = result.js.code;
+    } catch {
+      return null;
+    }
+  }
+  return finalCode;
+};

@@ -23,6 +23,7 @@ import { createCounter, createHasher, type Hasher } from './hash.js';
 import {
   extractKeywords,
   type KeywordSet,
+  preprocessForExtract,
   transformCode,
 } from './transform.js';
 
@@ -38,7 +39,7 @@ const splitQuery = (id: string): [string, string | undefined] => {
 
 const toIncludes = (id: string): RegExp[] => [new RegExp(`^${id}/`)];
 
-const SUFFIX_REGEX = /\.m?[jt]sx?($|\?)/;
+const SUFFIX_REGEX = /\.(?:m?[jt]sx?|svelte)(?:$|\?)/;
 const COMMON_EXCLUDES = [/\/node_modules\//];
 
 export interface Options {
@@ -224,10 +225,14 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         return;
       }
       const [validId] = splitQuery(id);
-      let code: string;
+      let code: string | null;
       try {
         code = await readFile(validId, 'utf-8');
       } catch {
+        return;
+      }
+      code = await preprocessForExtract(code, validId);
+      if (!code) {
         return;
       }
       const keywords = extractKeywords(code, validId);
