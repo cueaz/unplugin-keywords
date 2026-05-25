@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.1](https://github.com/cueaz/unplugin-keywords/compare/v2.13.0...v2.13.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* only parse jsx when necessary ([d548768](https://github.com/cueaz/unplugin-keywords/commit/d54876823444547a6cd8d26aebb2fb37c4c467f1))
+
 ## [2.13.0](https://github.com/cueaz/unplugin-keywords/compare/v2.12.0...v2.13.0) (2026-05-25)
 
 
