@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.0](https://github.com/cueaz/unplugin-keywords/compare/v2.12.0...v2.13.0) (2026-05-25)
+
+
+### Features
+
+* add support for raw keywords ([4337d18](https://github.com/cueaz/unplugin-keywords/commit/4337d1813210f37cdeaf13f888703d629c75aa60))
+
 ## [2.12.0](https://github.com/cueaz/unplugin-keywords/compare/v2.11.2...v2.12.0) (2026-05-23)
 
 
