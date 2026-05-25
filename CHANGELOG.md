@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.14.0](https://github.com/cueaz/unplugin-keywords/compare/v2.13.1...v2.14.0) (2026-05-25)
+
+
+### Features
+
+* wip support for svelte ([4a47ba3](https://github.com/cueaz/unplugin-keywords/commit/4a47ba3b28491aa72259a16b29ee373d0a2f2cd5))
+
 ## [2.13.1](https://github.com/cueaz/unplugin-keywords/compare/v2.13.0...v2.13.1) (2026-05-25)
 
 
