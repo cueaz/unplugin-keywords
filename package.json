@@ -60,10 +60,6 @@
       "types": "./dist/webpack.d.ts",
       "default": "./dist/webpack.js"
     },
-    "./cli": {
-      "types": "./dist/cli.d.ts",
-      "default": "./dist/cli.js"
-    },
     "./package.json": "./package.json"
   },
   "bin": {

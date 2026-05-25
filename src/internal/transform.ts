@@ -17,14 +17,17 @@ import {
   PLUGIN_NAME,
   VIRTUAL_INTERNAL_MODULE_ID,
   VIRTUAL_INTERNAL_PUBLIC_MODULE_ID,
+  VIRTUAL_INTERNAL_RAW_MODULE_ID,
   VIRTUAL_MODULE_ID,
   VIRTUAL_PUBLIC_MODULE_ID,
+  VIRTUAL_RAW_MODULE_ID,
 } from './constants.js';
 import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 export interface KeywordSet {
   local: Set<string>;
   public: Set<string>;
+  raw: Set<string>;
 }
 
 const isPureTypeSpace = (path: NodePath): boolean => {
@@ -84,11 +87,12 @@ interface TransformState extends PluginPass {
   keywordUids: {
     local: Map<string, t.Identifier>;
     public: Map<string, t.Identifier>;
+    raw: Map<string, t.Identifier>;
   };
 }
 
 interface TransformMetadata {
-  keywords?: { local: string[]; public: string[] };
+  keywords?: { local: string[]; public: string[]; raw: string[] };
 }
 
 const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
@@ -98,8 +102,16 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
     visitor: {
       Program: {
         enter(_, state) {
-          state.keywords = { local: new Set(), public: new Set() };
-          state.keywordUids = { local: new Map(), public: new Map() };
+          state.keywords = {
+            local: new Set(),
+            public: new Set(),
+            raw: new Set(),
+          };
+          state.keywordUids = {
+            local: new Map(),
+            public: new Map(),
+            raw: new Map(),
+          };
         },
 
         exit(path, state) {
@@ -107,6 +119,7 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
           metadata.keywords = {
             local: Array.from(state.keywords.local),
             public: Array.from(state.keywords.public),
+            raw: Array.from(state.keywords.raw),
           };
 
           if (mode === 'transform') {
@@ -136,6 +149,17 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
                 ),
               );
             }
+            for (const [keyword, safeId] of state.keywordUids.raw.entries()) {
+              const encoded = encodeIdentifier(keyword);
+              newImports.push(
+                t.importDeclaration(
+                  [t.importDefaultSpecifier(safeId)],
+                  t.stringLiteral(
+                    `${VIRTUAL_INTERNAL_RAW_MODULE_ID}/${KEYWORD_ROUTE}/${encoded}`,
+                  ),
+                ),
+              );
+            }
             if (newImports.length > 0) {
               path.unshiftContainer('body', newImports);
             }
@@ -147,17 +171,23 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
         const sourceValue = path.node.source.value;
         if (
           sourceValue !== VIRTUAL_MODULE_ID &&
-          sourceValue !== VIRTUAL_PUBLIC_MODULE_ID
+          sourceValue !== VIRTUAL_PUBLIC_MODULE_ID &&
+          sourceValue !== VIRTUAL_RAW_MODULE_ID
         ) {
           return;
         }
         const isPublic = sourceValue === VIRTUAL_PUBLIC_MODULE_ID;
-        const targetSet = isPublic
-          ? state.keywords.public
-          : state.keywords.local;
-        const targetMap = isPublic
-          ? state.keywordUids.public
-          : state.keywordUids.local;
+        const isRaw = sourceValue === VIRTUAL_RAW_MODULE_ID;
+        const targetSet = isRaw
+          ? state.keywords.raw
+          : isPublic
+            ? state.keywords.public
+            : state.keywords.local;
+        const targetMap = isRaw
+          ? state.keywordUids.raw
+          : isPublic
+            ? state.keywordUids.public
+            : state.keywordUids.local;
 
         const programScope = path.scope.getProgramParent();
         const processKeyword = (keyword: string): t.Identifier | null => {
@@ -326,14 +356,18 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
         const sourceValue = path.node.source?.value;
         if (
           sourceValue !== VIRTUAL_MODULE_ID &&
-          sourceValue !== VIRTUAL_PUBLIC_MODULE_ID
+          sourceValue !== VIRTUAL_PUBLIC_MODULE_ID &&
+          sourceValue !== VIRTUAL_RAW_MODULE_ID
         ) {
           return;
         }
         const isPublic = sourceValue === VIRTUAL_PUBLIC_MODULE_ID;
-        const targetSet = isPublic
-          ? state.keywords.public
-          : state.keywords.local;
+        const isRaw = sourceValue === VIRTUAL_RAW_MODULE_ID;
+        const targetSet = isRaw
+          ? state.keywords.raw
+          : isPublic
+            ? state.keywords.public
+            : state.keywords.local;
 
         if (mode === 'extract') {
           for (const specifierPath of path.get('specifiers')) {
@@ -358,9 +392,11 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
               const keyword = t.isIdentifier(local) ? local.name : local.value;
               targetSet.add(keyword);
               const encoded = encodeIdentifier(keyword);
-              const targetModuleId = isPublic
-                ? VIRTUAL_INTERNAL_PUBLIC_MODULE_ID
-                : VIRTUAL_INTERNAL_MODULE_ID;
+              const targetModuleId = isRaw
+                ? VIRTUAL_INTERNAL_RAW_MODULE_ID
+                : isPublic
+                  ? VIRTUAL_INTERNAL_PUBLIC_MODULE_ID
+                  : VIRTUAL_INTERNAL_MODULE_ID;
               return t.exportNamedDeclaration(
                 null,
                 [
@@ -400,7 +436,8 @@ export const transformCode = (
 } | null => {
   if (
     !code.includes(VIRTUAL_MODULE_ID) &&
-    !code.includes(VIRTUAL_PUBLIC_MODULE_ID)
+    !code.includes(VIRTUAL_PUBLIC_MODULE_ID) &&
+    !code.includes(VIRTUAL_RAW_MODULE_ID)
   ) {
     return null;
   }
@@ -422,6 +459,7 @@ export const transformCode = (
   const keywords: KeywordSet = {
     local: new Set(metadata?.keywords?.local ?? []),
     public: new Set(metadata?.keywords?.public ?? []),
+    raw: new Set(metadata?.keywords?.raw ?? []),
   };
   return {
     code: result.code ?? '',
@@ -433,7 +471,8 @@ export const transformCode = (
 export const extractKeywords = (code: string): KeywordSet | null => {
   if (
     !code.includes(VIRTUAL_MODULE_ID) &&
-    !code.includes(VIRTUAL_PUBLIC_MODULE_ID)
+    !code.includes(VIRTUAL_PUBLIC_MODULE_ID) &&
+    !code.includes(VIRTUAL_RAW_MODULE_ID)
   ) {
     return null;
   }
@@ -461,5 +500,6 @@ export const extractKeywords = (code: string): KeywordSet | null => {
   return {
     local: new Set(metadata?.keywords?.local ?? []),
     public: new Set(metadata?.keywords?.public ?? []),
+    raw: new Set(metadata?.keywords?.raw ?? []),
   };
 };

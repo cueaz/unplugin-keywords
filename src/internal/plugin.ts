@@ -13,8 +13,10 @@ import {
   PLUGIN_NAME,
   VIRTUAL_INTERNAL_MODULE_ID,
   VIRTUAL_INTERNAL_PUBLIC_MODULE_ID,
+  VIRTUAL_INTERNAL_RAW_MODULE_ID,
   VIRTUAL_MODULE_ID,
   VIRTUAL_PUBLIC_MODULE_ID,
+  VIRTUAL_RAW_MODULE_ID,
 } from './constants.js';
 import { encodeIdentifier } from './encode.js';
 import { createCounter, createHasher, type Hasher } from './hash.js';
@@ -60,7 +62,11 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
 }) => {
   const runner = createRunner({ silent: true });
   const runnerLimit = pLimit({ concurrency: 1 });
-  const typegenKeywords: KeywordSet = { local: new Set(), public: new Set() };
+  const typegenKeywords: KeywordSet = {
+    local: new Set(),
+    public: new Set(),
+    raw: new Set(),
+  };
 
   let isInitialized = false;
   const runInit = async () => {
@@ -71,6 +77,9 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       }
       for (const keyword of keywords.public) {
         typegenKeywords.public.add(keyword);
+      }
+      for (const keyword of keywords.raw) {
+        typegenKeywords.raw.add(keyword);
       }
       await runner.save(typegenKeywords);
       isInitialized = true;
@@ -88,11 +97,13 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       hasherPublic = createHasher(secret);
       hasherLocal = createCounter(secret);
       resolvedMap = new Map();
-      runnerLimit(async () => {
-        if (!isInitialized) {
-          await runInit();
-        }
-      });
+      if (!isInitialized) {
+        runnerLimit(async () => {
+          if (!isInitialized) {
+            await runInit();
+          }
+        });
+      }
     },
 
     async buildEnd() {
@@ -106,6 +117,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           include: [
             ...toIncludes(VIRTUAL_INTERNAL_MODULE_ID),
             ...toIncludes(VIRTUAL_INTERNAL_PUBLIC_MODULE_ID),
+            ...toIncludes(VIRTUAL_INTERNAL_RAW_MODULE_ID),
           ],
           exclude: COMMON_EXCLUDES,
         },
@@ -121,6 +133,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           include: [
             ...toIncludes(resolveId(VIRTUAL_INTERNAL_MODULE_ID)),
             ...toIncludes(resolveId(VIRTUAL_INTERNAL_PUBLIC_MODULE_ID)),
+            ...toIncludes(resolveId(VIRTUAL_INTERNAL_RAW_MODULE_ID)),
           ],
           exclude: COMMON_EXCLUDES,
         },
@@ -141,7 +154,11 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           exclude: COMMON_EXCLUDES,
         },
         code: {
-          include: [VIRTUAL_MODULE_ID, VIRTUAL_PUBLIC_MODULE_ID],
+          include: [
+            VIRTUAL_MODULE_ID,
+            VIRTUAL_PUBLIC_MODULE_ID,
+            VIRTUAL_RAW_MODULE_ID,
+          ],
         },
       },
       handler(code, id) {
@@ -180,6 +197,19 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
             `export default ${JSON.stringify(value)};\n`,
           );
         }
+        for (const keyword of keywords.raw) {
+          const encoded = encodeIdentifier(keyword);
+          const resolvedId = resolveId(
+            `${VIRTUAL_INTERNAL_RAW_MODULE_ID}/${KEYWORD_ROUTE}/${encoded}`,
+          );
+          if (resolvedMap.has(resolvedId)) {
+            continue;
+          }
+          resolvedMap.set(
+            resolvedId,
+            `export default ${JSON.stringify(keyword)};\n`,
+          );
+        }
         return { code: transformed, map };
       },
     },
@@ -212,6 +242,12 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       for (const keyword of keywords.public) {
         if (!typegenKeywords.public.has(keyword)) {
           typegenKeywords.public.add(keyword);
+          isAdded = true;
+        }
+      }
+      for (const keyword of keywords.raw) {
+        if (!typegenKeywords.raw.has(keyword)) {
+          typegenKeywords.raw.add(keyword);
           isAdded = true;
         }
       }

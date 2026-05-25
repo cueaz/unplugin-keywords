@@ -16,7 +16,11 @@ const collectKeywordsFromRoot = async (
   ignoredDirs: string[] = [],
   concurrency: number = 100,
 ): Promise<KeywordSet> => {
-  const collectedKeywords: KeywordSet = { local: new Set(), public: new Set() };
+  const collectedKeywords: KeywordSet = {
+    local: new Set(),
+    public: new Set(),
+    raw: new Set(),
+  };
 
   const start = performance.now();
   if (!silent) {
@@ -45,6 +49,9 @@ const collectKeywordsFromRoot = async (
       for (const keyword of keywords.public) {
         collectedKeywords.public.add(keyword);
       }
+      for (const keyword of keywords.raw) {
+        collectedKeywords.raw.add(keyword);
+      }
       processed++;
     } catch (error) {
       if (!silent) {
@@ -58,7 +65,8 @@ const collectKeywordsFromRoot = async (
     console.error(
       `Scan complete: ${processed}/${files.length} files, ` +
         `${collectedKeywords.local.size} local, ` +
-        `${collectedKeywords.public.size} public keywords ` +
+        `${collectedKeywords.public.size} public, ` +
+        `${collectedKeywords.raw.size} raw keywords ` +
         `(${elapsed.toFixed(2)}ms).`,
     );
   }
@@ -76,6 +84,9 @@ const pkgJson = {
     },
     './public': {
       types: './public.d.ts',
+    },
+    './raw': {
+      types: './raw.d.ts',
     },
   },
 };
@@ -99,7 +110,8 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
 
     async save(keywords: KeywordSet): Promise<void> {
       const content = generateTypeDeclaration(keywords.local);
-      const publicContent = generateTypeDeclaration(keywords.public, true);
+      const publicContent = generateTypeDeclaration(keywords.public, 'public');
+      const rawContent = generateTypeDeclaration(keywords.raw, 'raw');
       const outPath = path.join(root, outDir);
       await mkdir(outPath, { recursive: true });
       await writeFile(path.join(outPath, 'index.d.ts'), `${content.trim()}\n`);
@@ -107,6 +119,7 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
         path.join(outPath, 'public.d.ts'),
         `${publicContent.trim()}\n`,
       );
+      await writeFile(path.join(outPath, 'raw.d.ts'), `${rawContent.trim()}\n`);
       await writeFile(
         path.join(outPath, 'package.json'),
         `${JSON.stringify(pkgJson, null, 2)}\n`,

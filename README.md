@@ -77,9 +77,9 @@ const _="b";const a={a:_,c:data};
 ```
 <!-- prettier-ignore-end -->
 
-## Dual-Module System
+## Tri-Module System
 
-`unplugin-keywords` provides two distinct virtual modules. By default, the shortest possible compression is used, but the dual-module system allows for stable cross-boundary contracts when necessary.
+`unplugin-keywords` provides three distinct virtual modules. By default, the shortest possible compression is used, but the tri-module system allows for stable cross-boundary contracts and static literal deduplication when necessary.
 
 - **`~keywords` (Lexical Counter):**
   Generates the shortest safe sequential identifiers (min length: 1, e.g., `"a"`, `"b"`). Intended for **internal and local** implementations where cross-boundary stability is irrelevant. This is the default for maximum minification.
@@ -89,8 +89,12 @@ const _="b";const a={a:_,c:data};
   Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., `package.json` exports).
   _Convention:_ `import * as PK from '~keywords/public';`
 
+- **`~keywords/raw` (Literal String):**
+  Yields the exact, unobfuscated string literal (e.g., `"function"`, `"click"`). Ideal for standard APIs and repeating language keywords. Ensures a single memory instance of the string across your bundle.
+  _Convention:_ `import * as RK from '~keywords/raw';`
+
 **Module Separation:**
-To minimize bundle size, identifiers can be partitioned: use `PK.*` for properties exposed to consumers, and obscure all internal state and private members behind the default `K.*`.
+To minimize bundle size, identifiers can be partitioned: use `PK.*` for properties exposed to consumers, use `RK.*` for deduplicating raw strings like `typeof fn === RK.function`, and obscure all internal state and private members behind the default `K.*`.
 
 ## Integration
 

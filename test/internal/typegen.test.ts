@@ -28,12 +28,22 @@ describe('internal/typegen', () => {
 
     it('generates definitions for public identifiers', () => {
       const keywords = new Set(['abc', 'SET_USER']);
-      const output = generateTypeDeclaration(keywords, true);
+      const output = generateTypeDeclaration(keywords, 'public');
 
       expect(output).toContain('declare const _$SET_USER: "*******.SET_USER";');
       expect(output).toContain('declare const _$abc: "*******.abc";');
       expect(output).toContain('_$SET_USER as "SET_USER",');
       expect(output).toContain('_$abc as "abc",');
+    });
+
+    it('generates definitions for raw identifiers', () => {
+      const keywords = new Set(['function', 'object']);
+      const output = generateTypeDeclaration(keywords, 'raw');
+
+      expect(output).toContain('declare const _$function: "function";');
+      expect(output).toContain('declare const _$object: "object";');
+      expect(output).toContain('_$function as "function",');
+      expect(output).toContain('_$object as "object",');
     });
 
     it('generates definitions for non-standard identifiers', () => {

@@ -208,7 +208,7 @@ describe('signal', () => {
     });
   });
 
-  describe('.(un)watched()', () => {
+  describe('[PK.(un)watched]()', () => {
     it('should call watched when first subscription occurs', () => {
       const watched = vi.fn();
       const unwatched = vi.fn();

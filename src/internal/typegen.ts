@@ -8,7 +8,7 @@ import { encodeIdentifier, toSafeVarName } from './encode.js';
 
 export const generateTypeDeclaration = (
   keywords: Set<string>,
-  isPublic: boolean = false,
+  mode: 'local' | 'public' | 'raw' = 'local',
 ): string => {
   const sortedKeywords = Array.from(keywords).sort();
   const content = [];
@@ -16,8 +16,9 @@ export const generateTypeDeclaration = (
   for (const keyword of sortedKeywords) {
     const encoded = encodeIdentifier(keyword);
     const safeName = toSafeVarName(encoded);
-    const hash = isPublic ? '*'.repeat(HASH_LENGTH) : '==';
-    const value = `${hash}${DEBUG_SEPARATOR}${keyword}`;
+    const hash = mode === 'public' ? '*'.repeat(HASH_LENGTH) : '==';
+    const value =
+      mode === 'raw' ? keyword : `${hash}${DEBUG_SEPARATOR}${keyword}`;
     content.push(`declare const ${safeName}: ${JSON.stringify(value)};`);
   }
   content.push('');

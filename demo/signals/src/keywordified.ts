@@ -9,6 +9,11 @@
 
 import * as K from '~keywords';
 import * as PK from '~keywords/public';
+import * as RK from '~keywords/raw';
+
+// Modern bundlers like Rollup statically analyze and remove empty function calls.
+const narrow: <T>(val: unknown) => asserts val is T = () => {};
+type AnyFunction = (...args: unknown[]) => unknown;
 
 // An named symbol/brand for detecting Signal instances even when they weren't
 // created using the same signals library version.
@@ -798,7 +803,8 @@ function cleanupEffect(effect: Effect) {
   const cleanup = effect[K._cleanup];
   effect[K._cleanup] = undefined;
 
-  if (typeof cleanup === 'function') {
+  if (typeof cleanup === RK.function) {
+    narrow<AnyFunction>(cleanup);
     /*@__INLINE__*/ startBatch();
 
     // Run cleanup functions always outside of any context.
@@ -914,7 +920,8 @@ Effect.prototype[K._callback] = function () {
     if (this[K._fn] === undefined) return;
 
     const cleanup = this[K._fn]();
-    if (typeof cleanup === 'function') {
+    if (typeof cleanup === RK.function) {
+      narrow<AnyFunction>(cleanup);
       this[K._cleanup] = cleanup;
     }
   } finally {
@@ -1078,16 +1085,16 @@ const wrapInAction = (value: Record<string | symbol, unknown>) => {
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i] as string | symbol;
     const val = value[key];
-    if (typeof val === 'function') {
-      value[key] = action(val as (...args: unknown[]) => unknown);
-    } else if (
-      typeof val === 'object' &&
-      val !== null &&
-      !(PK.brand in (val as Record<PropertyKey, unknown>))
-    ) {
-      // Recursively wrap nested object properties in actions. This allows users to write
-      // nested models without worrying about wrapping their functions in `action`.
-      wrapInAction(val as Record<string | symbol, unknown>);
+    if (typeof val === RK.function) {
+      narrow<AnyFunction>(val);
+      value[key] = action(val);
+    } else if (typeof val === RK.object && val !== null) {
+      narrow<Record<PropertyKey, unknown>>(val);
+      if (!(PK.brand in val)) {
+        // Recursively wrap nested object properties in actions. This allows users to write
+        // nested models without worrying about wrapping their functions in `action`.
+        wrapInAction(val);
+      }
     }
   }
 };
