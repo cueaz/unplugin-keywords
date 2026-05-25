@@ -39,7 +39,7 @@ const collectKeywordsFromRoot = async (
   await limit.map(files, async (file) => {
     try {
       const code = await readFile(file, 'utf-8');
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, file);
       if (!keywords) {
         return;
       }

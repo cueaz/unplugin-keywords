@@ -426,6 +426,8 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
   return () => plugin as PluginObject;
 };
 
+const isJsx = (id: string): boolean => /\.m?[jt]sx$/.test(id);
+
 export const transformCode = (
   code: string,
   id: string,
@@ -449,7 +451,7 @@ export const transformCode = (
     ast: false,
     plugins: [transformPlugin('transform')],
     parserOpts: {
-      plugins: ['jsx', 'typescript'],
+      plugins: ['typescript', ...(isJsx(id) ? (['jsx'] as const) : [])],
     },
   });
   if (!result) {
@@ -468,7 +470,10 @@ export const transformCode = (
   };
 };
 
-export const extractKeywords = (code: string): KeywordSet | null => {
+export const extractKeywords = (
+  code: string,
+  id: string,
+): KeywordSet | null => {
   if (
     !code.includes(VIRTUAL_MODULE_ID) &&
     !code.includes(VIRTUAL_PUBLIC_MODULE_ID) &&
@@ -486,7 +491,7 @@ export const extractKeywords = (code: string): KeywordSet | null => {
       code: false,
       plugins: [transformPlugin('extract')],
       parserOpts: {
-        plugins: ['jsx', 'typescript'],
+        plugins: ['typescript', ...(isJsx(id) ? (['jsx'] as const) : [])],
         errorRecovery: true,
       },
     });

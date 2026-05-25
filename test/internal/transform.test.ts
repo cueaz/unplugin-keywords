@@ -127,6 +127,27 @@ describe('internal/transform', () => {
       );
     });
 
+    it('parses generic arrow functions in pure TS correctly (TS vs TSX)', () => {
+      const code = `
+        import { abc } from '~keywords';
+        const func = <T = Element>() => {
+          return abc as T;
+        };
+      `;
+      const result = transformCode(code, 'test.ts');
+      expect(result).not.toBeNull();
+      expect(result?.keywords).toEqual({
+        local: new Set(['abc']),
+        public: new Set(),
+        raw: new Set(),
+      });
+      expect(result?.code).toContain(
+        'import _$abc from "~keywords-internal/_/abc";',
+      );
+      expect(result?.code).toContain('const func = <T = Element,>() => {');
+      expect(result?.code).toContain('return _$abc as T;');
+    });
+
     it('transforms re-exports', () => {
       const code = `
         export { edf, 'hyphen-export' as myHyphen } from '~keywords';
@@ -249,7 +270,7 @@ describe('internal/transform', () => {
   describe('extractKeywords', () => {
     it('extracts from named imports', () => {
       const code = `import { abc, 'kebab-case' as kebab } from '~keywords';`;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set(['abc', 'kebab-case']),
         public: new Set(),
@@ -259,7 +280,7 @@ describe('internal/transform', () => {
 
     it('extracts from default import', () => {
       const code = `import myDefault from '~keywords';`;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set(['default']),
         public: new Set(),
@@ -273,7 +294,7 @@ describe('internal/transform', () => {
         console.log(A.abc);
         console.log(A['sec-wer']);
       `;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set(['abc', 'sec-wer']),
         public: new Set(),
@@ -286,7 +307,7 @@ describe('internal/transform', () => {
         import * as A from '~keywords';
         const App = () => <A.Component />;
       `;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.tsx');
       expect(keywords).toEqual({
         local: new Set(['Component']),
         public: new Set(),
@@ -300,7 +321,7 @@ describe('internal/transform', () => {
         let x: A.myType;
         let y: typeof A.myType2;
       `;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set(['myType2']),
         public: new Set(),
@@ -316,7 +337,7 @@ describe('internal/transform', () => {
         type T2 = A['my-indexed-type2'];
         type T3 = (((typeof A)))['my-indexed-type3'];
       `;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set([
           'my-indexed-type',
@@ -328,11 +349,27 @@ describe('internal/transform', () => {
       });
     });
 
+    it('parses generic arrow functions in pure TS correctly (TS vs TSX)', () => {
+      const code = `
+        import { abc } from '~keywords';
+        const func = <T = Element>() => {
+          return abc as T;
+        };
+      `;
+      const keywords = extractKeywords(code, 'test.ts');
+      expect(keywords).not.toBeNull();
+      expect(keywords).toEqual({
+        local: new Set(['abc']),
+        public: new Set(),
+        raw: new Set(),
+      });
+    });
+
     it('extracts from exported keywords', () => {
       const code = `
         export { edf, 'hyphen-export' as myHyphen } from '~keywords';
       `;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set(['edf', 'hyphen-export']),
         public: new Set(),
@@ -348,7 +385,7 @@ describe('internal/transform', () => {
           console.log(A['sec-wer']);
         }
       `;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set([]),
         public: new Set(),
@@ -361,7 +398,7 @@ describe('internal/transform', () => {
         console.log(A.abc);
         import * as A from '~keywords';
       `;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set(['abc']),
         public: new Set(),
@@ -375,13 +412,13 @@ describe('internal/transform', () => {
         const obj = { abc: 1 };
         console.log(obj.abc);
       `;
-      extractKeywords(code);
+      extractKeywords(code, 'test.ts');
       const code2 = `
         import * as A from '~keywords';
         const obj = { A: 1 };
         console.log(obj.A);
       `;
-      const keywords2 = extractKeywords(code2);
+      const keywords2 = extractKeywords(code2, 'test.ts');
       expect(keywords2).toEqual({
         local: new Set([]),
         public: new Set(),
@@ -391,7 +428,7 @@ describe('internal/transform', () => {
 
     it('extracts public imports', () => {
       const code = `import * as L from '~keywords/public'; console.log(L._source);`;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set(),
         public: new Set(['_source']),
@@ -401,7 +438,7 @@ describe('internal/transform', () => {
 
     it('extracts raw imports', () => {
       const code = `import * as RK from '~keywords/raw'; console.log(RK.function);`;
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, 'test.ts');
       expect(keywords).toEqual({
         local: new Set(),
         public: new Set(),

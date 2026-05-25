@@ -38,7 +38,7 @@ const splitQuery = (id: string): [string, string | undefined] => {
 
 const toIncludes = (id: string): RegExp[] => [new RegExp(`^${id}/`)];
 
-const SUFFIX_REGEX = /\.m?[jt]sx?$/;
+const SUFFIX_REGEX = /\.m?[jt]sx?($|\?)/;
 const COMMON_EXCLUDES = [/\/node_modules\//];
 
 export interface Options {
@@ -162,7 +162,8 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
         },
       },
       handler(code, id) {
-        const result = transformCode(code, id);
+        const [validId] = splitQuery(id);
+        const result = transformCode(code, validId);
         if (!result) {
           return null;
         }
@@ -222,13 +223,14 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       ) {
         return;
       }
+      const [validId] = splitQuery(id);
       let code: string;
       try {
-        code = await readFile(id, 'utf-8');
+        code = await readFile(validId, 'utf-8');
       } catch {
         return;
       }
-      const keywords = extractKeywords(code);
+      const keywords = extractKeywords(code, validId);
       if (!keywords) {
         return;
       }
