@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.15.0](https://github.com/cueaz/unplugin-keywords/compare/v2.14.0...v2.15.0) (2026-05-29)
+
+
+### Features
+
+* statically evaluate strings ([1581ac2](https://github.com/cueaz/unplugin-keywords/commit/1581ac2909ca54fe692224e404d5d150e9b69770))
+
 ## [2.14.0](https://github.com/cueaz/unplugin-keywords/compare/v2.13.1...v2.14.0) (2026-05-25)
 
 
