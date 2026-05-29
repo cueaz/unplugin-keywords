@@ -278,11 +278,17 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
                 let keyword: string | undefined;
                 if (!parentPath.node.computed && t.isIdentifier(propNode)) {
                   keyword = propNode.name;
-                } else if (
-                  parentPath.node.computed &&
-                  t.isStringLiteral(propNode)
-                ) {
-                  keyword = propNode.value;
+                } else if (parentPath.node.computed) {
+                  const propPath = parentPath.get('property');
+                  const evalResult = Array.isArray(propPath)
+                    ? { confident: false, value: null }
+                    : propPath.evaluate();
+                  if (
+                    evalResult.confident &&
+                    typeof evalResult.value === 'string'
+                  ) {
+                    keyword = evalResult.value;
+                  }
                 }
                 if (keyword) {
                   const uidNode = processKeyword(keyword);
@@ -331,11 +337,19 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
                   tsPath.scope.getBinding(localName) === binding
                 ) {
                   const indexNode = tsPath.node.indexType;
-                  if (
-                    t.isTSLiteralType(indexNode) &&
-                    t.isStringLiteral(indexNode.literal)
-                  ) {
-                    const keyword = indexNode.literal.value;
+                  let keyword: string | undefined;
+                  if (t.isTSLiteralType(indexNode)) {
+                    if (t.isStringLiteral(indexNode.literal)) {
+                      keyword = indexNode.literal.value;
+                    } else if (
+                      t.isTemplateLiteral(indexNode.literal) &&
+                      indexNode.literal.quasis.length === 1 &&
+                      indexNode.literal.quasis[0]?.value?.cooked
+                    ) {
+                      keyword = indexNode.literal.quasis[0].value.cooked;
+                    }
+                  }
+                  if (keyword) {
                     const uidNode = processKeyword(keyword);
                     if (uidNode) {
                       tsPath.replaceWith(t.tsTypeQuery(t.cloneNode(uidNode)));

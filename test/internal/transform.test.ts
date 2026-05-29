@@ -71,6 +71,23 @@ describe('internal/transform', () => {
       expect(result?.code).not.toContain('A.abc');
     });
 
+    it('transforms concatenated string properties', () => {
+      const code = `
+        import * as A from '~keywords';
+        console.log(A['sec' + '-wer']);
+      `;
+      const result = transformCode(code, 'test.js');
+      expect(result?.keywords).toEqual({
+        local: new Set(['sec-wer']),
+        public: new Set(),
+        raw: new Set(),
+      });
+      expect(result?.code).toContain(
+        'import _$sec$002dwer from "~keywords-internal/_/sec$002dwer";',
+      );
+      expect(result?.code).toContain('console.log(_$sec$002dwer);');
+    });
+
     it('transforms JSX elements', () => {
       const code = `
         import * as A from '~keywords';
@@ -99,6 +116,7 @@ describe('internal/transform', () => {
         type T1 = typeof Abc;
         type T2 = (typeof A)['my-indexed-type'];
         type T3 = A.myType;
+        type T4 = typeof A[\`my-template-indexed-type\`];
         interface I {
           [Abc]: typeof Abc;
           [A.myType]: A.myType;
@@ -107,7 +125,12 @@ describe('internal/transform', () => {
       `;
       const result = transformCode(code, 'test.ts');
       expect(result?.keywords).toEqual({
-        local: new Set(['myType', 'my-indexed-type', 'Abc']),
+        local: new Set([
+          'myType',
+          'my-indexed-type',
+          'Abc',
+          'my-template-indexed-type',
+        ]),
         public: new Set(),
         raw: new Set(),
       });
@@ -120,6 +143,9 @@ describe('internal/transform', () => {
         'type T2 = typeof _$my$002dindexed$002dtype;',
       );
       expect(result?.code).toContain('type T3 = A.myType;');
+      expect(result?.code).toContain(
+        'type T4 = typeof _$my$002dtemplate$002dindexed$002dtype;',
+      );
       expect(result?.code).toContain('[_$Abc]: typeof _$Abc;');
       expect(result?.code).toContain('[_$myType]: A.myType;');
       expect(result?.code).toContain(
@@ -302,6 +328,19 @@ describe('internal/transform', () => {
       });
     });
 
+    it('extracts from concatenated string property accesses', () => {
+      const code = `
+        import * as A from '~keywords';
+        console.log(A['sec' + '-wer']);
+      `;
+      const keywords = extractKeywords(code, 'test.ts');
+      expect(keywords).toEqual({
+        local: new Set(['sec-wer']),
+        public: new Set(),
+        raw: new Set(),
+      });
+    });
+
     it('extracts from JSX member accesses', () => {
       const code = `
         import * as A from '~keywords';
@@ -334,6 +373,7 @@ describe('internal/transform', () => {
         import * as A from '~keywords';
         type T = (typeof A)['my-indexed-type'];
         type T1 = typeof A['my-indexed-type1'];
+        type T4 = typeof A[\`my-template-indexed-type\`];
         type T2 = A['my-indexed-type2'];
         type T3 = (((typeof A)))['my-indexed-type3'];
       `;
@@ -343,6 +383,7 @@ describe('internal/transform', () => {
           'my-indexed-type',
           'my-indexed-type1',
           'my-indexed-type3',
+          'my-template-indexed-type',
         ]),
         public: new Set(),
         raw: new Set(),
