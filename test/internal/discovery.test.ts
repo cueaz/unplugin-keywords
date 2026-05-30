@@ -32,7 +32,7 @@ describe('internal/discovery', () => {
       const nmDir = path.join(tmpDir, 'node_modules');
       await mkdir(nmDir, { recursive: true });
 
-      // lib-a: NOT keywordified
+      // lib-a: not keywordified
       const libA = path.join(nmDir, 'lib-a');
       await mkdir(libA, { recursive: true });
       await writeFile(
@@ -44,7 +44,7 @@ describe('internal/discovery', () => {
       );
       await writeFile(path.join(libA, 'index.js'), '');
 
-      // lib-b: IS keywordified, depends on lib-c and lib-circ
+      // lib-b: keywordified, depends on lib-c and lib-circ
       const libB = path.join(nmDir, 'lib-b');
       await mkdir(libB, { recursive: true });
       await writeFile(
@@ -62,7 +62,7 @@ describe('internal/discovery', () => {
       );
       await writeFile(path.join(libB, 'index.js'), '');
 
-      // lib-c: IS keywordified, has strict exports blocking package.json
+      // lib-c: keywordified, has strict exports blocking package.json
       const libC = path.join(nmDir, 'lib-c');
       await mkdir(libC, { recursive: true });
       await writeFile(
@@ -84,7 +84,7 @@ describe('internal/discovery', () => {
       );
       await writeFile(path.join(libC, 'index.js'), 'module.exports = {}');
 
-      // lib-peer: IS keywordified (resolved via peerDependencies)
+      // lib-peer: keywordified (resolved via peerDependencies)
       const libPeer = path.join(nmDir, 'lib-peer');
       await mkdir(libPeer, { recursive: true });
       await writeFile(
@@ -97,7 +97,7 @@ describe('internal/discovery', () => {
       );
       await writeFile(path.join(libPeer, 'index.js'), '');
 
-      // lib-circ: IS keywordified, points back to lib-b
+      // lib-circ: keywordified, points back to lib-b
       const libCirc = path.join(nmDir, 'lib-circ');
       await mkdir(libCirc, { recursive: true });
       await writeFile(
@@ -107,7 +107,7 @@ describe('internal/discovery', () => {
           keywordified: true,
           main: 'index.js',
           dependencies: {
-            'lib-b': '1.0.0', // Circular!
+            'lib-b': '1.0.0', // Circular
           },
         }),
       );

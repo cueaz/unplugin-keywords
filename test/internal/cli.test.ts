@@ -37,7 +37,7 @@ describe('internal/cli', () => {
       const nmDir = path.join(tmpDir, 'node_modules');
       await mkdir(nmDir, { recursive: true });
 
-      // A published library that IS keywordified
+      // A published library that is keywordified
       const libDir = path.join(nmDir, 'keywordified-lib');
       await mkdir(libDir, { recursive: true });
       await writeFile(
@@ -55,7 +55,7 @@ describe('internal/cli', () => {
       `,
       );
 
-      // A published library that is NOT keywordified (should be ignored)
+      // A published library that is not keywordified (should be ignored)
       const badLibDir = path.join(nmDir, 'bad-lib');
       await mkdir(badLibDir, { recursive: true });
       await writeFile(
@@ -92,7 +92,7 @@ describe('internal/cli', () => {
       // Should automatically collect from keywordified-lib because of zero-config
       expect(keywords.local.has('lib_keyword')).toBe(true);
 
-      // Should NOT collect from bad-lib because it lacks keywordified: true
+      // Should not collect from bad-lib because it lacks keywordified: true
       expect(keywords.local.has('bad_keyword')).toBe(false);
     });
   });
