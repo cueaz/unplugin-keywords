@@ -10,7 +10,7 @@ catalog:
   '@tsconfig/bases': ^1.0.23
   '@types/node': ^25.6.0
   globals: ^17.6.0
-  globby: ^16.2.0
+  ignore: ^7.0.5
   p-limit: ^7.3.0
   satori: ^0.26.0
   shiki: ^4.0.2

@@ -80,7 +80,7 @@
   },
   "dependencies": {
     "@babel/core": "catalog:",
-    "globby": "catalog:",
+    "ignore": "catalog:",
     "p-limit": "catalog:",
     "unplugin": "catalog:"
   },

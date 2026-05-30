@@ -40,7 +40,6 @@ const splitQuery = (id: string): [string, string | undefined] => {
 const toIncludes = (id: string): RegExp[] => [new RegExp(`^${id}/`)];
 
 const SUFFIX_REGEX = /\.(?:m?[jt]sx?|svelte)(?:$|\?)/;
-const COMMON_EXCLUDES = [/\/node_modules\//];
 
 export interface Options {
   /**
@@ -120,7 +119,6 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
             ...toIncludes(VIRTUAL_INTERNAL_PUBLIC_MODULE_ID),
             ...toIncludes(VIRTUAL_INTERNAL_RAW_MODULE_ID),
           ],
-          exclude: COMMON_EXCLUDES,
         },
       },
       handler(id) {
@@ -136,7 +134,6 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
             ...toIncludes(resolveId(VIRTUAL_INTERNAL_PUBLIC_MODULE_ID)),
             ...toIncludes(resolveId(VIRTUAL_INTERNAL_RAW_MODULE_ID)),
           ],
-          exclude: COMMON_EXCLUDES,
         },
       },
       handler(id) {
@@ -152,7 +149,6 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       filter: {
         id: {
           include: [SUFFIX_REGEX],
-          exclude: COMMON_EXCLUDES,
         },
         code: {
           include: [
@@ -217,11 +213,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
     },
 
     async watchChange(id, { event }) {
-      if (
-        !SUFFIX_REGEX.test(id) ||
-        COMMON_EXCLUDES.some((regex) => regex.test(id)) ||
-        event === 'delete'
-      ) {
+      if (!SUFFIX_REGEX.test(id) || event === 'delete') {
         return;
       }
       const [validId] = splitQuery(id);

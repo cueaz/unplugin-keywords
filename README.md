@@ -89,6 +89,8 @@ const _="b";const a={a:_,c:data};
   Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., `package.json` exports).
   _Convention:_ `import * as PK from '~keywords/public';`
 
+  > **Note:** If you are building libraries for consumers who also use this plugin, see **Library Integration** below for a more optimal approach.
+
 - **`~keywords/raw` (Literal String):**
   Yields the exact, unobfuscated string literal (e.g., `"function"`, `"click"`). Ideal for standard APIs and repeating language keywords. Ensures a single memory instance of the string across your bundle.
   _Convention:_ `import * as RK from '~keywords/raw';`
@@ -130,6 +132,21 @@ npx keywords
 
 > [!TIP]
 > During development, the plugin automatically runs a background type generation process while the bundler is running. Manual CLI execution is only necessary for pre-flight type checking (e.g., in CI) before the bundler runs.
+
+## Library Integration
+
+When publishing libraries intended for consumers who also use `unplugin-keywords`, do not use the plugin during your library's build step. Instead, solely use the `keywords` CLI to generate types for development experience.
+
+Publish your `dist` code (.js & .d.ts) with the `import * as K from '~keywords'` statements intact, and add the `"keywordified": true` marker to your `package.json`:
+
+```json
+{
+  "name": "my-keywordified-lib",
+  "keywordified": true
+}
+```
+
+During the final app build, the consumer's bundler will automatically include your library and process both their app and your library simultaneously. This syncs the lexical dictionary across package boundaries without requiring stable hashes (`~keywords/public`).
 
 ## Example: Class-Based Architectures
 

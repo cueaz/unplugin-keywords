@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
-import { globby } from 'globby';
-import pLimit from 'p-limit';
+import ignore, { type Ignore } from 'ignore';
+import pLimit, { type LimitFunction } from 'p-limit';
+import { getKeywordifiedPackages } from './discovery.js';
 import {
   extractKeywords,
   type KeywordSet,
@@ -14,10 +15,76 @@ import {
 } from './transform.js';
 import { generateTypeDeclaration } from './typegen.js';
 
+const EXTENSIONS = /\.(?:m?[jt]sx?|svelte)$/;
+
+const getIgnorer = async (
+  dir: string,
+  defaultIgnores: string[] = [],
+): Promise<Ignore> => {
+  const ig = ignore().add(defaultIgnores);
+  try {
+    const gitignorePath = path.join(dir, '.gitignore');
+    const content = await readFile(gitignorePath, 'utf-8');
+    ig.add(content);
+  } catch {}
+  return ig;
+};
+
+const walkDir = async (
+  startDir: string,
+  baseDir: string,
+  ig: Ignore,
+  files: string[],
+  limit: LimitFunction,
+): Promise<void> => {
+  let active = 0;
+  return new Promise((resolve, reject) => {
+    const enqueue = (dir: string) => {
+      active++;
+      limit(async () => {
+        try {
+          const entries = await readdir(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            if (entry.name === '.git' || entry.name === 'node_modules') {
+              continue;
+            }
+            const fullPath = path.join(dir, entry.name);
+            const relPath = path
+              .relative(baseDir, fullPath)
+              .replace(/\\/g, '/');
+            if (ig.ignores(relPath)) {
+              continue;
+            }
+            if (entry.isDirectory()) {
+              enqueue(fullPath);
+            } else if (entry.isFile() && EXTENSIONS.test(entry.name)) {
+              files.push(fullPath);
+            }
+          }
+        } catch {
+        } finally {
+          active--;
+          if (active === 0) {
+            resolve();
+          }
+        }
+      });
+    };
+    try {
+      enqueue(startDir);
+      if (active === 0) {
+        resolve();
+      }
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
 const collectKeywordsFromRoot = async (
   root: string,
   silent: boolean,
-  ignoredDirs: string[] = [],
+  ignorePatterns: string[] = [],
   concurrency: number = 100,
 ): Promise<KeywordSet> => {
   const collectedKeywords: KeywordSet = {
@@ -31,16 +98,20 @@ const collectKeywordsFromRoot = async (
     console.error('Scanning project files for keywords...');
   }
 
-  const files = await globby('**/*.{js,ts,mjs,mts,jsx,tsx,mjsx,mtsx,svelte}', {
-    cwd: root,
-    absolute: false,
-    ignore: ['**/node_modules/**', ...ignoredDirs.map((dir) => `${dir}/**`)],
-    gitignore: true,
-  });
+  const limit = pLimit({ concurrency });
+  const keywordifiedDirs = await getKeywordifiedPackages(root, limit);
+  const targetDirs = [root, ...keywordifiedDirs];
+
+  const allFiles: string[] = [];
+  await Promise.all(
+    targetDirs.map(async (dir) => {
+      const ig = await getIgnorer(dir, dir === root ? ignorePatterns : []);
+      await walkDir(dir, dir, ig, allFiles, limit);
+    }),
+  );
 
   let processed = 0;
-  const limit = pLimit({ concurrency });
-  await limit.map(files, async (file) => {
+  await limit.map(allFiles, async (file) => {
     let code: string | null;
     try {
       code = await readFile(file, 'utf-8');
@@ -70,7 +141,7 @@ const collectKeywordsFromRoot = async (
   const elapsed = performance.now() - start;
   if (!silent) {
     console.error(
-      `Scan complete: ${processed}/${files.length} files, ` +
+      `Scan complete: ${processed}/${allFiles.length} files, ` +
         `${collectedKeywords.local.size} local, ` +
         `${collectedKeywords.public.size} public, ` +
         `${collectedKeywords.raw.size} raw keywords ` +
