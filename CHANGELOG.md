@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.0](https://github.com/cueaz/unplugin-keywords/compare/v2.15.0...v2.16.0) (2026-05-30)
+
+
+### Features
+
+* improve design for library mode ([243f3fa](https://github.com/cueaz/unplugin-keywords/commit/243f3fa2f4d29687c67f3454313c7faff5ce741e))
+
 ## [2.15.0](https://github.com/cueaz/unplugin-keywords/compare/v2.14.0...v2.15.0) (2026-05-29)
 
 
