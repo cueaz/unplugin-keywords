@@ -86,17 +86,15 @@ const _="b";const a={a:_,c:data};
   _Convention:_ `import * as K from '~keywords';`
 
 - **`~keywords/public` (Stable Hash):**
-  Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., `package.json` exports).
+  Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., RPC).
   _Convention:_ `import * as PK from '~keywords/public';`
-
-  > **Note:** If you are building libraries for consumers who also use this plugin, see **Library Integration** below for a more optimal approach.
 
 - **`~keywords/raw` (Literal String):**
   Yields the exact, unobfuscated string literal (e.g., `"function"`, `"click"`). Ideal for standard APIs and repeating language keywords. Ensures a single memory instance of the string across your bundle.
   _Convention:_ `import * as RK from '~keywords/raw';`
 
 **Module Separation:**
-To minimize bundle size, identifiers can be partitioned: use `PK.*` for properties exposed to consumers, use `RK.*` for deduplicating raw strings like `typeof fn === RK.function`, and obscure all internal state and private members behind the default `K.*`.
+To minimize bundle size, identifiers can be partitioned: use `PK.*` for contracts shared between packages, use `RK.*` for deduplicating raw strings like `typeof fn === RK.function`, and obscure all internal state and private members behind the default `K.*`.
 
 ## Integration
 
@@ -132,6 +130,19 @@ npx keywords
 
 > [!TIP]
 > During development, the plugin automatically runs a background type generation process while the bundler is running. Manual CLI execution is only necessary for pre-flight type checking (e.g., in CI) before the bundler runs.
+
+When depending on a library that has `"keywordified": true` (where `import * as K from '~keywords'` remains intact), configure `paths` in your `tsconfig.json` to enable proper module resolution:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "~keywords": ["./node_modules/~keywords/index.d.ts"],
+      "~keywords/*": ["./node_modules/~keywords/*.d.ts"]
+    }
+  }
+}
+```
 
 ## Library Integration
 
