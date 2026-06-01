@@ -70,6 +70,7 @@
     "dist"
   ],
   "scripts": {
+    "prepack": "clean-pkg-json",
     "precheck": "pnpm --filter \"./demo/*\" typegen",
     "check": "tsc --build && biome check",
     "format": "biome check --write",
@@ -97,6 +98,7 @@
     "@mdn/browser-compat-data": "catalog:",
     "@tsconfig/bases": "catalog:",
     "@types/node": "catalog:",
+    "clean-pkg-json": "catalog:",
     "globals": "catalog:",
     "svelte": "catalog:",
     "tsdown": "catalog:",
