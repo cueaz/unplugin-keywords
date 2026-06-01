@@ -87,7 +87,7 @@ export default defineConfig([
     entry: ['src/*.ts', '!src/*.d.ts'],
     clean: true,
     dts: true,
-    sourcemap: true,
+    sourcemap: false,
     fixedExtension: false,
     plugins: [...commonPlugins()],
   },
