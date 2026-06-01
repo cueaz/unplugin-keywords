@@ -11,7 +11,7 @@
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://github.com/cueaz/unplugin-keywords/blob/main/LICENSE
 
-A build plugin for structural string literal minification and obfuscation.
+A build plugin for structural string literal minification and obfuscation
 
 `unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, custom event types, or structural constants. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism allows bundlers to inline and obfuscate application internals without breaking semantic contracts.
 
