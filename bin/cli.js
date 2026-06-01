@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * @license
+ * Copyright 2026-present cueaz
  * SPDX-License-Identifier: MIT
  */
 

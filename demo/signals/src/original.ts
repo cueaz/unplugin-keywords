@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2026 cueaz (Modifications)
+ * Copyright 2026-present cueaz (Modifications)
  * Copyright 2022-present Preact Team (Original Work)
  *
  * This file has been modified from its original version.

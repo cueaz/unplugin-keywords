@@ -170,12 +170,14 @@ The namespace import pattern is applicable in class-based architectures where st
 // Source: https://github.com/lit/lit/blob/main/packages/lit-html/src/directives/async-replace.ts
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026-present cueaz (Modifications)
+ * Copyright 2017 Google LLC (Original Work)
+ *
+ * This snippet has been modified from its original version.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 import * as K from '~keywords';
-import * as PK from '~keywords/public';
 
 import {
   AsyncDirective,
@@ -191,16 +193,16 @@ export class AsyncReplaceDirective extends AsyncDirective {
   private [K.__weakThis] = new PseudoWeakRef(this);
   private [K.__pauser] = new Pauser();
 
-  [PK.render]<T>(_value: AsyncIterable<T>, _mapper?: Mapper<T>) {
+  [K.render]<T>(_value: AsyncIterable<T>, _mapper?: Mapper<T>) {
     return noChange;
   }
 
-  override [PK.update](
+  override [K.update](
     _part: ChildPart,
     [value, mapper]: DirectiveParameters<this>,
   ) {
-    if (!this[PK.isConnected]) {
-      this[PK.disconnected]();
+    if (!this[K.isConnected]) {
+      this[K.disconnected]();
     }
 
     if (value === this[K.__value]) {
@@ -223,7 +225,7 @@ export class AsyncReplaceDirective extends AsyncDirective {
         if (mapper !== undefined) {
           v = mapper(v, i);
         }
-        _this[PK.commitValue](v, i);
+        _this[K.commitValue](v, i);
         i++;
       }
       return true;
@@ -232,16 +234,16 @@ export class AsyncReplaceDirective extends AsyncDirective {
     return noChange;
   }
 
-  protected [PK.commitValue](value: unknown, _index: number) {
-    this[PK.setValue](value);
+  protected [K.commitValue](value: unknown, _index: number) {
+    this[K.setValue](value);
   }
 
-  override [PK.disconnected]() {
+  override [K.disconnected]() {
     this[K.__weakThis][K.disconnect]();
     this[K.__pauser][K.pause]();
   }
 
-  override [PK.reconnected]() {
+  override [K.reconnected]() {
     this[K.__weakThis][K.reconnect](this);
     this[K.__pauser][K.resume]();
   }
