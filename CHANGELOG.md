@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.2](https://github.com/cueaz/unplugin-keywords/compare/v2.16.1...v2.16.2) (2026-06-01)
+
+
+### Miscellaneous Chores
+
+* disable sourcemap ([89bf28d](https://github.com/cueaz/unplugin-keywords/commit/89bf28d2d046299730e030664602e5e8e00b3580))
+
 ## [2.16.1](https://github.com/cueaz/unplugin-keywords/compare/v2.16.0...v2.16.1) (2026-06-01)
 
 
