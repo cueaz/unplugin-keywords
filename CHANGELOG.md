@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.1](https://github.com/cueaz/unplugin-keywords/compare/v2.16.0...v2.16.1) (2026-06-01)
+
+
+### Miscellaneous Chores
+
+* cleanup package.json ([cd33f49](https://github.com/cueaz/unplugin-keywords/commit/cd33f499d4faf56b88836d478ff59a2704572c13))
+
 ## [2.16.0](https://github.com/cueaz/unplugin-keywords/compare/v2.15.0...v2.16.0) (2026-05-30)
 
 
