@@ -153,23 +153,6 @@ const collectKeywordsFromRoot = async (
   return collectedKeywords;
 };
 
-const pkgJson = {
-  private: true,
-  type: 'module',
-  sideEffects: false,
-  exports: {
-    '.': {
-      types: './index.d.ts',
-    },
-    './public': {
-      types: './public.d.ts',
-    },
-    './raw': {
-      types: './raw.d.ts',
-    },
-  },
-};
-
 interface RunnerOptions {
   root: string;
   silent: boolean;
@@ -180,7 +163,7 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
   const {
     root = process.cwd(),
     silent = false,
-    outDir = path.join('node_modules', '~keywords'),
+    outDir = path.join('node_modules', '@types', '~keywords'),
   } = options ?? {};
   return {
     async collect(): Promise<KeywordSet> {
@@ -188,21 +171,27 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
     },
 
     async save(keywords: KeywordSet): Promise<void> {
-      const content = generateTypeDeclaration(keywords.local);
-      const publicContent = generateTypeDeclaration(keywords.public, 'public');
-      const rawContent = generateTypeDeclaration(keywords.raw, 'raw');
+      const content = generateTypeDeclaration(
+        keywords.local,
+        '~keywords',
+        'local',
+      );
+      const publicContent = generateTypeDeclaration(
+        keywords.public,
+        '~keywords/public',
+        'public',
+      );
+      const rawContent = generateTypeDeclaration(
+        keywords.raw,
+        '~keywords/raw',
+        'raw',
+      );
+      const combined = [content, publicContent, rawContent]
+        .map((c) => c.trim())
+        .join('\n\n');
       const outPath = path.join(root, outDir);
       await mkdir(outPath, { recursive: true });
-      await writeFile(path.join(outPath, 'index.d.ts'), `${content.trim()}\n`);
-      await writeFile(
-        path.join(outPath, 'public.d.ts'),
-        `${publicContent.trim()}\n`,
-      );
-      await writeFile(path.join(outPath, 'raw.d.ts'), `${rawContent.trim()}\n`);
-      await writeFile(
-        path.join(outPath, 'package.json'),
-        `${JSON.stringify(pkgJson, null, 2)}\n`,
-      );
+      await writeFile(path.join(outPath, 'index.d.ts'), `${combined.trim()}\n`);
     },
 
     async run(): Promise<void> {
