@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.3](https://github.com/cueaz/unplugin-keywords/compare/v2.16.2...v2.16.3) (2026-06-03)
+
+
+### Bug Fixes
+
+* force patch release ([20365b4](https://github.com/cueaz/unplugin-keywords/commit/20365b4c6786811370b80a796cc651d5987b109d))
+
 ## [2.16.2](https://github.com/cueaz/unplugin-keywords/compare/v2.16.1...v2.16.2) (2026-06-01)
 
 
