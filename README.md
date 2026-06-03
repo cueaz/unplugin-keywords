@@ -41,7 +41,6 @@ The bundler receives the transformed code and processes the obfuscated literals.
 
 <!-- prettier-ignore-start -->
 ```ts
-// Example of minifier output: strings may be inlined or assigned to variables if used multiple times
 const _="b";const a={a:_,c:data};
 ```
 <!-- prettier-ignore-end -->
@@ -120,15 +119,15 @@ When depending on a library that has `"keywordified": true` (where `import * as 
 `unplugin-keywords` provides three virtual modules. In practice, `~keywords` alone covers the vast majority of use cases—including library exports (see [Library Integration](#library-integration)).
 
 - **`~keywords` (Lexical Counter):**
-  Generates the shortest safe sequential identifiers (min length: 1, e.g., `"a"`, `"b"`). This is the **default and recommended module** for all use cases: internal state, private members, public API surfaces, and library exports. When all packages pass through the same bundler—either directly or via the `keywordified: true` marker—the lexical dictionary is automatically synchronized.
+  Generates the shortest safe sequential identifiers (min length: 1, e.g., `"a"`, `"b"`). This is the **default and recommended module** for all use cases: internal state, private members, public API surfaces, and library exports. When all packages pass through the same bundler—either directly or via the `keywordified: true` marker—the lexical dictionary is automatically synchronized.\
   _Convention:_ `import * as K from '~keywords';`
 
 - **`~keywords/public` (Stable Hash):**
-  Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Reserved for contracts between **independently built applications** where dictionary synchronization is impossible—such as RPC schemas between separately deployed services, or `globalThis` variable sharing between isolated bundles. If both sides can pass through the same bundler, prefer `~keywords` instead.
+  Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Reserved for contracts between **independently built applications** where dictionary synchronization is impossible—such as RPC schemas between separately deployed services, or `globalThis` variable sharing between isolated bundles. If both sides can pass through the same bundler, prefer `~keywords` instead.\
   _Convention:_ `import * as PK from '~keywords/public';`
 
 - **`~keywords/raw` (Literal String):**
-  Yields the exact, unobfuscated string literal (e.g., `"function"`, `"click"`). Provided for completeness. In practice, modern minifiers and gzip compression already handle string deduplication effectively, making this module unnecessary for most codebases.
+  Yields the exact, unobfuscated string literal (e.g., `"function"`, `"click"`). Provided for completeness. In practice, modern minifiers and gzip compression already handle string deduplication effectively, making this module unnecessary for most codebases.\
   _Convention:_ `import * as RK from '~keywords/raw';`
 
 **Choosing a Module:**
