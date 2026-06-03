@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.4](https://github.com/cueaz/unplugin-keywords/compare/v2.16.3...v2.16.4) (2026-06-03)
+
+
+### Bug Fixes
+
+* add dummy default to cli package.json exports ([94fc936](https://github.com/cueaz/unplugin-keywords/commit/94fc93636dcfde529f20473f80d688073b5772d0))
+
 ## [2.16.3](https://github.com/cueaz/unplugin-keywords/compare/v2.16.2...v2.16.3) (2026-06-03)
 
 
