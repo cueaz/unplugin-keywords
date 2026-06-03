@@ -149,6 +149,8 @@ Publish your `dist` code (.js & .d.ts) with the `import * as K from '~keywords'`
 
 During the final app build, the consumer's bundler will automatically include your library and process both their app and your library simultaneously. This syncs the lexical dictionary across package boundaries without requiring stable hashes (`~keywords/public`).
 
+_For a real-world example, see [keywordify](https://github.com/cueaz/keywordify)._
+
 ## Motivation vs. Property Mangling
 
 Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
