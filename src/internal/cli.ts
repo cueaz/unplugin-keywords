@@ -160,12 +160,15 @@ const pkgJson = {
   exports: {
     '.': {
       types: './index.d.ts',
+      default: './dummy.js',
     },
     './public': {
       types: './public.d.ts',
+      default: './dummy.js',
     },
     './raw': {
       types: './raw.d.ts',
+      default: './dummy.js',
     },
   },
 };
@@ -203,6 +206,7 @@ export const createRunner = (options?: Partial<RunnerOptions>) => {
         path.join(outPath, 'package.json'),
         `${JSON.stringify(pkgJson, null, 2)}\n`,
       );
+      await writeFile(path.join(outPath, 'dummy.js'), 'export {};\n');
     },
 
     async run(): Promise<void> {
