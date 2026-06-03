@@ -13,44 +13,13 @@
 
 A build plugin for structural string literal minification and obfuscation
 
-`unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals used as object keys, custom event types, or structural constants. By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to deterministic, short hashes during the build process. This explicit opt-in mechanism allows bundlers to inline and obfuscate application internals without breaking semantic contracts.
+`unplugin-keywords` addresses a fundamental limitation in JavaScript minification: the inability to safely mangle string literals. Object keys, custom event types, and structural constants are left intact by standard minifiers, inflating bundle size and exposing internal architecture.
 
-## Motivation vs. Property Mangling
-
-Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
-
-- **Explicit Opt-In:**
-  Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from '~keywords'`). Developers clearly state which identifiers are safe to obfuscate directly in the source code.
-- **Gradual Adoption:**
-  Unlike global mangling flags that affect the entire codebase simultaneously, installing this plugin alters nothing by default. It allows incremental adoption on a per-file or per-module basis.
-- **Cross-Boundary Consistency:**
-  Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. Because `~keywords/public` relies on deterministic hashing, identical keys always produce the same hashes across independent builds, preserving structural contracts.
-- **Universal Application:**
-  Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
-- **Trade-offs:**
-  This explicit approach sacrifices some source code readability. Furthermore, as demonstrated in the benchmarks below, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the effort of adopting this plugin may not justify the minimal payload reduction.
-
-## Visual Demo: `@preact/signals-core`
-
-A side-by-side comparison of minified bundles:
-
-|                                                                                                                                [Unmodified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/original.ts) (Standard Minification)                                                                                                                                |                                                                                                                                    [Keywordified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/keywordified.ts) (Literal Obfuscation)                                                                                                                                    |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.dark.png" width="400" alt="Original"></picture> | <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.dark.png" width="400" alt="Keywordified"></picture> |
-|                                                                                                                                                                                6.86 kB │ gzip: 2.09 kB                                                                                                                                                                                |                                                                                                                                                                                      5.17 kB │ gzip: 2.01 kB                                                                                                                                                                                      |
-
-> [!NOTE]
-> **Baseline Metrics:** Both the "Unmodified" and "Keywordified" metrics represent standard `tsdown` minification. For comparison, the official [`@preact/signals-core@1.14.1`](https://bundlephobia.com/package/@preact/signals-core@1.14.1) release achieves a 5.4 kB Minified / 1.9 kB Gzipped footprint by employing a hand-crafted [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json) for manual property obfuscation.
->
-> **Compression Efficiency:** While the uncompressed bundle size is reduced by 24.6%, the gzipped size is only 3.8% smaller. This demonstrates the effectiveness of standard gzip compression on unmodified code: if minimizing the gzipped network payload is the sole objective, adopting this plugin is unnecessary.
-
-_For more information, see the [demo documentation](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/README.md)._
+By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to short sequential identifiers or deterministic hashes during the build process. This explicit opt-in mechanism allows bundlers to inline and obfuscate application internals without breaking semantic contracts.
 
 ## How It Works
 
-Standard minifiers operate exclusively on variable bindings and function names, leaving structural strings intact. While this preserves the semantic contract, it inflates bundle size and exposes internal state architecture (e.g., Redux action types, state machine nodes).
-
-`unplugin-keywords` solves this by treating structural strings as imported module bindings.
+Standard minifiers leave structural strings untouched. `unplugin-keywords` makes them optimizable by treating them as imported module bindings.
 
 **1. Source Code (Development):**
 Developers reference strings via a virtual module. The strongly recommended pattern is to use a namespace import (`import * as K`), which clearly marks keyword usage throughout the file.
@@ -77,24 +46,21 @@ const _="b";const a={a:_,c:data};
 ```
 <!-- prettier-ignore-end -->
 
-## Tri-Module System
+## Visual Demo: `@preact/signals-core`
 
-`unplugin-keywords` provides three distinct virtual modules. By default, the shortest possible compression is used, but the tri-module system allows for stable cross-boundary contracts and static literal deduplication when necessary.
+A side-by-side comparison of minified bundles:
 
-- **`~keywords` (Lexical Counter):**
-  Generates the shortest safe sequential identifiers (min length: 1, e.g., `"a"`, `"b"`). Intended for **internal and local** implementations where cross-boundary stability is irrelevant. This is the default for maximum minification.
-  _Convention:_ `import * as K from '~keywords';`
+|                                                                                                                                [Unmodified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/original.ts) (Standard Minification)                                                                                                                                |                                                                                                                                    [Keywordified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/keywordified.ts) (Literal Obfuscation)                                                                                                                                    |
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.dark.png" width="400" alt="Original"></picture> | <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.dark.png" width="400" alt="Keywordified"></picture> |
+|                                                                                                                                                                                6.86 kB │ gzip: 2.09 kB                                                                                                                                                                                |                                                                                                                                                                                      5.17 kB │ gzip: 2.01 kB                                                                                                                                                                                      |
 
-- **`~keywords/public` (Stable Hash):**
-  Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Designed for **public-facing APIs** and structural contracts that must remain consistent across package boundaries (e.g., RPC).
-  _Convention:_ `import * as PK from '~keywords/public';`
+> [!NOTE]
+> **Baseline Metrics:** Both the "Unmodified" and "Keywordified" metrics represent standard `tsdown` minification. For comparison, the official [`@preact/signals-core@1.14.1`](https://bundlephobia.com/package/@preact/signals-core@1.14.1) release achieves a 5.4 kB Minified / 1.9 kB Gzipped footprint by employing a hand-crafted [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json) for manual property obfuscation.
+>
+> **Compression Efficiency:** While the uncompressed bundle size is reduced by 24.6%, the gzipped size is only 3.8% smaller. This demonstrates the effectiveness of standard gzip compression on unmodified code: if minimizing the gzipped network payload is the sole objective, adopting this plugin is unnecessary.
 
-- **`~keywords/raw` (Literal String):**
-  Yields the exact, unobfuscated string literal (e.g., `"function"`, `"click"`). Ideal for standard APIs and repeating language keywords. Ensures a single memory instance of the string across your bundle.
-  _Convention:_ `import * as RK from '~keywords/raw';`
-
-**Module Separation:**
-To minimize bundle size, identifiers can be partitioned: use `PK.*` for contracts shared between packages, use `RK.*` for deduplicating raw strings like `typeof fn === RK.function`, and obscure all internal state and private members behind the default `K.*`.
+_For more information, see the [demo documentation](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/README.md)._
 
 ## Integration
 
@@ -103,6 +69,8 @@ Install the package:
 ```bash
 npm install -D unplugin-keywords
 ```
+
+The plugin is built on [unplugin](https://github.com/unjs/unplugin). Tested with Vite, Rollup, and Rolldown. Other unplugin-compatible bundlers (webpack, esbuild, Rspack, Farm, Bun) are supported via the common API.
 
 Configure your bundler. Example for Vite:
 
@@ -113,14 +81,17 @@ import keywords from 'unplugin-keywords/vite';
 export default defineConfig(({ mode }) => ({
   plugins: [
     keywords({
-      // Preserves keyword suffix in development for debugging (e.g., "zXpL21k.SET_USER")
       isDev: mode === 'development',
-      // Initializes the hashing algorithm. Modify to rotate hashes globally.
       secret: 'my-secret-key',
     }),
   ],
 }));
 ```
+
+**Plugin Options:**
+
+- **`isDev`** _(boolean)_: When `true`, preserves the original keyword as a suffix in the generated identifier (e.g., `"zXpL21k.SET_USER"` instead of `"zXpL21k"`). This makes keyword origins traceable during development without affecting runtime behavior.
+- **`secret`** _(string)_: Seed for the hashing and counter algorithms. Changing the secret rotates all generated identifiers globally—both the sequential counters (`~keywords`) and the deterministic hashes (`~keywords/public`).
 
 To enable type checking and IDE auto-completion, execute the CLI. It will automatically generate type declarations and a `package.json` inside `node_modules/~keywords`, allowing your project to resolve the virtual modules:
 
@@ -144,6 +115,25 @@ When depending on a library that has `"keywordified": true` (where `import * as 
 }
 ```
 
+## Tri-Module System
+
+`unplugin-keywords` provides three virtual modules. In practice, `~keywords` alone covers the vast majority of use cases—including library exports (see [Library Integration](#library-integration)).
+
+- **`~keywords` (Lexical Counter):**
+  Generates the shortest safe sequential identifiers (min length: 1, e.g., `"a"`, `"b"`). This is the **default and recommended module** for all use cases: internal state, private members, public API surfaces, and library exports. When all packages pass through the same bundler—either directly or via the `keywordified: true` marker—the lexical dictionary is automatically synchronized.
+  _Convention:_ `import * as K from '~keywords';`
+
+- **`~keywords/public` (Stable Hash):**
+  Generates deterministic, key-derived hashes (e.g., `"z2pL21k"`). Reserved for contracts between **independently built applications** where dictionary synchronization is impossible—such as RPC schemas between separately deployed services, or `globalThis` variable sharing between isolated bundles. If both sides can pass through the same bundler, prefer `~keywords` instead.
+  _Convention:_ `import * as PK from '~keywords/public';`
+
+- **`~keywords/raw` (Literal String):**
+  Yields the exact, unobfuscated string literal (e.g., `"function"`, `"click"`). Provided for completeness. In practice, modern minifiers and gzip compression already handle string deduplication effectively, making this module unnecessary for most codebases.
+  _Convention:_ `import * as RK from '~keywords/raw';`
+
+**Choosing a Module:**
+Use `K` by default. The decision to reach for `PK` should be driven by a single question: _"Can both sides of this contract pass through the same bundler?"_ If yes, use `K`. If no (e.g., two separately deployed services communicating via RPC), use `PK`.
+
 ## Library Integration
 
 When publishing libraries intended for consumers who also use `unplugin-keywords`, do not use the plugin during your library's build step. Instead, solely use the `keywords` CLI to generate types for development experience.
@@ -158,6 +148,21 @@ Publish your `dist` code (.js & .d.ts) with the `import * as K from '~keywords'`
 ```
 
 During the final app build, the consumer's bundler will automatically include your library and process both their app and your library simultaneously. This syncs the lexical dictionary across package boundaries without requiring stable hashes (`~keywords/public`).
+
+## Motivation vs. Property Mangling
+
+Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
+
+- **Explicit Opt-In:**
+  Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from '~keywords'`). Developers clearly state which identifiers are safe to obfuscate directly in the source code.
+- **Gradual Adoption:**
+  Unlike global mangling flags that affect the entire codebase simultaneously, installing this plugin alters nothing by default. It allows incremental adoption on a per-file or per-module basis.
+- **Cross-Boundary Consistency:**
+  Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. With `unplugin-keywords`, libraries ship `import * as K from '~keywords'` statements intact (via `keywordified: true`), and the consumer's bundler synchronizes the dictionary at build time. For independently built applications where bundler-level synchronization is impossible (e.g., separately deployed services), `~keywords/public` provides deterministic hashing to preserve structural contracts.
+- **Universal Application:**
+  Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
+- **Trade-offs:**
+  This explicit approach sacrifices some source code readability. Furthermore, as demonstrated in the benchmarks above, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the effort of adopting this plugin may not justify the minimal payload reduction.
 
 ## Example: Class-Based Architectures
 
