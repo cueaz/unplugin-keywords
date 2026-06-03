@@ -148,6 +148,9 @@ Publish your `dist` code (.js & .d.ts) with the `import * as K from '~keywords'`
 
 During the final app build, the consumer's bundler will automatically include your library and process both their app and your library simultaneously. This syncs the lexical dictionary across package boundaries without requiring stable hashes (`~keywords/public`).
 
+> [!NOTE]
+> **Declaration Emit:** When exporting object literals with computed property keys, TypeScript's declaration emitter resolves the keys to their inferred literal values. Without an explicit type annotation, `tsc` will flatten `[K.HTML]` into a hardcoded string (e.g., `"==.HTML"`) in the generated `.d.ts`. The resolved values are functionally identical, so this is unlikely to cause issues for consumers. However, if you want to preserve the `[K.HTML]` in computed property keys, provide an [explicit type annotation](https://github.com/cueaz/keywordify/blob/72db77cd4f0dd6aa4e291a168e054b708aba1d30/keywordify/html/src/directive-helpers.ts#L57-L66).
+
 _For a real-world example, see [keywordify](https://github.com/cueaz/keywordify)._
 
 ## Motivation vs. Property Mangling
