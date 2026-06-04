@@ -1067,7 +1067,7 @@ function startCapturingEffects(): () => Effect[] | undefined {
 const wrapInAction = (value: Record<string | symbol, unknown>) => {
   const keys = Reflect.ownKeys(value);
   for (let i = 0; i < keys.length; i++) {
-    const key = keys[i] as string | symbol;
+    const key = keys[i]!;
     const val = value[key];
     if (typeof val === 'function') {
       value[key] = action(val as (...args: unknown[]) => unknown);

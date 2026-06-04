@@ -107,7 +107,7 @@ function image() {
             fonts: [
               {
                 name: 'JetBrains Mono',
-                data: fontBuffers.get(mode) as Buffer,
+                data: fontBuffers.get(mode)!,
               },
             ],
           });

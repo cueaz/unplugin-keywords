@@ -6,6 +6,7 @@
     "moduleResolution": "nodenext",
     "composite": true,
     "emitDeclarationOnly": true,
-    "declarationDir": "./node_modules/.tmp/dts-out"
+    "declarationDir": "./node_modules/.tmp/dts-out",
+    "noPropertyAccessFromIndexSignature": false
   }
 }

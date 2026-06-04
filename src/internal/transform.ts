@@ -197,7 +197,7 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
             return null;
           }
           if (targetMap.has(keyword)) {
-            return targetMap.get(keyword) as t.Identifier;
+            return targetMap.get(keyword)!;
           }
           const encoded = encodeIdentifier(keyword);
           const safeName = toSafeVarName(encoded);
@@ -330,7 +330,7 @@ const transformPlugin = (mode: 'extract' | 'transform'): PluginItem => {
 
               // e.g., type T = ((typeof A))['prop'];
               TSIndexedAccessType(tsPath) {
-                const objPath = tsPath.get('objectType') as NodePath;
+                const objPath = tsPath.get('objectType');
                 if (
                   objPath.isTSTypeQuery() &&
                   t.isIdentifier(objPath.node.exprName) &&

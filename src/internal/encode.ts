@@ -10,7 +10,7 @@ type Encoded = string & { [__encoded__]: never };
 export const encodeIdentifier = (identifier: string): Encoded => {
   let encoded = '';
   for (let i = 0; i < identifier.length; i++) {
-    const c = identifier[i] as string;
+    const c = identifier[i]!;
     if (/[a-zA-Z0-9_]/.test(c)) {
       encoded += c;
     } else if (c === '$') {

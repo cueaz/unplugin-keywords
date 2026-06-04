@@ -27,7 +27,7 @@ export const createHasher = (secret: string): Hasher => {
   const cache = new Map<string, string>();
   return (input) => {
     if (cache.has(input)) {
-      return cache.get(input) as string;
+      return cache.get(input)!;
     }
 
     const info = VIRTUAL_PUBLIC_MODULE_ID;
@@ -71,8 +71,8 @@ const shuffle = (str: string, secret: string, salt: string): string => {
     const random32 = prngBuffer.readUInt32BE(byteOffset);
     byteOffset += 4;
     const j = random32 % (i + 1);
-    const temp = arr[i] as string;
-    arr[i] = arr[j] as string;
+    const temp = arr[i]!;
+    arr[i] = arr[j]!;
     arr[j] = temp;
   }
 
@@ -80,14 +80,23 @@ const shuffle = (str: string, secret: string, salt: string): string => {
 };
 
 export const createCounter = (secret: string): Hasher => {
-  const shuffledAlpha = shuffle(ALPHA_CHARS, secret, 'alpha');
-  const shuffledBase62 = shuffle(BASE62_CHARS, secret, 'base62');
+  const shuffledAlpha = shuffle(ALPHA_CHARS, secret, 'pos-0');
+
+  const base62Shuffles: string[] = [];
+  const getBase62Shuffle = (pos: number) => {
+    while (base62Shuffles.length <= pos) {
+      base62Shuffles.push(
+        shuffle(BASE62_CHARS, secret, `pos-${base62Shuffles.length + 1}`),
+      );
+    }
+    return base62Shuffles[pos]!;
+  };
 
   let index = 0;
   const cache = new Map<string, string>();
   return (input) => {
     if (cache.has(input)) {
-      return cache.get(input) as string;
+      return cache.get(input)!;
     }
 
     let result: string;
@@ -98,8 +107,12 @@ export const createCounter = (secret: string): Hasher => {
 
       result += shuffledAlpha[current % shuffledAlpha.length];
       current = Math.floor(current / shuffledAlpha.length);
+
+      let pos = 0;
       while (current > 0) {
         current--;
+        const shuffledBase62 = getBase62Shuffle(pos);
+        pos++;
         result += shuffledBase62[current % shuffledBase62.length];
         current = Math.floor(current / shuffledBase62.length);
       }
