@@ -78,9 +78,12 @@ import { defineConfig } from 'vite';
 import keywords from 'unplugin-keywords/vite';
 
 export default defineConfig(({ mode }) => ({
+  optimizeDeps: {
+    exclude: ['~keywords'],
+  },
   plugins: [
     keywords({
-      isDev: mode === 'development',
+      isDev: mode !== 'production',
       secret: 'my-secret-key',
     }),
   ],
