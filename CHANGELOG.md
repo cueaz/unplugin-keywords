@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.17.0](https://github.com/cueaz/unplugin-keywords/compare/v2.16.4...v2.17.0) (2026-06-04)
+
+
+### Features
+
+* allow non null assertion and shuffle counter by position ([5c55451](https://github.com/cueaz/unplugin-keywords/commit/5c554519f697a48122aaeebc8a795d0709518efe))
+
 ## [2.16.4](https://github.com/cueaz/unplugin-keywords/compare/v2.16.3...v2.16.4) (2026-06-03)
 
 
