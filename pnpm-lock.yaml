@@ -28,8 +28,8 @@ catalogs:
       specifier: ^25.6.0
       version: 25.6.0
     clean-pkg-json:
-      specifier: ^1.4.2
-      version: 1.4.2
+      specifier: ^2.0.0
+      version: 2.0.0
     globals:
       specifier: ^17.6.0
       version: 17.6.0
@@ -92,7 +92,7 @@ importers:
         version: 25.6.0
       clean-pkg-json:
         specifier: 'catalog:'
-        version: 1.4.2
+        version: 2.0.0
       globals:
         specifier: 'catalog:'
         version: 17.6.0
@@ -788,8 +788,9 @@ packages:
   character-entities-legacy@3.0.0:
     resolution: {integrity: sha512-RpPp0asT/6ufRm//AJVwpViZbGM/MkjQFxJccQRHmISF/22NBtsHqAWmL+/pmkPWoIUJdWyeVleTl1wydHATVQ==}
 
-  clean-pkg-json@1.4.2:
-    resolution: {integrity: sha512-o201s9wWOYoZSRui4QyARSFc3n0IcYDu62hkJCQGX1eshSSQ/90QhS/KveWp/QlXSqcF/g/q2+IINj25V1BMKw==}
+  clean-pkg-json@2.0.0:
+    resolution: {integrity: sha512-HfgaeXf7xc2xEg28rKAb6iJ7KaBU6Bu1F+wefBUEm142fYvnn+dKuBg2WEwjv7hIs1S4tu/qdLK9wek03OolBQ==}
+    engines: {node: '>=22'}
     hasBin: true
 
   clsx@2.1.1:
@@ -1937,7 +1938,7 @@ snapshots:
 
   character-entities-legacy@3.0.0: {}
 
-  clean-pkg-json@1.4.2: {}
+  clean-pkg-json@2.0.0: {}
 
   clsx@2.1.1: {}
 
