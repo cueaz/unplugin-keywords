@@ -44,15 +44,15 @@ const SUFFIX_REGEX = /\.(?:m?[jt]sx?|svelte)(?:$|\?)/;
 
 export interface Options {
   /**
-   * If true, preserves the original keyword as a suffix in the generated
-   * identifier for easier debugging (e.g., `"zXpL21k.SET_USER"`).
+   * When `true`, preserves the original keyword as a suffix in the generated
+   * identifier (e.g., `"zXpL21k.SET_USER"` instead of `"zXpL21k"`). This makes
+   * keyword origins traceable during development without affecting runtime behavior.
    */
   isDev: boolean;
   /**
-   * The cryptographic key used to initialize the deterministic HMAC algorithm.
-   * Modifying this value will globally rotate all generated hashes.
-   * To ensure cross-boundary consistency between independent builds,
-   * they must share the same secret key.
+   * Seed for the hashing and counter algorithms. Changing the secret rotates
+   * all generated identifiers globally—both the sequential counters (`~keywords`)
+   * and the deterministic hashes (`~keywords/public`).
    */
   secret: string;
 }
