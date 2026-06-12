@@ -16,6 +16,10 @@
     "type": "git",
     "url": "git+https://github.com/cueaz/unplugin-keywords.git"
   },
+  "homepage": "https://github.com/cueaz/unplugin-keywords#readme",
+  "bugs": {
+    "url": "https://github.com/cueaz/unplugin-keywords/issues"
+  },
   "license": "MIT",
   "author": "cueaz",
   "type": "module",
