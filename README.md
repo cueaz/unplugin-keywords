@@ -17,6 +17,37 @@ A build plugin for structural string literal minification and obfuscation (prope
 
 By explicitly importing these identifiers from a virtual module, the plugin extracts them at the AST level and maps them to short sequential identifiers or deterministic hashes during the build process. This explicit opt-in mechanism allows bundlers to inline and obfuscate application internals without breaking semantic contracts.
 
+## Motivation vs. Property Mangling
+
+Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
+
+- **Explicit Opt-In:**
+  Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from '~keywords'`). Developers clearly state which identifiers are safe to obfuscate directly in the source code.
+- **Gradual Adoption:**
+  Unlike global mangling flags that affect the entire codebase simultaneously, installing this plugin alters nothing by default. It allows incremental adoption on a per-file or per-module basis.
+- **Cross-Boundary Consistency:**
+  Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. With `unplugin-keywords`, libraries ship `import * as K from '~keywords'` statements intact (via `keywordified: true`), and the consumer's bundler synchronizes the dictionary at build time. For independently built applications where bundler-level synchronization is impossible (e.g., separately deployed services), `~keywords/public` provides deterministic hashing to preserve structural contracts.
+- **Universal Application:**
+  Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
+- **Trade-offs:**
+  This explicit approach sacrifices some source code readability. Furthermore, as demonstrated in the benchmarks below, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the effort of adopting this plugin may not justify the minimal payload reduction.
+
+## Visual Demo: `@preact/signals-core`
+
+A side-by-side comparison of minified bundles:
+
+|                                                                                                                                [Unmodified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/original.ts) (Standard Minification)                                                                                                                                |                                                                                                                                    [Keywordified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/keywordified.ts) (Literal Obfuscation)                                                                                                                                    |
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.dark.png" width="400" alt="Original"></picture> | <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.dark.png" width="400" alt="Keywordified"></picture> |
+|                                                                                                                                                                                6.86 kB │ gzip: 2.09 kB                                                                                                                                                                                |                                                                                                                                                                                      5.17 kB │ gzip: 2.01 kB                                                                                                                                                                                      |
+
+> [!NOTE]
+> **Baseline Metrics:** Both the "Unmodified" and "Keywordified" metrics represent standard `tsdown` minification. For comparison, the official [`@preact/signals-core@1.14.1`](https://bundlephobia.com/package/@preact/signals-core@1.14.1) release achieves a 5.4 kB Minified / 1.9 kB Gzipped footprint by employing a hand-crafted [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json) for manual property obfuscation.
+>
+> **Compression Efficiency:** While the uncompressed bundle size is reduced by 24.6%, the gzipped size is only 3.8% smaller. This demonstrates the effectiveness of standard gzip compression on unmodified code: if minimizing the gzipped network payload is the sole objective, adopting this plugin is unnecessary.
+
+_For more information, see the [demo documentation](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/README.md)._
+
 ## How It Works
 
 Standard minifiers leave structural strings untouched. `unplugin-keywords` makes them optimizable by treating them as imported module bindings.
@@ -44,22 +75,6 @@ The bundler receives the transformed code and processes the obfuscated literals.
 const _="b";const a={a:_,c:data};
 ```
 <!-- prettier-ignore-end -->
-
-## Visual Demo: `@preact/signals-core`
-
-A side-by-side comparison of minified bundles:
-
-|                                                                                                                                [Unmodified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/original.ts) (Standard Minification)                                                                                                                                |                                                                                                                                    [Keywordified](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/src/keywordified.ts) (Literal Obfuscation)                                                                                                                                    |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/original.min.js.dark.png" width="400" alt="Original"></picture> | <picture><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.light.png" width="400"><img src="https://raw.githubusercontent.com/cueaz/unplugin-keywords/refs/heads/main/demo/signals/dist_sample/keywordified.min.js.dark.png" width="400" alt="Keywordified"></picture> |
-|                                                                                                                                                                                6.86 kB │ gzip: 2.09 kB                                                                                                                                                                                |                                                                                                                                                                                      5.17 kB │ gzip: 2.01 kB                                                                                                                                                                                      |
-
-> [!NOTE]
-> **Baseline Metrics:** Both the "Unmodified" and "Keywordified" metrics represent standard `tsdown` minification. For comparison, the official [`@preact/signals-core@1.14.1`](https://bundlephobia.com/package/@preact/signals-core@1.14.1) release achieves a 5.4 kB Minified / 1.9 kB Gzipped footprint by employing a hand-crafted [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json) for manual property obfuscation.
->
-> **Compression Efficiency:** While the uncompressed bundle size is reduced by 24.6%, the gzipped size is only 3.8% smaller. This demonstrates the effectiveness of standard gzip compression on unmodified code: if minimizing the gzipped network payload is the sole objective, adopting this plugin is unnecessary.
-
-_For more information, see the [demo documentation](https://github.com/cueaz/unplugin-keywords/blob/main/demo/signals/README.md)._
 
 ## Integration
 
@@ -155,21 +170,6 @@ During the final app build, the consumer's bundler will automatically include yo
 > **Declaration Emit:** When exporting object literals with computed property keys, TypeScript's declaration emitter resolves the keys to their inferred literal values. Without an explicit type annotation, `tsc` will flatten `[K.HTML]` into a hardcoded string (e.g., `"==.HTML"`) in the generated `.d.ts`. The resolved values are functionally identical, so this is unlikely to cause issues for consumers. However, if you want to preserve the `[K.HTML]` in computed property keys, provide an [explicit type annotation](https://github.com/cueaz/keywordify/blob/72db77cd4f0dd6aa4e291a168e054b708aba1d30/keywordify/html/src/directive-helpers.ts#L57-L66).
 
 _For a real-world example, see [keywordify](https://github.com/cueaz/keywordify)._
-
-## Motivation vs. Property Mangling
-
-Traditional JavaScript minifiers rely on property mangling (e.g., Terser's `mangle.properties`) to reduce structural identifiers. `unplugin-keywords` provides a module-based alternative that addresses the structural limitations of global mangling.
-
-- **Explicit Opt-In:**
-  Traditional property mangling requires maintaining complex, global exclusion rules (e.g., [`mangle.json`](https://github.com/preactjs/signals/blob/main/mangle.json)), which are fragile and hard to scale. `unplugin-keywords` utilizes explicit imports (`import * as K from '~keywords'`). Developers clearly state which identifiers are safe to obfuscate directly in the source code.
-- **Gradual Adoption:**
-  Unlike global mangling flags that affect the entire codebase simultaneously, installing this plugin alters nothing by default. It allows incremental adoption on a per-file or per-module basis.
-- **Cross-Boundary Consistency:**
-  Standard mangled properties cannot safely cross package boundaries; a property mangled to `a` in Package A will not map to `a` in Package B. With `unplugin-keywords`, libraries ship `import * as K from '~keywords'` statements intact (via `keywordified: true`), and the consumer's bundler synchronizes the dictionary at build time. For independently built applications where bundler-level synchronization is impossible (e.g., separately deployed services), `~keywords/public` provides deterministic hashing to preserve structural contracts.
-- **Universal Application:**
-  Standard minifiers only mangle object keys, leaving string literal values intact. This plugin processes both keys and values uniformly (e.g., `[K.type]: K.SET_USER`). It extends obfuscation to literal types (`const mode: typeof K.extract | typeof K.transform = K.extract`) and even arbitrary static strings (`throw new Error(K['Invalid State'])`).
-- **Trade-offs:**
-  This explicit approach sacrifices some source code readability. Furthermore, as demonstrated in the benchmarks above, standard gzip compression handles unmodified semantic strings highly effectively. If reducing the gzipped network payload is the sole objective, the effort of adopting this plugin may not justify the minimal payload reduction.
 
 ## Example: Class-Based Architectures
 
