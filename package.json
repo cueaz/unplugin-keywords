@@ -100,7 +100,6 @@
     "@types/node": "catalog:",
     "clean-pkg-json": "catalog:",
     "globals": "catalog:",
-    "svelte": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

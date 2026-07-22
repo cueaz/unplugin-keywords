@@ -3,23 +3,22 @@ packages:
 
 catalog:
   '@babel/core': ^8.0.1
-  '@biomejs/biome': ^2.5.0
+  '@biomejs/biome': ^2.5.4
   '@expo-google-fonts/jetbrains-mono': ^0.4.1
-  '@mdn/browser-compat-data': ^8.0.4
+  '@mdn/browser-compat-data': ^8.0.7
   '@resvg/resvg-js': ^2.6.2
-  '@tsconfig/bases': ^1.0.25
-  '@types/node': ^26.0.0
+  '@tsconfig/bases': ^1.0.26
+  '@types/node': ^26.1.1
   clean-pkg-json: ^2.0.0
-  globals: ^17.6.0
-  ignore: ^7.0.5
-  p-limit: ^7.3.0
+  globals: ^17.7.0
+  ignore: ^7.0.6
+  p-limit: ^7.3.1
   satori: ^0.28.0
   shiki: ^4.0.2
-  svelte: ^5.56.3
-  tsdown: ^0.22.3
+  tsdown: ^0.22.12
   typescript: ^6.0.3
-  unplugin: ^3.0.0
-  vitest: ^4.1.9
+  unplugin: ^3.3.0
+  vitest: ^4.1.10
 
 catalogMode: strict
 cleanupUnusedCatalogs: true
