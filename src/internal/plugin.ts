@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import pLimit from 'p-limit';
 import type { UnpluginFactory } from 'unplugin';
 import { createRunner } from './cli.js';
@@ -55,11 +56,20 @@ export interface Options {
    * and the deterministic hashes (`~keywords/public`).
    */
   secret: string;
+  /**
+   * Exports a JSON file containing the generated keyword mappings for each namespace.
+   * - `false`: Disables exporting the mapping file.
+   * - `true`: Exports to the default path (`keywords.json`).
+   * - `string`: Exports to the specified file path.
+   * @default false
+   */
+  exportMap?: boolean | string;
 }
 
 export const unpluginFactory: UnpluginFactory<Options> = ({
   isDev,
   secret,
+  exportMap = false,
 }) => {
   const runner = createRunner({ silent: true });
   const runnerLimit = pLimit({ concurrency: 1 });
@@ -90,6 +100,11 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
   let hasherPublic: Hasher;
   let hasherLocal: Hasher;
   let resolvedMap: Map<string, string>;
+  let exportMapping: {
+    local: Record<string, string>;
+    public: Record<string, string>;
+    raw: Record<string, string>;
+  };
 
   return {
     name: PLUGIN_NAME,
@@ -98,6 +113,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
       hasherPublic = createHasher(secret);
       hasherLocal = createCounter(secret);
       resolvedMap = new Map();
+      exportMapping = { local: {}, public: {}, raw: {} };
       if (!isInitialized) {
         runnerLimit(async () => {
           if (!isInitialized) {
@@ -110,6 +126,26 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
     async buildEnd() {
       // Flush the background queue
       await runnerLimit(() => Promise.resolve());
+
+      if (exportMap) {
+        const sortObjectKeys = (obj: Record<string, string>) =>
+          Object.fromEntries(
+            Object.entries(obj).sort(([a], [b]) => a.localeCompare(b)),
+          );
+        const sortedMapping = {
+          local: sortObjectKeys(exportMapping.local),
+          public: sortObjectKeys(exportMapping.public),
+          raw: sortObjectKeys(exportMapping.raw),
+        };
+        const fileName =
+          typeof exportMap === 'string' ? exportMap : 'keywords.json';
+        await mkdir(dirname(fileName), { recursive: true });
+        await writeFile(
+          fileName,
+          `${JSON.stringify(sortedMapping, null, 2)}\n`,
+          'utf-8',
+        );
+      }
     },
 
     resolveId: {
@@ -176,6 +212,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           }
           const hash = hasherLocal(keyword);
           const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
+          exportMapping.local[keyword] = value;
           resolvedMap.set(
             resolvedId,
             `export default ${JSON.stringify(value)};\n`,
@@ -191,6 +228,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           }
           const hash = hasherPublic(keyword);
           const value = isDev ? `${hash}${DEBUG_SEPARATOR}${keyword}` : hash;
+          exportMapping.public[keyword] = value;
           resolvedMap.set(
             resolvedId,
             `export default ${JSON.stringify(value)};\n`,
@@ -204,6 +242,7 @@ export const unpluginFactory: UnpluginFactory<Options> = ({
           if (resolvedMap.has(resolvedId)) {
             continue;
           }
+          exportMapping.raw[keyword] = keyword;
           resolvedMap.set(
             resolvedId,
             `export default ${JSON.stringify(keyword)};\n`,

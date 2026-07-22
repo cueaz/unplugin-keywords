@@ -109,6 +109,7 @@ export default defineConfig(({ mode }) => ({
 
 - **`isDev`** _(boolean)_: When `true`, preserves the original keyword as a suffix in the generated identifier (e.g., `"zXpL21k.SET_USER"` instead of `"zXpL21k"`). This makes keyword origins traceable during development without affecting runtime behavior.
 - **`secret`** _(string)_: Seed for the hashing and counter algorithms. Changing the secret rotates all generated identifiers globally—both the sequential counters (`~keywords`) and the deterministic hashes (`~keywords/public`).
+- **`exportMap`** _(boolean | string)_: Exports a JSON file containing the generated keyword mappings for each namespace. When `true`, defaults to `keywords.json` in the project root. When a `string` is provided, it uses that as the file path. Default is `false`.
 
 To enable type checking and IDE auto-completion, execute the CLI. It will automatically generate type declarations and a `package.json` inside `node_modules/~keywords`, allowing your project to resolve the virtual modules:
 
