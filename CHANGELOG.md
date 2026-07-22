@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.17.1](https://github.com/cueaz/unplugin-keywords/compare/v2.17.0...v2.17.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* force patch release ([3ba946a](https://github.com/cueaz/unplugin-keywords/commit/3ba946a750f1c76c914064a98fad74ca3414ee57))
+
 ## [2.17.0](https://github.com/cueaz/unplugin-keywords/compare/v2.16.4...v2.17.0) (2026-06-04)
 
 
