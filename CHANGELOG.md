@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.18.0](https://github.com/cueaz/unplugin-keywords/compare/v2.17.1...v2.18.0) (2026-07-22)
+
+
+### Features
+
+* export keyword mappings optionally ([61cd916](https://github.com/cueaz/unplugin-keywords/commit/61cd916c410a613dcf4e1eb6f0e01c0e0ff5a269))
+
 ## [2.17.1](https://github.com/cueaz/unplugin-keywords/compare/v2.17.0...v2.17.1) (2026-07-22)
 
 
