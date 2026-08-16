@@ -23,7 +23,7 @@ catalogs:
       version: 2.6.2
     '@tsconfig/bases':
       specifier: ^1.0.26
-      version: 1.0.26
+      version: 1.0.27
     '@types/node':
       specifier: ^26.1.1
       version: 26.2.0
@@ -86,7 +86,7 @@ importers:
         version: 8.0.11
       '@tsconfig/bases':
         specifier: 'catalog:'
-        version: 1.0.26
+        version: 1.0.27
       '@types/node':
         specifier: 'catalog:'
         version: 26.2.0
@@ -607,8 +607,8 @@ packages:
     peerDependencies:
       acorn: ^8.9.0
 
-  '@tsconfig/bases@1.0.26':
-    resolution: {integrity: sha512-kRHl2afbyBACxK3WBWNrqFJV9bWk7lLmCAdnKu5hO3v3QHFu5Ghdt6jqsAPr5ZwpJ3fHRQttFCMpO0Mhhufv1w==}
+  '@tsconfig/bases@1.0.27':
+    resolution: {integrity: sha512-uqv77XW72Hxm75D4IHoChy0jKMkRJYy87L7L9a2YIMBvY68Jh51G/x4i5ZxKmIv3IM4Fvp/673mIcqZXVO5AYA==}
 
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
@@ -1904,7 +1904,7 @@ snapshots:
     dependencies:
       acorn: 8.17.0
 
-  '@tsconfig/bases@1.0.26': {}
+  '@tsconfig/bases@1.0.27': {}
 
   '@tybys/wasm-util@0.10.3':
     dependencies:
