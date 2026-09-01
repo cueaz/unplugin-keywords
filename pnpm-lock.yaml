@@ -38,7 +38,7 @@ catalogs:
       version: 7.0.7
     p-limit:
       specifier: ^7.3.1
-      version: 7.3.1
+      version: 7.3.2
     satori:
       specifier: ^0.33.0
       version: 0.33.3
@@ -70,7 +70,7 @@ importers:
         version: 7.0.7
       p-limit:
         specifier: 'catalog:'
-        version: 7.3.1
+        version: 7.3.2
       svelte:
         specifier: '>=5.0.0'
         version: 5.56.7
@@ -1170,8 +1170,8 @@ packages:
   oniguruma-to-es@4.3.6:
     resolution: {integrity: sha512-csuQ9x3Yr0cEIs/Zgx/OEt9iBw9vqIunAPQkx19R/fiMq2oGVTgcMqO/V3Ybqefr1TBvosI6jU539ksaBULJyA==}
 
-  p-limit@7.3.1:
-    resolution: {integrity: sha512-0trZaiG7Y7kN/Egy9a8j47t9osC0Tch4PaIWd9yGF6bvmlk7muExRvGNYb8sXBwEKMoNKsbNN9P8EefuQekE4Q==}
+  p-limit@7.3.2:
+    resolution: {integrity: sha512-Ll0w3fU24vYpXoZmjjZIee6bJQDgG0oAyo1PdmFYI8UDwJJddaHAypxIH9avUu+t+lSsAwKVsb1jDCMIIChliw==}
     engines: {node: '>=20'}
 
   pako@0.2.9:
@@ -2323,7 +2323,7 @@ snapshots:
       regex: 6.1.0
       regex-recursion: 6.0.2
 
-  p-limit@7.3.1:
+  p-limit@7.3.2:
     dependencies:
       yocto-queue: 1.2.2
 
