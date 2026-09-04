@@ -15,7 +15,7 @@ catalog:
   p-limit: ^7.3.1
   satori: ^0.33.0
   shiki: ^4.0.2
-  tsdown: ^0.22.12
+  tsdown: ^0.23.0
   typescript: ^6.0.3
   unplugin: ^3.3.0
   vitest: ^4.1.10
