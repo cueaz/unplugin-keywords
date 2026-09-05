@@ -18,7 +18,7 @@ catalog:
   tsdown: ^0.23.0
   typescript: ^6.0.3
   unplugin: ^3.3.0
-  vitest: ^4.1.10
+  vitest: ^5.0.0
 
 catalogMode: strict
 cleanupUnusedCatalogs: true
