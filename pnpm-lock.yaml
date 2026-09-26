@@ -211,7 +211,7 @@ catalogs:
       version: 6.0.3
     unplugin:
       specifier: ^3.3.0
-      version: 3.3.0
+      version: 3.4.0
     vitest:
       specifier: ^5.0.0
       version: 5.0.2
@@ -234,7 +234,7 @@ importers:
         version: 5.56.7
       unplugin:
         specifier: 'catalog:'
-        version: 3.3.0(rolldown@1.2.7)(vite@8.0.10(@types/node@26.6.2))
+        version: 3.4.0(rolldown@1.2.7)(vite@8.0.10(@types/node@26.6.2))
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'
@@ -1533,11 +1533,12 @@ packages:
   unist-util-visit@5.1.0:
     resolution: {integrity: sha512-m+vIdyeCOpdr/QeQCu2EzxX/ohgS8KbnPDgFni4dQsfSCtpz8UqDyY5GjRru8PDKuYn7Fq19j1CQ+nJSsGKOzg==}
 
-  unplugin@3.3.0:
-    resolution: {integrity: sha512-qa66K+crbfyE6JK10GjvbJeRrOsuC/JpbnHctfyp/i4oBTxWOzJfRZyDiOk1PtErMFRu8JhsU/wPvOdBNWe5Rg==}
+  unplugin@3.4.0:
+    resolution: {integrity: sha512-9skdIFlCsPdFV7wUfZxNsFInlW+7nJmGu2gkTu0OUhF56aXGsHab9x52/QhdJ4lC7ZDPWTxbiC4ANqVlsuaW3w==}
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       '@farmfe/core': '*'
+      '@rsbuild/core': '*'
       '@rspack/core': '*'
       bun-types-no-globals: '*'
       esbuild: '*'
@@ -1548,6 +1549,8 @@ packages:
       webpack: '*'
     peerDependenciesMeta:
       '@farmfe/core':
+        optional: true
+      '@rsbuild/core':
         optional: true
       '@rspack/core':
         optional: true
@@ -2721,10 +2724,10 @@ snapshots:
       unist-util-is: 6.0.1
       unist-util-visit-parents: 6.0.2
 
-  unplugin@3.3.0(rolldown@1.2.7)(vite@8.0.10(@types/node@26.6.2)):
+  unplugin@3.4.0(rolldown@1.2.7)(vite@8.0.10(@types/node@26.6.2)):
     dependencies:
       '@jridgewell/remapping': 2.3.5
-      picomatch: 4.0.5
+      picomatch: 4.0.7
       webpack-virtual-modules: 0.6.2
     optionalDependencies:
       rolldown: 1.2.7
