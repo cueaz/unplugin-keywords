@@ -199,7 +199,7 @@ catalogs:
       version: 7.3.3
     satori:
       specifier: ^0.63.0
-      version: 0.63.0
+      version: 0.63.1
     shiki:
       specifier: ^4.0.2
       version: 4.5.0
@@ -274,7 +274,7 @@ importers:
         version: 2.6.2
       satori:
         specifier: 'catalog:'
-        version: 0.63.0
+        version: 0.63.1
       shiki:
         specifier: 'catalog:'
         version: 4.5.0
@@ -1339,8 +1339,8 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  satori@0.63.0:
-    resolution: {integrity: sha512-dXoVy8SvYK+4ON+uoum/fVTy7ZglKbocdHct7sch/rLKZIUyt7nG3CdH647q8AEo75WezXetsZLcb7mYyDqKgg==}
+  satori@0.63.1:
+    resolution: {integrity: sha512-vu2Z3yFJXqfS2AwSCLS0RTs7ziCeOiEnGBw8iG5VcUTqC8OATBDuqDzT5KpcdRZxwA4Q+C+yAtxZdjQZcoSbmA==}
     engines: {node: '>=16'}
 
   shiki@4.5.0:
@@ -2453,7 +2453,7 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.2.13
       '@rolldown/binding-win32-x64-msvc': 1.2.13
 
-  satori@0.63.0:
+  satori@0.63.1:
     dependencies:
       '@shuding/opentype.js': 1.4.0-beta.0
       css-background-parser: 0.1.0
