@@ -190,7 +190,7 @@ catalogs:
       version: 2.0.0
     globals:
       specifier: ^17.7.0
-      version: 17.13.0
+      version: 17.14.0
     ignore:
       specifier: ^7.0.6
       version: 7.0.14
@@ -253,7 +253,7 @@ importers:
         version: 2.0.0
       globals:
         specifier: 'catalog:'
-        version: 17.13.0
+        version: 17.14.0
       tsdown:
         specifier: 'catalog:'
         version: 0.23.4(typescript@6.0.3)
@@ -1079,8 +1079,8 @@ packages:
     resolution: {integrity: sha512-X6fBC0pmImC70gvX2zm56go9hx0MyoGVdG0tUCkg/D+Xnh5TJsOZ7iDbOdI3PvmtrDxnu1YdDufpK2QJX1Meqw==}
     engines: {node: '>=20.20.0'}
 
-  globals@17.13.0:
-    resolution: {integrity: sha512-RwMTC61u7hrG3ZJMkZQOK4JLJrKS8QtoTii63EmWvFXHqycY9FObBJQCbsLxSO8kjKhWE5kV1GC+Vb1g3RI0Zg==}
+  globals@17.14.0:
+    resolution: {integrity: sha512-UtdkTVyAJePQv0J2M9Xe4L0ruNSDV314XiIJsADI2Zf40bcdAonE/D/OhAU8AT99oij9mhLByb+NvA3QWZYgCg==}
     engines: {node: '>=18'}
 
   harfbuzzjs@0.10.0:
@@ -2189,7 +2189,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  globals@17.13.0: {}
+  globals@17.14.0: {}
 
   harfbuzzjs@0.10.0: {}
 
