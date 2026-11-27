@@ -194,7 +194,7 @@ catalogs:
       version: 0.4.1
     '@mdn/browser-compat-data':
       specifier: ^8.0.7
-      version: 8.1.10
+      version: 8.1.11
     '@resvg/resvg-js':
       specifier: ^2.6.2
       version: 2.6.2
@@ -260,7 +260,7 @@ importers:
         version: 2.5.15
       '@mdn/browser-compat-data':
         specifier: 'catalog:'
-        version: 8.1.10
+        version: 8.1.11
       '@tsconfig/bases':
         specifier: 'catalog:'
         version: 1.0.28
@@ -466,8 +466,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@mdn/browser-compat-data@8.1.10':
-    resolution: {integrity: sha512-hz+rLSYXWOcBI8OF+xMzVpA1vxbtYbYSPLPiw/IhKMTiKL7L5+YuyGDPr+QKhnRsgYERxvi4MYc0J74JTakD7A==}
+  '@mdn/browser-compat-data@8.1.11':
+    resolution: {integrity: sha512-EMKM/sZetGWgQbposvwOjUeod+pIP1splOcORycjnOi/jhd3D1YIpdyhohaLgkPELyv9XpqpztRMWEaUvMvpkw==}
 
   '@napi-rs/wasm-runtime@1.2.6':
     resolution: {integrity: sha512-mRyDmEw9/fCDXCGfL1sbgIw/GUK0PVxRW4YwgPN61F3LQ+fSyoBFarJVzgGyhF6kRzEQZ0FejDqm4WLXSeqQmw==}
@@ -1778,7 +1778,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@mdn/browser-compat-data@8.1.10': {}
+  '@mdn/browser-compat-data@8.1.11': {}
 
   '@napi-rs/wasm-runtime@1.2.6(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:
